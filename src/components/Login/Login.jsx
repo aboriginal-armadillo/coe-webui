@@ -56,8 +56,14 @@ function Login() {
                 createdAt: new Date(),
                 id: uuidv4(),
                 name: "Welcome to Council of Elders!",
-                lastMessage: 'SILENCE! The welcome message will go here.',
-                participants: [user.uid] // Assuming a self-chat for initialization
+                root: {
+                    text: "SILENCE! The Welcome message will go here.",
+                    sender: "system",
+                    timestamp: new Date(),
+                    children: [],
+                    selectedChild: null
+                }
+
             });
         }
     };

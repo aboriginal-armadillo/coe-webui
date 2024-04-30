@@ -1,0 +1,22 @@
+.full-height-container {
+    position: relative; /* This ensures the position context is set for the absolute children */
+    min-height: 100vh; /* 100% of the viewport height */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0; /* Remove padding if added by global styles */
+}
+
+.messages-container {
+    overflow-y: auto; /* Makes the list scrollable */
+    flex-grow: 1; /* Takes up all available space */
+}
+
+.fixed-bottom-input {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background-color: white;
+    z-index: 1000; /* High z-index to ensure it's on top */
+}

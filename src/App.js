@@ -26,6 +26,7 @@ const firebaseConfig = {
 // eslint-disable-next-line
 const app = initializeApp(firebaseConfig);
 
+
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
@@ -53,7 +54,7 @@ function App() {
                             <div className="col-md-9">
                                 <Routes>
                                     <Route path="/account" element={<AccountPage />} />
-                                    <Route path="/chat/:chatId" element={<MessagesView />} />
+                                    <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
                                     <Route path="/chat" element={<MessagesView />} />
                                     <Route path="*" element={<Navigate to="/chat" />} />
                                 </Routes>
