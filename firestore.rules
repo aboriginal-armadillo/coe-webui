@@ -7,6 +7,16 @@ service cloud.firestore {
     // is equal to the ID of the currently authenticated user.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Match documents in the subcollection 'chats' under this user document
+      match /chats/{chatId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Match any document in the collection 'config' and allow read access to any logged in user.
+    match /config/{document=**} {
+      allow read: if request.auth != null;
     }
 
     // All other documents will not be accessible without proper rules.

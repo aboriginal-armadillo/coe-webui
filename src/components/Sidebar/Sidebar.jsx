@@ -68,7 +68,7 @@ function Sidebar({ user }) {
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/account">Create a bot</Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
                     <Dropdown.Item as={Link} to="/account">Create an index</Dropdown.Item>
                     <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
                     <Dropdown.Divider />

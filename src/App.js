@@ -10,6 +10,7 @@ import Footer from './components/Footer/Footer';
 import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
+import BuildABot from "./components/BuildABot/BuildABot";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -56,6 +57,7 @@ function App() {
                                 <Routes>
                                     <Route path="/account" element={<AccountPage />} />
                                     <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
+                                    <Route path="/buildabot" element={<BuildABot user={user} />} />
                                     <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
                                     <Route path="/chat" element={<MessagesView />} />
                                     <Route path="*" element={<Navigate to="/chat" />} />
