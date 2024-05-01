@@ -2,6 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, ListGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -69,16 +70,17 @@ function MessagesView({ user }) {
         }
     }, [user, chatId, loadMessages]);
 
-    const handleSendMessage = async(action) => {
+    const handleSendMessage = async (action) => {
         const db = getFirestore();
+        const functions = getFunctions();  // Get Firebase Functions instance
+
         if (newMessage.trim()) {
             if (!chatId && action === 'Me') {
-                // Create a new chat document if chatId is not present
                 const newChatData = {
                     createdAt: Timestamp.now(),
                     name: "New Chat",
                     root: {
-                        sender: user.displayName || "Anonymous",  // Assuming you have user data accessible
+                        sender: user.displayName || "Anonymous",
                         text: newMessage,
                         timestamp: Timestamp.now(),
                         children: [],
@@ -88,24 +90,43 @@ function MessagesView({ user }) {
 
                 try {
                     const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), newChatData);
-                    navigate(`/chat/${newChatRef.id}`);  // Redirect to the new chat using the chatId
+                    navigate(`/chat/${newChatRef.id}`);
                     console.log('New chat created with ID:', newChatRef.id);
                 } catch (error) {
                     console.error("Error creating new chat: ", error);
                 }
             } else {
-                // Append message to existing chat document's messages array
+                const newMsgId = `msg_${Date.now()}`; // Generate a unique ID for the message
                 const newMsg = {
-                    id: messages.length + 1,  // This should ideally be a unique ID, not just length + 1
+                    id: newMsgId,
                     text: newMessage,
-                    sender: user.displayName || "CurrentUser",  // Use actual user data
+                    sender: user.displayName || "CurrentUser",
                     timestamp: new Date().toISOString()
                 };
                 setMessages([...messages, newMsg]);
                 setNewMessage("");
+
+                if (action !== "Me") {
+                    const callNextMessage = httpsCallable(functions, 'call_next_message');
+                    callNextMessage({
+                        service: "chat_service",
+                        userid: user.uid,
+                        chatid: chatId,
+                        model: "default_model", // Assuming a default, replace as needed
+                        system_prompt: newMessage,
+                        temperature: 0.5, // Replace with the desired temperature
+                        name: action,
+                        new_msg_id: newMsgId
+                    }).then((result) => {
+                        console.log("Function called successfully:", result.data);
+                    }).catch((error) => {
+                        console.error("Error calling function:", error);
+                    });
+                }
             }
         }
     };
+
 
     return (
         <Container className="full-height-container">
