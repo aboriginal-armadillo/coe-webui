@@ -5,10 +5,13 @@ import { Form, Button } from 'react-bootstrap';
 function BuildABot({ user }) {
     const [services, setServices] = useState([]);
     const [selectedService, setSelectedService] = useState('');
+    const [keys, setKeys] = useState([]);
+    const [selectedKey, setSelectedKey] = useState('');
     const [allModels, setAllModels] = useState({});
     const [models, setModels] = useState([]);
     const [temperature, setTemperature] = useState(0.5);
     const [systemPrompt, setSystemPrompt] = useState('');
+    const [botName, setBotName] = useState('');
     const modelRef = useRef(null);
 
     useEffect(() => {
@@ -33,12 +36,23 @@ function BuildABot({ user }) {
     }, [user.uid]);
 
     useEffect(() => {
-        if (selectedService && allModels[selectedService]) {
-            setModels(allModels[selectedService]);
-        } else {
-            setModels([]);
+        if (selectedService) {
+            const db = getFirestore();
+            const userRef = doc(db, 'users', user.uid);
+            getDoc(userRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    const apiKeys = docSnap.data().apiKeys;
+                    const filteredKeys = apiKeys.filter(item => item.svc === selectedService).map(item => item.name);
+                    setKeys([...new Set(filteredKeys)]);
+                }
+            });
+            if (allModels[selectedService]) {
+                setModels(allModels[selectedService]);
+            } else {
+                setModels([]);
+            }
         }
-    }, [selectedService, allModels]);
+    }, [selectedService, allModels, user.uid]);
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -46,7 +60,9 @@ function BuildABot({ user }) {
         const db = getFirestore();
         const userRef = doc(db, 'users', user.uid);
         const botData = {
+            name: botName,
             service: selectedService,
+            key: selectedKey,
             model: modelValue,
             temperature: parseFloat(temperature),
             systemPrompt: systemPrompt
@@ -67,11 +83,24 @@ function BuildABot({ user }) {
     return (
         <Form onSubmit={handleSubmit}>
             <Form.Group>
+                <Form.Label>Bot Name</Form.Label>
+                <Form.Control type="text" value={botName} onChange={e => setBotName(e.target.value)} placeholder="Enter bot name" />
+            </Form.Group>
+            <Form.Group>
                 <Form.Label>Service</Form.Label>
                 <Form.Control as="select" value={selectedService} onChange={e => setSelectedService(e.target.value)}>
                     <option value="">Select a service</option>
                     {services.map((service, index) => (
                         <option key={index} value={service}>{service}</option>
+                    ))}
+                </Form.Control>
+            </Form.Group>
+            <Form.Group>
+                <Form.Label>Key</Form.Label>
+                <Form.Control as="select" value={selectedKey} onChange={e => setSelectedKey(e.target.value)}>
+                    <option value="">Select a key</option>
+                    {keys.map((key, index) => (
+                        <option key={index} value={key}>{key}</option>
                     ))}
                 </Form.Control>
             </Form.Group>
