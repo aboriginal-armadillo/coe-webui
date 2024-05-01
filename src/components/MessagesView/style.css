@@ -17,6 +17,7 @@
     left: 0;
     right: 0;
     padding: 10px;
+    width: 100%;
     background-color: white;
     z-index: 1000; /* High z-index to ensure it's on top */
 }

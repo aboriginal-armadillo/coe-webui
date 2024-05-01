@@ -8,6 +8,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 function Sidebar({ user }) {
     const [chats, setChats] = useState([]);
+    // eslint-disable-next-line
     const [displayName, setDisplayName] = useState(user ? user.displayName : '');
 
     useEffect(() => {

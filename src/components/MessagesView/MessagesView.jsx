@@ -1,6 +1,8 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, ListGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
+import { Dropdown, ButtonGroup } from 'react-bootstrap';
+
 import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,7 +14,8 @@ function MessagesView({ user }) {
     const [messages, setMessages] = useState([]);
     const [chatTitle, setChatTitle] = useState("");
     const [newMessage, setNewMessage] = useState("");
-
+    const [botsAvail, setBotsAvail] = useState([]);
+    const [selectedAction, setSelectedAction] = useState("Me");
     const navigate = useNavigate();
 
     const loadMessages = useCallback(async (messageId, accumulatedMessages, db) => {
@@ -41,6 +44,7 @@ function MessagesView({ user }) {
     }, [user, chatId]);
 
     useEffect(() => {
+
         const db = getFirestore();
         if (user && chatId) {
             const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
@@ -49,6 +53,13 @@ function MessagesView({ user }) {
                     const chatData = chatSnap.data();
                     setChatTitle(chatData.name);
                     loadMessages('root', [], db); // Start loading messages from the root
+                }});
+            const userRef = doc(db, `users/${user.uid}`);
+            getDoc(userRef).then(userSnap => {
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    setBotsAvail(userData.bots);
+                    console.log('Bots available:', userData.bots);
                 }
             });
         } else {
@@ -58,10 +69,10 @@ function MessagesView({ user }) {
         }
     }, [user, chatId, loadMessages]);
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = async(action) => {
         const db = getFirestore();
         if (newMessage.trim()) {
-            if (!chatId) {
+            if (!chatId && action === 'Me') {
                 // Create a new chat document if chatId is not present
                 const newChatData = {
                     createdAt: Timestamp.now(),
@@ -108,18 +119,30 @@ function MessagesView({ user }) {
                 ))}
             </ListGroup>
             <InputGroup className="fixed-bottom-input">
-                <FormControl
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
-                />
-                <Button variant="primary" onClick={handleSendMessage}>
-                    Send
-                </Button>
+                {selectedAction === "Me" && (
+                    <FormControl
+                        placeholder="Type a message..."
+                        value={newMessage}
+                        onChange={e => setNewMessage(e.target.value)}
+                        onKeyPress={e => e.key === 'Enter' && handleSendMessage("Send")}
+                    />
+                )}
+                <Dropdown as={ButtonGroup}>
+                    <Button variant="primary" onClick={() => handleSendMessage(selectedAction)}>{selectedAction === "Me" ? "Send" : selectedAction}</Button>
+                    <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
+                    <Dropdown.Menu>
+                        <Dropdown.Item key="send-action" onClick={() => setSelectedAction("Me")}>Me</Dropdown.Item>
+                        {botsAvail && botsAvail.map((bot, index) => (
+                            <Dropdown.Item key={index} onClick={() => setSelectedAction(bot.name)}>
+                                {bot.name}
+                            </Dropdown.Item>
+                        ))}
+                    </Dropdown.Menu>
+                </Dropdown>
             </InputGroup>
         </Container>
     );
+
 }
 
 export default MessagesView;
