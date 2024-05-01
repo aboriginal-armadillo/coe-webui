@@ -1,58 +1,57 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Nav, Dropdown } from 'react-bootstrap';
-import {getAuth, signOut} from "firebase/auth";
-import { collection, query, orderBy, getFirestore, getDocs } from 'firebase/firestore';
-
+import { getAuth, signOut } from "firebase/auth";
+import { collection, query, orderBy, getFirestore, onSnapshot } from 'firebase/firestore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 function Sidebar({ user }) {
     const [chats, setChats] = useState([]);
-    //eslint-disable-next-line
     const [displayName, setDisplayName] = useState(user ? user.displayName : '');
 
     useEffect(() => {
-        const fetchChats = async () => {
-            if (!user) return; // Ensure there is a user before attempting to fetch data
+        if (!user) return;
 
-            const db = getFirestore();
-            const chatsRef = collection(db, `users/${user.uid}/chats`);
+        const db = getFirestore();
+        const chatsRef = collection(db, `users/${user.uid}/chats`);
+        const q = query(chatsRef, orderBy("createdAt", "desc"));
 
-            const q = query(chatsRef, orderBy("createdAt", "desc"));
+        // Setting up the real-time listener using onSnapshot
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedChats = snapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name,
+                created: doc.data().createdAt
+            }));
+            setChats(updatedChats);
+        }, (error) => {
+            console.error("Failed to listen to chats", error);
+        });
 
-            try {
-                const querySnapshot = await getDocs(q);
-                const fetchedChats = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name,
-                    created: doc.data().createdAt
-                }));
-
-                setChats(fetchedChats);
-            } catch (error) {
-                console.error("Failed to fetch chats", error);
-            }
-        };
-
-        fetchChats();
+        // Cleanup function to unsubscribe from the listener when component unmounts
+        return () => unsubscribe();
     }, [user]);
-
 
     const handleSignOut = () => {
         const auth = getAuth();
         signOut(auth).then(() => {
             console.log("User signed out successfully");
-            // Optionally, redirect the user to the login page or handle state updates
         }).catch((error) => {
             console.error("Sign out error", error);
         });
     };
 
-
     return (
         <div className="d-flex flex-column flex-shrink-0 p-3 bg-light" style={{ width: "280px", height: "100vh" }}>
-            <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
-                <span className="fs-4">Sidebar</span>
-            </Link>
+            <div className="d-flex justify-content-between align-items-center">
+                <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+                    <span className="fs-4">Sidebar</span>
+                </Link>
+                <Link to="/chat" className="text-decoration-none">
+                    <FontAwesomeIcon icon={faPlus} size="lg" />
+                </Link>
+            </div>
             <hr />
             <Nav className="flex-column mb-auto">
                 {chats.map(chat => (

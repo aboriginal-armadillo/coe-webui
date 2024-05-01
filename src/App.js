@@ -59,6 +59,7 @@ function App() {
                                     <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
                                     <Route path="/buildabot" element={<BuildABot user={user} />} />
                                     <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
+                                    <Route path="/chat" element={<MessagesView user={user} />} />
                                     <Route path="/chat" element={<MessagesView />} />
                                     <Route path="*" element={<Navigate to="/chat" />} />
                                 </Routes>

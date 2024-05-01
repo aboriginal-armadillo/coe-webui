@@ -1,16 +1,19 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, ListGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+
 
 import './style.css';
-
 
 function MessagesView({ user }) {
     const { chatId } = useParams(); // Get the chat ID from the URL
     const [messages, setMessages] = useState([]);
     const [chatTitle, setChatTitle] = useState("");
     const [newMessage, setNewMessage] = useState("");
+
+    const navigate = useNavigate();
 
     const loadMessages = useCallback(async (messageId, accumulatedMessages, db) => {
         const messageRef = doc(db, `users/${user.uid}/chats/${chatId}`);
@@ -31,7 +34,6 @@ function MessagesView({ user }) {
                 await loadMessages(nextMessageId, accumulatedMessages, db); // Recurse into the next message
             } else {
                 setMessages(accumulatedMessages); // We've reached the end of this thread
-
             }
         } else {
             setMessages(accumulatedMessages); // No more data or broken reference
@@ -49,19 +51,48 @@ function MessagesView({ user }) {
                     loadMessages('root', [], db); // Start loading messages from the root
                 }
             });
+        } else {
+            // Clear the chat when chatId is not present
+            setChatTitle("");
+            setMessages([]);
         }
     }, [user, chatId, loadMessages]);
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
+        const db = getFirestore();
         if (newMessage.trim()) {
-            const newMsg = {
-                id: messages.length + 1, // This should be adjusted for actual Firebase message creation logic
-                text: newMessage,
-                sender: "CurrentUser", // Replace with actual user data
-                timestamp: new Date().toISOString()
-            };
-            setMessages([...messages, newMsg]);
-            setNewMessage("");
+            if (!chatId) {
+                // Create a new chat document if chatId is not present
+                const newChatData = {
+                    createdAt: Timestamp.now(),
+                    name: "New Chat",
+                    root: {
+                        sender: user.displayName || "Anonymous",  // Assuming you have user data accessible
+                        text: newMessage,
+                        timestamp: Timestamp.now(),
+                        children: [],
+                        selectedChild: null
+                    }
+                };
+
+                try {
+                    const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), newChatData);
+                    navigate(`/chat/${newChatRef.id}`);  // Redirect to the new chat using the chatId
+                    console.log('New chat created with ID:', newChatRef.id);
+                } catch (error) {
+                    console.error("Error creating new chat: ", error);
+                }
+            } else {
+                // Append message to existing chat document's messages array
+                const newMsg = {
+                    id: messages.length + 1,  // This should ideally be a unique ID, not just length + 1
+                    text: newMessage,
+                    sender: user.displayName || "CurrentUser",  // Use actual user data
+                    timestamp: new Date().toISOString()
+                };
+                setMessages([...messages, newMsg]);
+                setNewMessage("");
+            }
         }
     };
 
