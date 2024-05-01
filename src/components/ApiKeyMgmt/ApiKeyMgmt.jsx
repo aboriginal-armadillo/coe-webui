@@ -69,7 +69,7 @@ function ApiKeyMgmt({ user }) {
                     >
                         <Dropdown.Item eventKey="Anthropic">Anthropic</Dropdown.Item>
                         <Dropdown.Item eventKey="OpenAI">OpenAI</Dropdown.Item>
-                        <Dropdown.Item eventKey="Pinecone">Pinecone</Dropdown.Item>
+                        <Dropdown.Item eventKey="Vertex">Vertex</Dropdown.Item>
                         <Dropdown.Item eventKey="Replicate">Replicate</Dropdown.Item>
                     </DropdownButton>
                 </Col>
