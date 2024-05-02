@@ -8,6 +8,9 @@ from typing import Any
 
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
+from councilofelders.anthropic import AnthropicAgent
+from councilofelders.replicate import ReplicateLlamaAgent
+from councilofelders.vertex import GemeniAgent
 
 initialize_app()
 db = firestore.client()
@@ -70,6 +73,20 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     user_keys = user_doc['apiKeys']
     api_key = next((key for key in user_keys if key['name'] == req.data['api_key']), None)['apikey']
     hx = extract_messages(chat_doc, "root")
+
+    chat_doc[req.data['new_msg_id']] = {
+        "children": [],
+        "selectedChild": None,
+        "sender": req.data['name'],
+        "text": "...",
+        "timestamp": firestore.SERVER_TIMESTAMP
+    }
+
+    last_message_id = req.data['last_message_id']
+    chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
+    chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
+    chat_doc_ref.set(chat_doc)
+
     if service == "OpenAI":
         logger.log("OpenAI service selected")
         agent = OpenAIAgent(model=req.data['model'],
@@ -78,7 +95,27 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                             name=req.data['name'],
                             api_key=api_key)
         logger.log("Agent created")
-
+    elif service == "Anthropic":
+        logger.log("Anthropic service selected")
+        agent = AnthropicAgent(model=req.data['model'],
+                                system_prompt=req.data['system_prompt'],
+                                temperature=req.data['temperature'],
+                                name=req.data['name'],
+                                api_key=api_key)
+    elif service == "Replicate":
+        logger.log("Replicate service selected")
+        agent = ReplicateLlamaAgent(model=req.data['model'],
+                                    system_prompt=req.data['system_prompt'],
+                                    temperature=req.data['temperature'],
+                                    name=req.data['name'],
+                                    api_key=api_key)
+    elif service == "Vertex":
+        logger.log("Vertex service selected")
+        agent = GemeniAgent(model=req.data['model'],
+                            system_prompt=req.data['system_prompt'],
+                            temperature=req.data['temperature'],
+                            name=req.data['name'],
+                            api_key=api_key)
     elders = Cohort(agents=[agent], history=hx)
     logger.log("History updated")
     msg = elders.agents[0].generate_next_message()
@@ -86,16 +123,14 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
 
 
 
-    chat_doc[req.data['new_msg_id']] = {
+    update_data = {req.data['new_msg_id']:{
         "children": [],
         "selectedChild": None,
         "sender": req.data['name'],
         "text": msg,
         "timestamp": firestore.SERVER_TIMESTAMP
-    }
+    }}
 
-    last_message_id = req.data['last_message_id']
-    chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
-    chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
-    chat_doc_ref.set(chat_doc)
+
+    chat_doc_ref.update(update_data)
 
