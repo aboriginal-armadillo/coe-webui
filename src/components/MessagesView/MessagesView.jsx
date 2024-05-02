@@ -4,7 +4,16 @@ import { Container, ListGroup, InputGroup, FormControl, Button } from 'react-boo
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
-import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    addDoc,
+    collection,
+    Timestamp,
+    onSnapshot,
+    setDoc
+} from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -49,12 +58,19 @@ function MessagesView({ user }) {
         const db = getFirestore();
         if (user && chatId) {
             const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
-            getDoc(chatRef).then(chatSnap => {
+            onSnapshot(chatRef, (chatSnap) => {
                 if (chatSnap.exists()) {
                     const chatData = chatSnap.data();
                     setChatTitle(chatData.name);
                     loadMessages('root', [], db); // Start loading messages from the root
-                }});
+                } else {
+                    // Handle the case where the chat does not exist
+                    console.log("Chat does not exist or was deleted.");
+                }
+            }, (error) => {
+                console.error("Failed to subscribe to chat updates:", error);
+            });
+
             const userRef = doc(db, `users/${user.uid}`);
             getDoc(userRef).then(userSnap => {
                 if (userSnap.exists()) {
@@ -73,9 +89,8 @@ function MessagesView({ user }) {
     const handleSendMessage = async (action) => {
         const db = getFirestore();
         const functions = getFunctions();  // Get Firebase Functions instance
-
-        if (newMessage.trim()) {
-            if (!chatId && action === 'Me') {
+        console.log(action)
+        if (!chatId && action === 'Me') {
                 const newChatData = {
                     createdAt: Timestamp.now(),
                     name: "New Chat",
@@ -91,41 +106,66 @@ function MessagesView({ user }) {
                 try {
                     const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), newChatData);
                     navigate(`/chat/${newChatRef.id}`);
-                    console.log('New chat created with ID:', newChatRef.id);
+
                 } catch (error) {
                     console.error("Error creating new chat: ", error);
                 }
-            } else {
-                const newMsgId = `msg_${Date.now()}`; // Generate a unique ID for the message
-                const newMsg = {
-                    id: newMsgId,
-                    text: newMessage,
+            } else if (action === 'Me') {
+                // Add the message from 'Me' to the chat in Firestore
+                const messageData = {
                     sender: user.displayName || "CurrentUser",
-                    timestamp: new Date().toISOString()
+                    text: newMessage,
+                    timestamp: Timestamp.now(),
+                    children: [],
+                    selectedChild: null
                 };
-                setMessages([...messages, newMsg]);
-                setNewMessage("");
+                // create a new message uuid
+                const newMsgId = `msg_${Date.now()}`;
+                // Add the message to the chat and append the last message with a new child
+                // get the chatRef
+                const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+                // get the last message
+                const chatSnap = await getDoc(chatRef);
+                const chatData = chatSnap.data();
+                const lastMessageId = messages[messages.length - 1].id;
 
-                if (action !== "Me") {
-                    const callNextMessage = httpsCallable(functions, 'call_next_message');
-                    callNextMessage({
-                        service: "chat_service",
-                        userid: user.uid,
-                        chatid: chatId,
-                        model: "default_model", // Assuming a default, replace as needed
-                        system_prompt: newMessage,
-                        temperature: 0.5, // Replace with the desired temperature
-                        name: action,
-                        new_msg_id: newMsgId
-                    }).then((result) => {
-                        console.log("Function called successfully:", result.data);
-                    }).catch((error) => {
-                        console.error("Error calling function:", error);
-                    });
-                }
+                // update chatData[lastMessageId].children with newMsgId
+                chatData[lastMessageId].children.push(newMsgId);
+                // update chatData[newMsgId] with messageData
+                chatData[newMsgId] = messageData;
+                // update chatRef with chatData
+                await setDoc(chatRef, chatData);
+
+                setNewMessage("");
             }
+        else { // The bot, so call the fn
+            console.log("Calling bot function")
+            const bot = botsAvail.find(bot => bot.name === action);
+            console.log('bot: ', bot);
+            const newMsgId = `msg_${Date.now()}`; // Generate a unique ID for the message
+
+            const callNextMessage = httpsCallable(functions, 'call_next_msg');
+            const callData = {
+                service: bot.service,
+                userid: user.uid,
+                chatid: chatId,
+                model: bot.model,
+                system_prompt: bot.systemPrompt,
+                temperature: bot.temperature,
+                name: bot.name,
+                new_msg_id: newMsgId,
+                api_key: bot.key,
+                last_message_id: messages[messages.length - 1].id
+            }
+            console.log("callData: ", callData);
+            callNextMessage(callData).then((result) => {
+                console.log("Function called successfully:", result.data);
+            }).catch((error) => {
+                console.error("Error calling function:", error);
+            });
         }
-    };
+    }
+
 
 
     return (
