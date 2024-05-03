@@ -32,14 +32,15 @@ function MessagesView({ user }) {
         const messageRef = doc(db, `users/${user.uid}/chats/${chatId}`);
         const messageSnap = await getDoc(messageRef);
         if (messageSnap.exists()) {
-            const messageData = messageSnap.data()[messageId];
-
-            accumulatedMessages.push({
-                id: messageId,
-                text: messageData.text,
-                sender: messageData.sender,
-                timestamp: new Date(messageData.timestamp.seconds * 1000 + messageData.timestamp.nanoseconds / 1000000)
-            });
+            let messageData = messageSnap.data()[messageId];
+            messageData.timestamp = new Date(messageData.timestamp.seconds * 1000 + messageData.timestamp.nanoseconds / 1000000);
+            accumulatedMessages.push(
+                // id: messageId,
+                // text: messageData.text,
+                // sender: messageData.sender,
+                // timestamp: new Date(messageData.timestamp.seconds * 1000 + messageData.timestamp.nanoseconds / 1000000)
+                messageData
+            );
 
             if (messageData.children && messageData.children.length > 0) {
                 const selectedIndex = messageData.selectedChild || 0;
@@ -157,9 +158,9 @@ function MessagesView({ user }) {
                 api_key: bot.key,
                 last_message_id: messages[messages.length - 1].id
             }
-            console.log("callData: ", callData);
+
             callNextMessage(callData).then((result) => {
-                console.log("Function called successfully:", result.data);
+                // console.log("Function called successfully:", result.data);
             }).catch((error) => {
                 console.error("Error calling function:", error);
             });
@@ -174,9 +175,19 @@ function MessagesView({ user }) {
             <ListGroup className="messages-container">
                 {messages.map(msg => (
                     <ListGroup.Item key={msg.id}>
-                        <strong>{msg.sender}</strong>: {msg.text} <br />
-                        <small>{msg.timestamp.toLocaleString()}</small>
+                        {msg.error ? (
+                            <>
+                                <strong>ERROR</strong>: {msg.error} <br />
+                                <small>{msg.timestamp.toLocaleString()}</small>
+                            </>
+                        ) : (
+                            <>
+                                <strong>{msg.sender}</strong>: {msg.text} <br />
+                                <small>{msg.timestamp.toLocaleString()}</small>
+                            </>
+                        )}
                     </ListGroup.Item>
+
                 ))}
             </ListGroup>
             <InputGroup className="fixed-bottom-input">

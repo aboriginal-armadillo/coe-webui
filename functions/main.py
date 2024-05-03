@@ -51,7 +51,7 @@ def extract_messages(data, current_key):
 
     return messages
 
-@https_fn.on_call(memory=options.MemoryOption.MB_512) #GB_1)
+@https_fn.on_call(memory=options.MemoryOption.MB_512)  # GB_1)
 def call_next_msg(req: https_fn.CallableRequest) -> Any:
     """Params:
     - service: str
@@ -64,73 +64,87 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     - new_msg_id: str
     - api_key: str
     """
-    logger.log("Request data: ", req.data)
-    service = req.data['service']
-    chat_doc_ref = db.collection('users').document(req.data['userid']).collection('chats').document(req.data['chatid'])
-    doc = chat_doc_ref.get()
-    chat_doc= doc.to_dict()
-    user_doc = db.collection('users').document(req.data['userid']).get().to_dict()
-    user_keys = user_doc['apiKeys']
-    api_key = next((key for key in user_keys if key['name'] == req.data['api_key']), None)['apikey']
-    hx = extract_messages(chat_doc, "root")
+    try:
+        logger.log("Request data: ", req.data)
+        service = req.data['service']
+        chat_doc_ref = db.collection('users').document(req.data['userid']).collection('chats').document(req.data['chatid'])
+        doc = chat_doc_ref.get()
+        chat_doc = doc.to_dict()
+        user_doc = db.collection('users').document(req.data['userid']).get().to_dict()
+        user_keys = user_doc['apiKeys']
+        api_key = next((key for key in user_keys if key['name'] == req.data['api_key']), None)['apikey']
+        hx = extract_messages(chat_doc, "root")
 
-    chat_doc[req.data['new_msg_id']] = {
-        "children": [],
-        "selectedChild": None,
-        "sender": req.data['name'],
-        "text": "...",
-        "timestamp": firestore.SERVER_TIMESTAMP
-    }
+        chat_doc[req.data['new_msg_id']] = {
+            "children": [],
+            "selectedChild": None,
+            "sender": req.data['name'],
+            "text": "...",
+            "timestamp": firestore.SERVER_TIMESTAMP
+        }
 
-    last_message_id = req.data['last_message_id']
-    chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
-    chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
-    chat_doc_ref.set(chat_doc)
+        last_message_id = req.data['last_message_id']
+        chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
+        chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
+        chat_doc_ref.set(chat_doc)
 
-    if service == "OpenAI":
-        logger.log("OpenAI service selected")
-        agent = OpenAIAgent(model=req.data['model'],
-                            system_prompt=req.data['system_prompt'],
-                            temperature=req.data['temperature'],
-                            name=req.data['name'],
-                            api_key=api_key)
-        logger.log("Agent created")
-    elif service == "Anthropic":
-        logger.log("Anthropic service selected")
-        agent = AnthropicAgent(model=req.data['model'],
+        if service == "OpenAI":
+            logger.log("OpenAI service selected")
+            agent = OpenAIAgent(model=req.data['model'],
                                 system_prompt=req.data['system_prompt'],
                                 temperature=req.data['temperature'],
                                 name=req.data['name'],
                                 api_key=api_key)
-    elif service == "Replicate":
-        logger.log("Replicate service selected")
-        agent = ReplicateLlamaAgent(model=req.data['model'],
-                                    system_prompt=req.data['system_prompt'],
-                                    temperature=req.data['temperature'],
-                                    name=req.data['name'],
-                                    api_key=api_key)
-    elif service == "Vertex":
-        logger.log("Vertex service selected")
-        agent = GemeniAgent(model=req.data['model'],
-                            system_prompt=req.data['system_prompt'],
-                            temperature=req.data['temperature'],
-                            name=req.data['name'],
-                            api_key=api_key)
-    elders = Cohort(agents=[agent], history=hx)
-    logger.log("History updated")
-    msg = elders.agents[0].generate_next_message()
-    logger.log("Message generated")
+            logger.log("Agent created")
+        elif service == "Anthropic":
+            logger.log("Anthropic service selected")
+            agent = AnthropicAgent(model=req.data['model'],
+                                   system_prompt=req.data['system_prompt'],
+                                   temperature=req.data['temperature'],
+                                   name=req.data['name'],
+                                   api_key=api_key)
+        elif service == "Replicate":
+            logger.log("Replicate service selected")
+            agent = ReplicateLlamaAgent(model=req.data['model'],
+                                        system_prompt=req.data['system_prompt'],
+                                        temperature=req.data['temperature'],
+                                        name=req.data['name'],
+                                        api_key=api_key)
+        elif service == "Vertex":
+            logger.log("Vertex service selected")
+            agent = GemeniAgent(model=req.data['model'],
+                                system_prompt=req.data['system_prompt'],
+                                temperature=req.data['temperature'],
+                                name=req.data['name'],
+                                api_key=api_key)
 
+        elders = Cohort(agents=[agent], history=hx)
+        logger.log("History updated")
+        msg = elders.agents[0].generate_next_message()
+        logger.log("Message generated")
 
+        update_data = {req.data['new_msg_id']: {
+            "children": [],
+            "selectedChild": None,
+            "sender": req.data['name'],
+            "text": msg,
+            "timestamp": firestore.SERVER_TIMESTAMP
+        }}
 
-    update_data = {req.data['new_msg_id']:{
-        "children": [],
-        "selectedChild": None,
-        "sender": req.data['name'],
-        "text": msg,
-        "timestamp": firestore.SERVER_TIMESTAMP
-    }}
+        chat_doc_ref.update(update_data)
 
-
-    chat_doc_ref.update(update_data)
-
+    except Exception as e:
+        import traceback
+        error_message = traceback.format_exc()
+        logger.log("Error occurred: ", error_message)
+        # Update the document with the error stack trace
+        chat_doc_ref.update({
+            req.data['new_msg_id']: {
+                "error": error_message,
+                "timestamp": firestore.SERVER_TIMESTAMP,
+                "children": [],
+                "selectedChild": None
+            }
+        })
+        # Optionally, you might want to re-raise the exception or handle it differently
+        raise e
