@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Container, ListGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import ReactMarkdown from 'react-markdown';
 
 import {
     getFirestore,
@@ -100,7 +101,9 @@ function MessagesView({ user }) {
                         text: newMessage,
                         timestamp: Timestamp.now(),
                         children: [],
-                        selectedChild: null
+                        selectedChild: null,
+                        id: "root"
+
                     }
                 };
 
@@ -146,6 +149,8 @@ function MessagesView({ user }) {
             const newMsgId = `msg_${Date.now()}`; // Generate a unique ID for the message
 
             const callNextMessage = httpsCallable(functions, 'call_next_msg');
+
+
             const callData = {
                 service: bot.service,
                 userid: user.uid,
@@ -158,7 +163,7 @@ function MessagesView({ user }) {
                 api_key: bot.key,
                 last_message_id: messages[messages.length - 1].id
             }
-
+            console.log(callData)
             callNextMessage(callData).then((result) => {
                 // console.log("Function called successfully:", result.data);
             }).catch((error) => {
@@ -177,12 +182,12 @@ function MessagesView({ user }) {
                     <ListGroup.Item key={msg.id}>
                         {msg.error ? (
                             <>
-                                <strong>ERROR</strong>: {msg.error} <br />
+                                <strong>ERROR</strong>:{msg.error}<br />
                                 <small>{msg.timestamp.toLocaleString()}</small>
                             </>
                         ) : (
                             <>
-                                <strong>{msg.sender}</strong>: {msg.text} <br />
+                                <strong>{msg.sender}</strong>:<ReactMarkdown>{msg.text}</ReactMarkdown><br />
                                 <small>{msg.timestamp.toLocaleString()}</small>
                             </>
                         )}
