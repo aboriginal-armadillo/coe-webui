@@ -74,18 +74,26 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
         user_keys = user_doc['apiKeys']
         api_key = next((key for key in user_keys if key['name'] == req.data['api_key']), None)['apikey']
         hx = extract_messages(chat_doc, "root")
-
+        #small change to kickstart build (upstream bug fixes on llama)
         chat_doc[req.data['new_msg_id']] = {
             "children": [],
             "selectedChild": None,
             "sender": req.data['name'],
             "text": "...",
-            "timestamp": firestore.SERVER_TIMESTAMP
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "id": req.data['new_msg_id']
         }
 
         last_message_id = req.data['last_message_id']
-        chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
-        chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
+        if 'children' in chat_doc[last_message_id]:
+            chat_doc[last_message_id]['children'].append(req.data['new_msg_id'])
+        else:
+            chat_doc[last_message_id]['children'] = [req.data['new_msg_id']]
+        if 'selectedChild' in chat_doc[last_message_id]:
+            chat_doc[last_message_id]['selectedChild'] = len(chat_doc[last_message_id]['children']) - 1
+        else:
+            chat_doc[last_message_id]['selectedChild'] = 0
+
         chat_doc_ref.set(chat_doc)
 
         if service == "OpenAI":
@@ -128,7 +136,8 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
             "selectedChild": None,
             "sender": req.data['name'],
             "text": msg,
-            "timestamp": firestore.SERVER_TIMESTAMP
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "id": req.data['new_msg_id']
         }}
 
         chat_doc_ref.update(update_data)

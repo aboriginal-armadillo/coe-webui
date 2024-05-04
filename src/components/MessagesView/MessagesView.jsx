@@ -116,15 +116,17 @@ function MessagesView({ user }) {
                 }
             } else if (action === 'Me') {
                 // Add the message from 'Me' to the chat in Firestore
+                const newMsgId = `msg_${Date.now()}`;
                 const messageData = {
                     sender: user.displayName || "CurrentUser",
                     text: newMessage,
                     timestamp: Timestamp.now(),
                     children: [],
-                    selectedChild: null
+                    selectedChild: null,
+                    id: newMsgId
                 };
                 // create a new message uuid
-                const newMsgId = `msg_${Date.now()}`;
+
                 // Add the message to the chat and append the last message with a new child
                 // get the chatRef
                 const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
@@ -132,7 +134,8 @@ function MessagesView({ user }) {
                 const chatSnap = await getDoc(chatRef);
                 const chatData = chatSnap.data();
                 const lastMessageId = messages[messages.length - 1].id;
-
+                console.log('messages.length: ', messages.length);
+                console.log('lastMessageId: ', lastMessageId);
                 // update chatData[lastMessageId].children with newMsgId
                 chatData[lastMessageId].children.push(newMsgId);
                 // update chatData[newMsgId] with messageData
@@ -149,7 +152,6 @@ function MessagesView({ user }) {
             const newMsgId = `msg_${Date.now()}`; // Generate a unique ID for the message
 
             const callNextMessage = httpsCallable(functions, 'call_next_msg');
-
 
             const callData = {
                 service: bot.service,
