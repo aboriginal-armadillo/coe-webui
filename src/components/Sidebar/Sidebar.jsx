@@ -1,39 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Nav, Dropdown } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
-import { collection, query, orderBy, getFirestore, onSnapshot } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import ChatList from '../ChatList/ChatList';
 
 function Sidebar({ user }) {
-    const [chats, setChats] = useState([]);
-    // eslint-disable-next-line
-    const [displayName, setDisplayName] = useState(user ? user.displayName : '');
-
-    useEffect(() => {
-        if (!user) return;
-
-        const db = getFirestore();
-        const chatsRef = collection(db, `users/${user.uid}/chats`);
-        const q = query(chatsRef, orderBy("createdAt", "desc"));
-
-        // Setting up the real-time listener using onSnapshot
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const updatedChats = snapshot.docs.map(doc => ({
-                id: doc.id,
-                name: doc.data().name,
-                created: doc.data().createdAt
-            }));
-            setChats(updatedChats);
-        }, (error) => {
-            console.error("Failed to listen to chats", error);
-        });
-
-        // Cleanup function to unsubscribe from the listener when component unmounts
-        return () => unsubscribe();
-    }, [user]);
-
     const handleSignOut = () => {
         const auth = getAuth();
         signOut(auth).then(() => {
@@ -54,22 +27,15 @@ function Sidebar({ user }) {
                 </Link>
             </div>
             <hr />
-            <Nav className="flex-column mb-auto">
-                {chats.map(chat => (
-                    <Nav.Link as={Link} to={`/chat/${chat.id}`} key={chat.id} className="text-dark">
-                        {chat.name}
-                    </Nav.Link>
-                ))}
-            </Nav>
+            <ChatList user={user} />
             <hr />
             <Dropdown>
                 <Dropdown.Toggle as={Nav.Link} className="text-dark d-flex align-items-center" id="dropdown-account">
-                    <strong>{displayName}</strong>
+                    <strong>{user?.displayName}</strong>
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
                     <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/account">Create an index</Dropdown.Item>
                     <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Item as="button" onClick={handleSignOut}>Sign out</Dropdown.Item>
