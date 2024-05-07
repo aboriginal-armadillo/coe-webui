@@ -50,10 +50,10 @@ function App() {
                 {isLoggedIn ? (
                     <div className="container-fluid">
                         <div className="row">
-                            <div className="col-md-3">
+                            <div className="col-md-2">
                                 <Sidebar user={user} />
                             </div>
-                            <div className="col-md-9">
+                            <div className="col-md-10">
                                 <Routes>
                                     <Route path="/account" element={<AccountPage />} />
                                     <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
@@ -72,7 +72,7 @@ function App() {
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 )}
-                <Footer />
+                {/*<Footer />*/}
             </div>
         </Router>
     );
