@@ -1,23 +1,46 @@
 .full-height-container {
-    position: relative; /* This ensures the position context is set for the absolute children */
-    min-height: 100vh; /* 100% of the viewport height */
+    height: 100vh; /* Full viewport height */
     display: flex;
     flex-direction: column;
-    padding-bottom: 0; /* Remove padding if added by global styles */
+}
+
+.chat-title {
+    flex-shrink: 0; /* Ensures the title doesn't shrink */
 }
 
 .messages-container {
-    overflow-y: auto; /* Makes the list scrollable */
-    flex-grow: 1; /* Takes up all available space */
+    flex-grow: 1; /* Allows this element to grow and fill available space */
+    overflow-y: auto; /* Adds scroll to this element only */
+}
+
+.message-item {
+    border-bottom: 1px solid #ccc; /* Optional: adds separation between messages */
 }
 
 .fixed-bottom-input {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 10px;
-    width: 100%;
-    background-color: white;
-    z-index: 1000; /* High z-index to ensure it's on top */
+    flex-shrink: 0; /* Prevents the input area from shrinking */
 }
+
+/*.full-height-container {*/
+/*    position: relative; !* This ensures the position context is set for the absolute children *!*/
+/*    min-height: 100vh; !* 100% of the viewport height *!*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    padding-bottom: 0; !* Remove padding if added by global styles *!*/
+/*}*/
+
+/*.messages-container {*/
+/*    overflow-y: auto; !* Makes the list scrollable *!*/
+/*    flex-grow: 1; !* Takes up all available space *!*/
+/*}*/
+
+/*.fixed-bottom-input {*/
+/*    position: fixed;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    padding: 10px;*/
+/*    width: 100%;*/
+/*    background-color: white;*/
+/*    z-index: 1000; !* High z-index to ensure it's on top *!*/
+/*}*/
