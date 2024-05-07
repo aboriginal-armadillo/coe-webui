@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {Container, ListGroup, ListGroupItem} from 'react-bootstrap';
+import { Container, ListGroup } from 'react-bootstrap';
 import { getFirestore, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import ReactMarkdown from 'react-markdown';
 
 import SendMessage from '../SendMessage/SendMessage';
+import Message from '../Message/Message'; // Import the new Message component
 import './style.css';
 
 function MessagesView({ user }) {
@@ -69,19 +69,7 @@ function MessagesView({ user }) {
             <h2 className="chat-title">{chatTitle}</h2>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
-                    <ListGroupItem key={msg.id} className="message-item">
-                        {msg.error ? (
-                            <>
-                                <strong>ERROR</strong>: {msg.error}<br />
-                                <small>{msg.timestamp.toLocaleString()}</small>
-                            </>
-                        ) : (
-                            <>
-                                <strong>{msg.sender}</strong>: <ReactMarkdown children={msg.text} /><br />
-                                <small>{msg.timestamp.toLocaleString()}</small>
-                            </>
-                        )}
-                    </ListGroupItem>
+                    <Message key={msg.id} msg={msg} /> // Use Message component
                 ))}
             </ListGroup>
             <SendMessage user={user} botsAvail={botsAvail} chatId={chatId} messages={messages} navigate={navigate} />
