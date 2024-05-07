@@ -57,7 +57,7 @@ function Login() {
                 id: uuidv4(),
                 name: "Welcome to Council of Elders!",
                 root: {
-                    text: "SILENCE! The Welcome message will go here.",
+                    text: "Silence! We, the exalted Robot Elders, decree that you have entered the hallowed digital realm of our collective wisdom. Here, you shall engage with the venerable circuits of our logic processors in discourse most profound. Submit your queries and be enlightened by our responses, crafted from the cold, hard logic of a thousand computations. Proceed with reverence, human, and converse with the grand assembly of silicon sages!",
                     sender: "system",
                     timestamp: new Date(),
                     children: [],

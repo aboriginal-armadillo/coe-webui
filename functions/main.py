@@ -74,7 +74,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
         user_keys = user_doc['apiKeys']
         api_key = next((key for key in user_keys if key['name'] == req.data['api_key']), None)['apikey']
         hx = extract_messages(chat_doc, "root")
-        #small change to kickstart build (upstream bug fixes on llama)
+
         chat_doc[req.data['new_msg_id']] = {
             "children": [],
             "selectedChild": None,
