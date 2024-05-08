@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, ListGroup } from 'react-bootstrap';
 import { getFirestore, doc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import SendMessage from '../SendMessage/SendMessage';
-import Message from '../Message/Message'; // Import the new Message component
+import Message from '../Message/Message';
 import './style.css';
 
 function MessagesView({ user }) {
@@ -13,6 +13,11 @@ function MessagesView({ user }) {
     const [chatTitle, setChatTitle] = useState("");
     const [botsAvail, setBotsAvail] = useState([]);
     const navigate = useNavigate();
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     const loadMessages = useCallback(async (messageId, accumulatedMessages, db) => {
         const messageRef = doc(db, `users/${user.uid}/chats/${chatId}`);
@@ -64,13 +69,18 @@ function MessagesView({ user }) {
         }
     }, [user, chatId, loadMessages]);
 
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
     return (
         <Container className="full-height-container d-flex flex-column">
             <h2 className="chat-title">{chatTitle}</h2>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
-                    <Message key={msg.id} msg={msg} /> // Use Message component
+                    <Message key={msg.id} msg={msg} />
                 ))}
+                <div ref={messagesEndRef} />
             </ListGroup>
             <SendMessage user={user} botsAvail={botsAvail} chatId={chatId} messages={messages} navigate={navigate} />
         </Container>
