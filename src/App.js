@@ -11,6 +11,9 @@ import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
 import BuildABot from "./components/BuildABot/BuildABot";
+import './App.css';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faBars} from "@fortawesome/free-solid-svg-icons";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -32,9 +35,9 @@ const app = initializeApp(firebaseConfig);
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        // Add Firebase auth listener here to set isLoggedIn
         const auth = getAuth();
         const unsubscribe = auth.onAuthStateChanged(user => {
             setIsLoggedIn(!!user);
@@ -43,36 +46,36 @@ function App() {
         return () => unsubscribe();
     }, []);
 
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
+
     return (
         <Router>
             <div className="App">
-                {/*<Header />*/}
                 {isLoggedIn ? (
-                    <div className="container-fluid">
-                        <div className="row">
-                            <div className="col-md-2">
-                                <Sidebar user={user} />
-                            </div>
-                            <div className="col-md-10">
-                                <Routes>
-                                    <Route path="/account" element={<AccountPage />} />
-                                    <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
-                                    <Route path="/buildabot" element={<BuildABot user={user} />} />
-                                    <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
-                                    <Route path="/chat" element={<MessagesView user={user} />} />
-                                    <Route path="/chat" element={<MessagesView />} />
-                                    <Route path="*" element={<Navigate to="/chat" />} />
-                                </Routes>
-                            </div>
+                    <>
+                        <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+                            <Sidebar user={user} toggleSidebar={toggleSidebar} isOpen={sidebarOpen}/>
                         </div>
-                    </div>
+                        <div className="content">
+                            <FontAwesomeIcon icon={faBars} className="toggle-button" onClick={toggleSidebar} />
+                            <Routes>
+                                <Route path="/account" element={<AccountPage />} />
+                                <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
+                                <Route path="/buildabot" element={<BuildABot user={user} />} />
+                                <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
+                                <Route path="/chat" element={<MessagesView user={user} />} />
+                                <Route path="*" element={<Navigate to="/chat" />} />
+                            </Routes>
+                        </div>
+                    </>
                 ) : (
                     <Routes>
                         <Route path="/" element={<Login />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 )}
-                {/*<Footer />*/}
             </div>
         </Router>
     );

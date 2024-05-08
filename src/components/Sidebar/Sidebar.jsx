@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Nav, Dropdown } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import ChatList from '../ChatList/ChatList';
 
-function Sidebar({ user }) {
-    const [isOpen, setIsOpen] = useState(true); // State to manage sidebar visibility
+function Sidebar({ user, isOpen, toggleSidebar }) {
+    // const [isOpen, setIsOpen] = useState(true); // State to manage sidebar visibility
 
     const handleSignOut = () => {
         const auth = getAuth();
@@ -18,15 +18,9 @@ function Sidebar({ user }) {
         });
     };
 
-    const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-    };
-
     return (
         <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light ${isOpen ? '' : 'w-0'}`} style={{ width: isOpen ? "280px" : "0", height: "100vh", transition: "width 0.3s", padding: "0" }}>
-            <button onClick={toggleSidebar} className="btn mb-3" style={{ padding: "0", margin: "0", marginLeft: "-1rem", background: "none", border: "none" }}>
-                <FontAwesomeIcon icon={faBars} size="lg" />
-            </button>
+
 
             {isOpen && (
                 <>
