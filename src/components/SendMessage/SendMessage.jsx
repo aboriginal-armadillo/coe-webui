@@ -85,16 +85,24 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate }) {
     };
 
     return (
-        <InputGroup className="fixed-bottom-input">
-            <FormControl
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyPress={e => e.key === 'Enter' && handleSendMessage(selectedAction)}
-            />
-            <Button variant="primary" onClick={() => handleSendMessage(selectedAction)}>
-                {selectedAction === "Me" ? "Send" : `Send as ${selectedAction}`}
-            </Button>
+        <InputGroup className="fixed-bottom-input" style={{ display: "flex", justifyContent: "center" }}>
+            {selectedAction === "Me" ? (
+                <>
+                    <FormControl
+                        placeholder="Type a message..."
+                        value={newMessage}
+                        onChange={e => setNewMessage(e.target.value)}
+                        onKeyPress={e => e.key === 'Enter' && handleSendMessage(selectedAction)}
+                    />
+                    <Button variant="primary" onClick={() => handleSendMessage(selectedAction)}>
+                        Send
+                    </Button>
+                </>
+            ) : <Button variant="primary"
+                        onClick={() => handleSendMessage(selectedAction)}
+                        >
+                Respond with {selectedAction}
+            </Button>}
             <Dropdown as={ButtonGroup}>
                 <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
                 <Dropdown.Menu>
@@ -108,6 +116,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate }) {
             </Dropdown>
         </InputGroup>
     );
+
 }
 
 export default SendMessage;
