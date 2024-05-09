@@ -14,6 +14,8 @@ import BuildABot from "./components/BuildABot/BuildABot";
 import './App.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
+import BotZoo from "./components/BotZoo/BotZoo";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -66,6 +68,7 @@ function App() {
                                 <Route path="/buildabot" element={<BuildABot user={user} />} />
                                 <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
                                 <Route path="/chat" element={<MessagesView user={user} />} />
+                                <Route path="/bots" element={<BotZoo user={user} />} />
                                 <Route path="*" element={<Navigate to="/chat" />} />
                             </Routes>
                         </div>

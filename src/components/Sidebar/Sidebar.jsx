@@ -42,6 +42,7 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                         <Dropdown.Menu>
                             <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
+                            <Dropdown.Item as={Link} to="/bots">The Bot Zoo</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
                             <Dropdown.Divider />
                             <Dropdown.Item as="button" onClick={handleSignOut}>Sign out</Dropdown.Item>
