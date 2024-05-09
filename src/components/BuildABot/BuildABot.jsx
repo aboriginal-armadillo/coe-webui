@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Form, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 function BuildABot({ user }) {
     const [services, setServices] = useState([]);
@@ -13,6 +14,8 @@ function BuildABot({ user }) {
     const [systemPrompt, setSystemPrompt] = useState('');
     const [botName, setBotName] = useState('');
     const modelRef = useRef(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const db = getFirestore();
@@ -73,6 +76,7 @@ function BuildABot({ user }) {
         })
             .then(() => {
                 alert('Bot configuration saved successfully!');
+                navigate('/bots');
             })
             .catch(error => {
                 console.error('Error adding bot configuration: ', error);
