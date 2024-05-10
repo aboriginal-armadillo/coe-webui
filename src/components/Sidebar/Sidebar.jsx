@@ -26,7 +26,7 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                 <>
                     <div className="d-flex justify-content-between align-items-center">
                         <Link to="/" className="d-flex align-items-center mb-md-0 me-md-auto link-dark text-decoration-none">
-                            <span className="fs-4">Sidebar</span>
+                            <span className="fs-4"></span>
                         </Link>
                         <Link to="/chat" className="text-decoration-none">
                             <FontAwesomeIcon icon={faPlus} size="lg" />
@@ -36,7 +36,8 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                     <ChatList user={user} />
                     <hr />
                     <Dropdown>
-                        <Dropdown.Toggle as={Nav.Link} className="text-dark d-flex align-items-center" id="dropdown-account">
+                        <Dropdown.Toggle as={Nav.Link}
+                                         className="text-dark d-flex align-items-center" id="dropdown-account">
                             <strong>{user?.displayName}</strong>
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
