@@ -13,7 +13,7 @@ import SendMessage from '../SendMessage/SendMessage';
 import Message from '../Message/Message';
 import './style.css';
 
-function MessagesView({ user }) {
+function MessagesView({ user, isNew }) {
     const { chatId } = useParams();
     const [messages, setMessages] = useState([]);
     const [chatTitle, setChatTitle] = useState("");
@@ -108,7 +108,12 @@ function MessagesView({ user }) {
                 ))}
                 <div ref={messagesEndRef} />
             </ListGroup>
-            <SendMessage user={user} botsAvail={botsAvail} chatId={chatId} messages={messages} navigate={navigate} />
+            <SendMessage user={user}
+                         botsAvail={botsAvail}
+                         chatId={chatId}
+                         messages={messages}
+                         navigate={navigate}
+                         isNew={isNew}/>
         </Container>
     );
 }

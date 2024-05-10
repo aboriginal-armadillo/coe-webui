@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { InputGroup, FormControl, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
-function SendMessage({ user, botsAvail, chatId, messages, navigate }) {
+function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
     const [newMessage, setNewMessage] = useState("");
     const [selectedAction, setSelectedAction] = useState("Me");
 
+    useEffect(() => {
+        if (isNew) {
+            setNewMessage("");      // Reset the message
+            setSelectedAction("Me"); // Reset the selected action
+        }
+    }, [isNew]);
     const handleSendMessage = async (action) => {
         const db = getFirestore();
         const functions = getFunctions();
@@ -103,17 +109,21 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate }) {
                         >
                 Respond with {selectedAction}
             </Button>}
+            {!isNew && ( // This checks if isNew is false
             <Dropdown as={ButtonGroup}>
                 <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
-                <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => setSelectedAction("Me")}>Me</Dropdown.Item>
-                    {botsAvail.map((bot, index) => (
-                        <Dropdown.Item key={index} onClick={() => setSelectedAction(bot.name)}>
-                            {bot.name}
-                        </Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
+
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setSelectedAction("Me")}>Me</Dropdown.Item>
+                        {botsAvail.map((bot, index) => (
+                            <Dropdown.Item key={index} onClick={() => setSelectedAction(bot.name)}>
+                                {bot.name}
+                            </Dropdown.Item>
+                        ))}
+                    </Dropdown.Menu>
+
             </Dropdown>
+                    )}
         </InputGroup>
     );
 

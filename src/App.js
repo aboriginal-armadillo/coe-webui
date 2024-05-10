@@ -70,8 +70,8 @@ function App() {
                                 <Route path="/account" element={<AccountPage />} />
                                 <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
                                 <Route path="/buildabot" element={<BuildABot user={user} />} />
-                                <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
-                                <Route path="/chat" element={<MessagesView user={user} />} />
+                                <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false}/>} />
+                                <Route path="/chat" element={<MessagesView user={user} isNew={true}/>} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
                             </Routes>
