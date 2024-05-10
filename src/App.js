@@ -35,7 +35,7 @@ const app = initializeApp(firebaseConfig);
 
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(null);
     const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -51,6 +51,10 @@ function App() {
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
+
+    if (isLoggedIn === null) {
+        return <div>Loading...</div>;  // Display a loading indicator while authentication status is being determined
+    }
 
     return (
         <Router>
@@ -69,7 +73,7 @@ function App() {
                                 <Route path="/chat/:chatId" element={<MessagesView user={user} />} />
                                 <Route path="/chat" element={<MessagesView user={user} />} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
-                                <Route path="*" element={<Navigate to="/chat" />} />
+                                {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
                             </Routes>
                         </div>
                     </>
