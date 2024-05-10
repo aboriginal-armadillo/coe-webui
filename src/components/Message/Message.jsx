@@ -7,19 +7,21 @@ import { faCodeFork, faGear, faCaretLeft, faCaretRight } from '@fortawesome/free
 function Message({ msg, updateSelectedChild }) {
     // Handlers to increment or decrement the selected child index
     const handleNextChild = () => {
-        console.log("msg.selectedChild was ", msg.selectedChild);
         if (msg.selectedChild < msg.children.length - 1) {
-            updateSelectedChild(msg.id, msg.selectedChild + 1);
+            const newChildIndex = msg.selectedChild < (msg.children.length - 1) ? msg.selectedChild + 1 : 0;
+            console.log("msg.selectedChild", msg.selectedChild, newChildIndex);
+            updateSelectedChild(msg.id, newChildIndex);
         }
-        console.log("msg.selectedChild now ", msg.selectedChild);
+
     };
 
     const handlePrevChild = () => {
-        console.log("msg.selectedChild was ", msg.selectedChild);
         if (msg.selectedChild > 0) {
-            updateSelectedChild(msg.id, msg.selectedChild - 1);
+            const newChildIndex = msg.selectedChild > 0 ? msg.selectedChild - 1 : 0;
+            console.log("msg.selectedChild", msg.selectedChild, newChildIndex);
+            updateSelectedChild(msg.id, newChildIndex);
         }
-        console.log("msg.selectedChild now ", msg.selectedChild);
+
     };
 
     return (
@@ -50,16 +52,13 @@ function Message({ msg, updateSelectedChild }) {
                         <FontAwesomeIcon icon={faCaretLeft}
                                          style={{ marginRight: '5px', cursor: 'pointer' }}
                                          onClick={handlePrevChild} />
-
-                        <FontAwesomeIcon icon={faCodeFork}
-                                         style={{ marginRight: '5px', cursor: 'pointer' }} />
-
                         <FontAwesomeIcon icon={faCaretRight}
                                          style={{ marginRight: '5px', cursor: 'pointer' }}
                                          onClick={handleNextChild} />
                     </>
                 )}
-
+                <FontAwesomeIcon icon={faCodeFork}
+                                 style={{ marginRight: '5px', cursor: 'pointer' }} />
                 <FontAwesomeIcon icon={faGear} />
             </div>
         </ListGroupItem>

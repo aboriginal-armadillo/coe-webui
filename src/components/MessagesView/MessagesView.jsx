@@ -26,6 +26,7 @@ function MessagesView({ user }) {
     };
 
     const updateSelectedChild = useCallback(async (messageId, childIndex) => {
+        console.log("Updating selected child:", messageId, childIndex);
         const db = getFirestore();
         const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
         const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
@@ -100,7 +101,10 @@ function MessagesView({ user }) {
             <h2 className="chat-title">{chatTitle}</h2>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
-                    <Message key={msg.id} msg={msg} updateSelectedChild={(index) => updateSelectedChild(msg.id, index)} />
+                    <Message key={msg.id} msg={msg}
+                             updateSelectedChild={updateSelectedChild}
+
+                                 />
                 ))}
                 <div ref={messagesEndRef} />
             </ListGroup>
