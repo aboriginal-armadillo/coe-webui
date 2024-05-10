@@ -69,8 +69,15 @@ function Login() {
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
-            <div className="w-100" style={{ maxWidth: "400px" }}>
+        <Container className="d-flex align-items-center justify-content-center"
+                   style={{
+                       minHeight: "100vh",
+                       backgroundImage: 'url(/assets/login.gif)',
+                       backgroundSize: 'cover',
+                       width: '100%',
+                       height: '100vh'
+                       }}>
+             <div className="w-100" style={{ maxWidth: "400px" }}>
                 <Form onSubmit={handleLogin}>
                     {/*<Form.Group id="email">*/}
                     {/*    <Form.Label>Email</Form.Label>*/}
@@ -91,7 +98,9 @@ function Login() {
                     {/*    />*/}
                     {/*</Form.Group>*/}
                     {/*<Button className="w-100 mt-3" type="submit">Log In</Button>*/}
-                    <Button className="w-100 mt-3" variant="outline-primary" onClick={handleGoogleLogin}>Log In with Google</Button>
+                    <Button className="w-100 mt-3" variant="outline-primary" onClick={handleGoogleLogin} style={{ background: 'url(/assets/branding_guideline_sample_lt_sq_lg.svg) no-repeat center center / contain', height: '50px', padding: '10px 0', border: 'none', color: 'transparent' }}>Log In with Google</Button>
+
+
                     {error && <div className="mt-3 text-danger">{error}</div>}
                 </Form>
             </div>
