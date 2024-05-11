@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { InputGroup, FormControl, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
+import { InputGroup, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import DynamicTextArea from "../DynamicTextArea/DynamicTextArea";
