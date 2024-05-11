@@ -49,6 +49,7 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
             <div style={{ position: 'absolute', right: '10px', bottom: '5px' }}>
                 {msg.children && msg.children.length > 1 && (
                     <>
+                        {msg.selectedChild + 1} / {msg.children.length}{' '}
                         <FontAwesomeIcon icon={faCaretLeft}
                                          style={{ marginRight: '5px', cursor: 'pointer' }}
                                          onClick={handlePrevChild} />
@@ -58,7 +59,9 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
                     </>
                 )}
                 <FontAwesomeIcon icon={faCodeFork}
-                                 style={{ marginRight: '5px', cursor: 'pointer' }}
+                                 style={{ marginRight: '5px',
+                                     cursor: 'pointer',
+                                     transform: 'rotate(180deg)' }}
                                  onClick={() => forkMessage(msg.id)}/>
                 <FontAwesomeIcon icon={faGear} />
             </div>
