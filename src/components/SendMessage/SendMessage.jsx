@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { InputGroup, FormControl, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import DynamicTextArea from "../DynamicTextArea/DynamicTextArea";
 
 function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
     const [newMessage, setNewMessage] = useState("");
@@ -94,12 +95,9 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
         <InputGroup className="fixed-bottom-input" style={{ display: "flex", justifyContent: "center" }}>
             {selectedAction === "Me" ? (
                 <>
-                    <FormControl
-                        as="textarea"
-                        placeholder="Type a message..."
-                        value={newMessage}
-                        onChange={e => setNewMessage(e.target.value)}
-                        onKeyPress={e => e.key === 'Enter' && handleSendMessage(selectedAction)}
+                    <DynamicTextArea
+                        handleSend={() => handleSendMessage(selectedAction)}  // Passing the send handler
+                        style={{ flex: "1 1 auto" }}
                     />
                     <Button variant="primary" onClick={() => handleSendMessage(selectedAction)}>
                         Send
