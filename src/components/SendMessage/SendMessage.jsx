@@ -95,6 +95,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
             {selectedAction === "Me" ? (
                 <>
                     <FormControl
+                        as="textarea"
                         placeholder="Type a message..."
                         value={newMessage}
                         onChange={e => setNewMessage(e.target.value)}
