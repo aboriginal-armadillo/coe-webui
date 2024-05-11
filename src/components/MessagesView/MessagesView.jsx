@@ -25,18 +25,44 @@ function MessagesView({ user, isNew }) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const forkMessage = useCallback(async (messageId) => {
+
+        const db = getFirestore();
+        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
+
+        // Retrieve the current chat document to fetch the message data
+        getDoc(chatRef).then(docSnap => {
+            if (docSnap.exists()) {
+                const chatData = docSnap.data();
+                const msg = chatData[messageId];
+                if (msg) {
+                    const newSelectedChild = (msg.children ? msg.children.length : 0);
+                    const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
+                    // Update Firestore by specifying the nested field to update
+                    updateDoc(chatRef, { [updatePath]: newSelectedChild })
+                        .then({})
+                        .catch(error => console.error("Error updating Firestore:", error));
+                } else {
+                    console.error("Message not found in the chat document.");
+                }
+            } else {
+                console.error("Chat document does not exist.");
+            }
+        }).catch(error => {
+            console.error("Error fetching chat document:", error);
+        });
+    }, [user.uid, chatId]);
+
     const updateSelectedChild = useCallback(async (messageId, childIndex) => {
-        console.log("Updating selected child:", messageId, childIndex);
+
         const db = getFirestore();
         const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
         const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
-
-        console.log("Updating message:", messageId, { selectedChild: childIndex });
-
         // Update Firestore by specifying the nested field to update
-        updateDoc(chatRef, { [updatePath]: childIndex })
-            .then(() => console.log("Firestore updated successfully"))
+        updateDoc(chatRef, {[updatePath]: childIndex})
+            .then({})
             .catch(error => console.error("Error updating Firestore:", error));
+
     }, [user.uid, chatId]);
 
     const loadMessages = useCallback(async (messageId, accumulatedMessages, db) => {
@@ -101,8 +127,10 @@ function MessagesView({ user, isNew }) {
             <h2 className="chat-title">{chatTitle}</h2>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
-                    <Message key={msg.id} msg={msg}
+                    <Message key={msg.id}
+                             msg={msg}
                              updateSelectedChild={updateSelectedChild}
+                             forkMessage={forkMessage}
 
                                  />
                 ))}

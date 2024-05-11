@@ -4,12 +4,12 @@ import { ListGroupItem } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeFork, faGear, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 
-function Message({ msg, updateSelectedChild }) {
+function Message({ msg, updateSelectedChild, forkMessage }) {
     // Handlers to increment or decrement the selected child index
     const handleNextChild = () => {
         if (msg.selectedChild < msg.children.length - 1) {
             const newChildIndex = msg.selectedChild < (msg.children.length - 1) ? msg.selectedChild + 1 : 0;
-            console.log("msg.selectedChild", msg.selectedChild, newChildIndex);
+
             updateSelectedChild(msg.id, newChildIndex);
         }
 
@@ -18,7 +18,7 @@ function Message({ msg, updateSelectedChild }) {
     const handlePrevChild = () => {
         if (msg.selectedChild > 0) {
             const newChildIndex = msg.selectedChild > 0 ? msg.selectedChild - 1 : 0;
-            console.log("msg.selectedChild", msg.selectedChild, newChildIndex);
+
             updateSelectedChild(msg.id, newChildIndex);
         }
 
@@ -58,7 +58,8 @@ function Message({ msg, updateSelectedChild }) {
                     </>
                 )}
                 <FontAwesomeIcon icon={faCodeFork}
-                                 style={{ marginRight: '5px', cursor: 'pointer' }} />
+                                 style={{ marginRight: '5px', cursor: 'pointer' }}
+                                 onClick={() => forkMessage(msg.id)}/>
                 <FontAwesomeIcon icon={faGear} />
             </div>
         </ListGroupItem>
