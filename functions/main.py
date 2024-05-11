@@ -14,7 +14,7 @@ from councilofelders.vertex import GemeniAgent
 
 initialize_app()
 db = firestore.client()
-
+# kickstart
 def extract_messages(data, current_key):
     # This list will hold all the message dictionaries
     messages = []
