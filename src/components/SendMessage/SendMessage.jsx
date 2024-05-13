@@ -19,7 +19,9 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
         const functions = getFunctions();
 
         if (action === 'Me') {
+
             if (!chatId) {
+                console.log("Creating a new chat", newMessage);
                 // Handle creating a new chat
                 const newChatData = {
                     createdAt: Timestamp.now(),
@@ -41,6 +43,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                     console.error("Error creating new chat: ", error);
                 }
             } else {
+                console.log("Sending a message in an existing chat", newMessage);
                 // Sending a message in an existing chat
                 const newMsgId = `msg_${Date.now()}`;
                 const messageData = {
@@ -97,6 +100,8 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                 <>
                     <DynamicTextArea
                         handleSend={() => handleSendMessage(selectedAction)}  // Passing the send handler
+                        newMessage={newMessage}
+                        setNewMessage={setNewMessage}
                         style={{ flex: "1 1 auto" }}
                     />
                     <Button variant="primary" onClick={() => handleSendMessage(selectedAction)}>
