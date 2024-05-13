@@ -57,17 +57,19 @@ function App() {
         return <div>Loading...</div>;  // Display a loading indicator while authentication status is being determined
     }
 
-    const isIphone = () => {
+    const isNotIphone = () => {
         return /iPhone/.test(navigator.userAgent) && !window.MSStream;
     }
 
+    if (!isNotIphone) {
+        return (
+            <img src='/assets/iphones.jpg' alt="no iPhones" style={{ width: '100%', height: 'auto' }} />
+        );
+    }
     return (
         <Router>
             <div className="App">
-                {isIphone() ?
-                    <img src='/assets/iphones.jpg' alt="iPhone only" style={{ width: '100%', height: 'auto' }} />
-                    : <p>This content is not available on iPhone.</p>  // This will display if not accessed from iPhone
-                }
+
                 {isLoggedIn ? (
                     <>
                         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
