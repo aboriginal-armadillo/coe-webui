@@ -31,9 +31,10 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
             const newMsgId = `msg_${Date.now()}`;
             const messageData = {
                 sender: user.displayName || "CurrentUser",
+                fileName: selectedFile.name,
                 text: `FILE UPLOADED: ${selectedFile.name}`, // todo add token
                 // count
-                type: "file",
+                type: "text",
                 downloadUrl: downloadUrl, // include download URL in the message
                 timestamp: Timestamp.now(),
                 children: [],

@@ -12,6 +12,7 @@ from councilofelders.anthropic import AnthropicAgent
 from councilofelders.replicate import ReplicateLlamaAgent
 from councilofelders.vertex import GemeniAgent
 
+from requests import get, RequestException
 initialize_app()
 db = firestore.client()
 # kickstart
@@ -27,11 +28,35 @@ def extract_messages(data, current_key):
         # Access the current part of the dictionary
         current = data[key]
 
-        # Create a new dictionary from the current data and append it to the list
-        message = {
-            "name": current["sender"],
-            "response": current["text"]
-        }
+        if 'type' in current:
+            if current['type'] == "text":
+                try:
+                    response = get(current["downloadUrl"])
+                    content = response.content
+                    decoded_content = content.decode('utf-8')
+
+                    # Now 'decoded_content' is a string representation of 'content'
+                    print(decoded_content)
+                    logger.log(f"{current['downloadUrl']}:"
+                               f" {len(decoded_content)} chars")
+                    response.raise_for_status()  # Raise an exception for HTTP errors
+                except RequestException as e:
+                    logger.log(f"Error downloading the file: {e}")
+
+                if current['fileName'].endswith('.epub'):
+                    pass
+
+                message = {
+                    "name": current["sender"],
+                    "response": decoded_content
+                }
+
+        else:
+            # Create a new dictionary from the current data and append it to the list
+            message = {
+                "name": current["sender"],
+                "response": current["text"]
+            }
         messages.append(message)
 
         # Check if there are children and a selected child
