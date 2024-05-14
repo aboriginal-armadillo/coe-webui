@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FormControl } from 'react-bootstrap';
 
-const DynamicTextarea = () => {
-    const [newMessage, setNewMessage] = useState('');
+const DynamicTextarea = ({ newMessage, setNewMessage }) => {
+
     const textareaRef = useRef(null);
 
     useEffect(() => {

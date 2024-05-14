@@ -16,6 +16,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
 import BotZoo from "./components/BotZoo/BotZoo";
 
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -56,9 +57,19 @@ function App() {
         return <div>Loading...</div>;  // Display a loading indicator while authentication status is being determined
     }
 
+    const isNotIphone = () => {
+        return /iPhone/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    if (!isNotIphone) {
+        return (
+            <img src='/assets/iphones.jpg' alt="no iPhones" style={{ width: '100%', height: 'auto' }} />
+        );
+    }
     return (
         <Router>
             <div className="App">
+
                 {isLoggedIn ? (
                     <>
                         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
