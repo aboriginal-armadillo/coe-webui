@@ -28,8 +28,12 @@ function BuildABot({ user }) {
             const [userDoc, configDoc] = await Promise.all([userDocPromise, configDocPromise]);
             if (userDoc.exists()) {
                 const apiKeys = userDoc.data().apiKeys;
-                const serviceSet = Array.from(new Set(apiKeys.map(item => item.svc)));
-                setServices(serviceSet);
+                let serviceSet = Array.from(new Set(apiKeys.map(item => item.svc)));
+                if (serviceSet.includes("OpenAI") && serviceSet.includes("Pinecone")) {
+                    // Add "OpenAI+RAG" to the array
+                    serviceSet.push("OpenAI+RAG");
+                }
+                setServices(serviceSet.filter(service => service !== "Pinecone"));
             }
             if (configDoc.exists()) {
                 setAllModels(configDoc.data());
