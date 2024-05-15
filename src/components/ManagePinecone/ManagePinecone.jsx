@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Dropdown, Card, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlug, faPlugCirclePlus, faPlugCircleMinus, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { faPlug,
+    faPlugCirclePlus,
+    faPlugCircleMinus,
+    faRotate,
+    faFileCirclePlus} from '@fortawesome/free-solid-svg-icons';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 import { Pinecone } from '@pinecone-database/pinecone';
 
+import PubMedDataLoader from '../DataLoaders/PubMedDataLoader/PubMedDataLoader';
 
 
 
@@ -17,14 +22,20 @@ function ManagePinecone({ user }) {
     const [showModal, setShowModal] = useState(false);
     const [newIndexParams, setNewIndexParams] = useState({ dimensions: '', metric: '', name: '' });
 
+    const [loaderModalShow, setLoaderModalShow] = useState(false);
+
+    const handleLoaderModalClose = () => setLoaderModalShow(false);
+    const handleLoaderModalShow = () => setLoaderModalShow(true);
+
     const firestore = getFirestore();
 
     useEffect(() => {
         const fetchApiKeys = async () => {
             const userDoc = await getDoc(doc(firestore, `users/${user.uid}`));
-            if (userDoc.exists()) {
-                setApiKeys(userDoc.data().apiKeys);
-            }
+            const apiKeysArray = userDoc.data().apiKeys || [];
+            const openAiKeys = apiKeysArray.filter(key => key.svc === "Pinecone");
+            setApiKeys(openAiKeys);
+
         };
         fetchApiKeys();
     }, [user.uid]);
@@ -124,7 +135,17 @@ function ManagePinecone({ user }) {
                         <Button variant="danger" onClick={() => handleDeleteIndex(index.name)}>
                             <FontAwesomeIcon icon={faPlugCircleMinus} />
                         </Button>
+                        <Button onClick={handleLoaderModalShow}>
+                            <FontAwesomeIcon icon={faFileCirclePlus} />
+                        </Button>
                     </Card.Body>
+                    <PubMedDataLoader
+                        show={loaderModalShow}
+                        handleClose={handleLoaderModalClose}
+                        pineconeApiKey={selectedApiKey}
+                        uid={user.uid}
+                        indexName={index.name}
+                    />
                 </Card>
             ))}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
@@ -160,6 +181,8 @@ function ManagePinecone({ user }) {
                     <Button variant="primary" onClick={() => handleCreateIndex()}>Create Index</Button>
                 </Modal.Footer>
             </Modal>
+
+
         </div>
     );
 }
