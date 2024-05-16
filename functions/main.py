@@ -18,6 +18,12 @@ from councilofelders.anthropic import AnthropicAgent
 from councilofelders.replicate import ReplicateLlamaAgent
 from councilofelders.vertex import GemeniAgent
 
+import ebooklib
+from ebooklib import epub
+from bs4 import BeautifulSoup
+import io
+
+from requests import get, RequestException
 initialize_app()
 db = firestore.client()
 
@@ -33,11 +39,42 @@ def extract_messages(data, current_key):
         # Access the current part of the dictionary
         current = data[key]
 
-        # Create a new dictionary from the current data and append it to the list
-        message = {
-            "name": current["sender"],
-            "response": current["text"]
-        }
+        if 'type' in current:
+            if current['type'] == "text":
+                try:
+                    response = get(current["downloadUrl"])
+                    content = response.content
+
+                    if current['fileName'].endswith('.epub'):
+                        book = epub.read_epub(io.BytesIO(content))
+                        text = []
+
+                        for item in book.get_items():
+                            if item.get_type() == ebooklib.ITEM_DOCUMENT:
+                                soup = BeautifulSoup(item.get_body_content(), 'html.parser')
+                                text.append(soup.get_text())
+
+                        decoded_content = '\n'.join(text)
+                    else:
+                        decoded_content = content.decode('utf-8')
+
+                    response.raise_for_status()  # Raise an exception for HTTP errors
+                except RequestException as e:
+                    logger.log(f"Error downloading the file: {e}")
+
+                logger.log(f"{current['downloadUrl']}:"
+                           f" {len(decoded_content)} chars")
+                message = {
+                    "name": current["sender"],
+                    "response": decoded_content
+                }
+
+        else:
+            # Create a new dictionary from the current data and append it to the list
+            message = {
+                "name": current["sender"],
+                "response": current["text"]
+            }
         messages.append(message)
 
         # Check if there are children and a selected child
