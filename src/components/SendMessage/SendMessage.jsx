@@ -159,6 +159,12 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                 last_message_id: messages[messages.length - 1]?.id
             };
 
+            if (bot.service === "RAG: OpenAI+Pinecone") {
+                callData.pinecone_api_key = bot.pineconeKey;
+                callData.pinecone_index_name = bot.pineconeIndex;
+            }
+
+            console.log("Calling function with data:", callData);
             callNextMessage(callData).then((result) => {
                 // Optionally handle the UI update based on result
             }).catch((error) => {

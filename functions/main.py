@@ -1,10 +1,16 @@
 # Welcome to Cloud Functions for Firebase for Python!
 # To get started, simply uncomment the below code or create your own.
 # Deploy with `firebase deploy`
-
+from councilofelders.llamaindex import LlamaIndexOpenAIAgent
 from firebase_functions import https_fn, logger, options
 from firebase_admin import initialize_app, firestore
 from typing import Any
+
+from pinecone import Pinecone, ServerlessSpec
+from llama_index.core import VectorStoreIndex, StorageContext
+from llama_index.vector_stores.pinecone import PineconeVectorStore
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.readers.papers import PubmedReader
 
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
@@ -20,7 +26,7 @@ import io
 from requests import get, RequestException
 initialize_app()
 db = firestore.client()
-# kickstart
+
 def extract_messages(data, current_key):
     # This list will hold all the message dictionaries
     messages = []
@@ -162,7 +168,17 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                 temperature=req.data['temperature'],
                                 name=req.data['name'],
                                 api_key=api_key)
-
+        elif service == "RAG: OpenAI+Pinecone":
+            logger.log("RAG: OpenAI+Pinecone service selected")
+            pinecone_api_key = next((key for key in user_keys if key['name'] == req.data['pinecone_api_key']), None)['apikey']
+            agent = LlamaIndexOpenAIAgent(model=req.data['model'],
+                                          system_prompt=req.data['system_prompt'],
+                                          temperature=req.data['temperature'],
+                                          name=req.data['name'],
+                                          openai_api_key=api_key,
+                                          pinecone_index_name=req.data['pinecone_index_name'],
+                                          pinecone_api_key=pinecone_api_key,
+                                          top_k=3)
         elders = Cohort(agents=[agent], history=hx)
         logger.log("History updated")
         msg = elders.agents[0].generate_next_message()
@@ -194,3 +210,37 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
         })
         # Optionally, you might want to re-raise the exception or handle it differently
         raise e
+
+@https_fn.on_call(memory=options.MemoryOption.MB_512)
+def pubMedLoader(req: https_fn.CallableRequest):
+    request_json = req.data
+    if request_json and 'query' in request_json and 'max_results' in \
+            request_json and 'pineconeApiKey' in request_json and 'openAiApiKey'\
+            in request_json and 'indexName' in request_json:
+        query = request_json['query']
+        max_results = int(request_json['max_results'])
+        openai_api_key = request_json['openAiApiKey']
+        pineconeApiKey = request_json['pineconeApiKey']
+        embed_model = OpenAIEmbedding(api_key=openai_api_key)
+        indexName = request_json['indexName']
+
+        pc = Pinecone(api_key=pineconeApiKey)
+        pcIndex = pc.Index(indexName)
+
+        vector_store = PineconeVectorStore(pinecone_index=pcIndex)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+        loader = PubmedReader()
+        documents = loader.load_data(search_query=query, max_results=max_results)
+        n_docs = len(documents)
+        logger.log(f"Loading {n_docs} documents")
+        index = VectorStoreIndex.from_documents(
+                documents,
+                storage_context=storage_context,
+                embed_model=embed_model
+        )
+
+
+
+
+

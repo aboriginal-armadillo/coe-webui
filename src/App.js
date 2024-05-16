@@ -15,6 +15,7 @@ import './App.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
 import BotZoo from "./components/BotZoo/BotZoo";
+import ManagePinecone from "./components/ManagePinecone/ManagePinecone";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -84,6 +85,7 @@ function App() {
                                 <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false}/>} />
                                 <Route path="/chat" element={<MessagesView user={user} isNew={true}/>} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
+                                <Route path="/manage-pinecone" element={<ManagePinecone user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
                             </Routes>
                         </div>
