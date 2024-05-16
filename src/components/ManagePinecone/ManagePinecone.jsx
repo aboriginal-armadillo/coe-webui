@@ -60,12 +60,9 @@ function ManagePinecone({ user }) {
     }
 
     const handleCreateIndex = async () => {
-        console.log("Creating index with params:", newIndexParams);
         try {
             const { dimensions, metric, name } = newIndexParams;
-            console.log("Initializing pinecone client with API key:", selectedApiKey);
             const pinecone = new Pinecone({ apiKey: selectedApiKey});
-            console.log("Creating index with name:", name, "dimensions:", dimensions, "metric:", metric)
             await pinecone.createIndex({
                 name: name,
                 dimension: parseInt(dimensions),
@@ -76,7 +73,6 @@ function ManagePinecone({ user }) {
                     },
                 },
             });
-            console.log("Index created successfully");
             const fetchedIndices = await pinecone.listIndexes();
             console.log("Fetched indices:", fetchedIndices);
             setIndices(fetchedIndices.indexes);
