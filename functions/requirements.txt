@@ -1,2 +1,4 @@
 firebase_functions~=0.2.0
 git+https://github.com/rawkintrevo/council-of-elders.git
+EbookLib==0.17.1
+beautifulsoup4==4.12.3

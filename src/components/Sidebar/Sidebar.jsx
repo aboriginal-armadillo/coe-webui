@@ -19,7 +19,12 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
     };
 
     return (
-        <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light ${isOpen ? '' : 'w-0'}`} style={{ width: isOpen ? "280px" : "0", height: "100vh", transition: "width 0.3s", padding: "0" }}>
+        <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light ${isOpen ? '' : 'w-0'}`}
+             style={{ width: isOpen ? "280px" : "0",
+                 height: "100vh",
+                 transition: "width 0.3s",
+                 padding: "0",
+                 overflow: "hidden"}}>
 
 
             {isOpen && (
@@ -33,7 +38,9 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                         </Link>
                     </div>
                     <hr />
-                    <ChatList user={user} />
+                    <div style={{ height: "100%", overflow: "auto" }}>
+                        <ChatList user={user} />
+                    </div>
                     <hr />
                     <Dropdown>
                         <Dropdown.Toggle as={Nav.Link}
