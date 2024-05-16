@@ -1,7 +1,7 @@
 # Welcome to Cloud Functions for Firebase for Python!
 # To get started, simply uncomment the below code or create your own.
 # Deploy with `firebase deploy`
-
+from councilofelders.llamaindex import LlamaIndexOpenAIAgent
 from firebase_functions import https_fn, logger, options
 from firebase_admin import initialize_app, firestore
 from typing import Any
@@ -131,7 +131,17 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                 temperature=req.data['temperature'],
                                 name=req.data['name'],
                                 api_key=api_key)
-
+        elif service == "RAG: OpenAI+Pinecone":
+            logger.log("RAG: OpenAI+Pinecone service selected")
+            pinecone_api_key = next((key for key in user_keys if key['name'] == req.data['pinecone_api_key']), None)['apikey']
+            agent = LlamaIndexOpenAIAgent(model=req.data['model'],
+                                          system_prompt=req.data['system_prompt'],
+                                          temperature=req.data['temperature'],
+                                          name=req.data['name'],
+                                          openai_api_key=api_key,
+                                          pinecone_index_name=req.data['pinecone_index_name'],
+                                          pinecone_api_key=pinecone_api_key,
+                                          top_k=3)
         elders = Cohort(agents=[agent], history=hx)
         logger.log("History updated")
         msg = elders.agents[0].generate_next_message()

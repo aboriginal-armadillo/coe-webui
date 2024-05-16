@@ -17,7 +17,6 @@ import PubMedDataLoader from '../DataLoaders/PubMedDataLoader/PubMedDataLoader';
 function ManagePinecone({ user }) {
     const [apiKeys, setApiKeys] = useState([]);
     const [selectedApiKey, setSelectedApiKey] = useState(null);
-    const [pinecone, setPinecone] = useState(null);
     const [indices, setIndices] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newIndexParams, setNewIndexParams] = useState({ dimensions: '', metric: '', name: '' });
@@ -38,7 +37,7 @@ function ManagePinecone({ user }) {
 
         };
         fetchApiKeys();
-    }, [user.uid]);
+    }, [user.uid, firestore] );
 
     const handleSetApiKey = async (keyObject) => {
         console.log("Setting API key:", keyObject.apikey);
@@ -51,17 +50,10 @@ function ManagePinecone({ user }) {
         setIndices(fetchedIndices.indexes);
     };
 
-    const fetchPineconeIndexes = async () => {
-        const userDoc = await getDoc(doc(firestore, `users/${user.uid}`));
-        if (userDoc.exists()) {
-            return userDoc.data().pineconeIndexes || {};
-        }
-        return {};
-    }
-
     const handleCreateIndex = async () => {
         try {
             const { dimensions, metric, name } = newIndexParams;
+            metric.charAt(0)
             const pinecone = new Pinecone({ apiKey: selectedApiKey});
             await pinecone.createIndex({
                 name: name,

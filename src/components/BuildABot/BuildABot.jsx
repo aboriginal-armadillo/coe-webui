@@ -102,7 +102,7 @@ function BuildABot({ user }) {
             };
             fetchPineconeIndexes();
         }
-    }, [selectedPineconeKey]);
+    }, [selectedPineconeKey, user.uid]);
 
     const handleSubmit = (event) => {
         event.preventDefault();
