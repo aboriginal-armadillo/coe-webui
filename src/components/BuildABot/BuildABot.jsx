@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-
-// Assuming Pinecone is imported properly
 import { Pinecone } from '@pinecone-database/pinecone';
 
 function BuildABot({ user }) {
@@ -20,6 +18,7 @@ function BuildABot({ user }) {
     const [temperature, setTemperature] = useState(0.5);
     const [systemPrompt, setSystemPrompt] = useState('');
     const [botName, setBotName] = useState('');
+    const [topK, setTopK] = useState(5);
     const modelRef = useRef(null);
 
     const navigate = useNavigate();
@@ -37,7 +36,6 @@ function BuildABot({ user }) {
                 const apiKeys = userDoc.data().apiKeys;
                 let serviceSet = Array.from(new Set(apiKeys.map(item => item.svc)));
                 if (serviceSet.includes("OpenAI") && serviceSet.includes("Pinecone")) {
-                    // Add "OpenAI+RAG" to the array
                     serviceSet.push("RAG: OpenAI+Pinecone");
                 }
                 setServices(serviceSet.filter(service => service !== "Pinecone"));
@@ -51,7 +49,6 @@ function BuildABot({ user }) {
 
     useEffect(() => {
         if (selectedService) {
-            console.log("cp1")
             const db = getFirestore();
             const userRef = doc(db, 'users', user.uid);
             getDoc(userRef).then(docSnap => {
@@ -61,7 +58,6 @@ function BuildABot({ user }) {
                     setKeys([...new Set(filteredKeys)]);
 
                     if (selectedService === 'RAG: OpenAI+Pinecone') {
-                        console.log('cp2')
                         const pineconeKeys = apiKeys.filter(item => item.svc === 'Pinecone').map(item => item.name);
                         setPineconeKeys([...new Set(pineconeKeys)]);
                     } else {
@@ -70,7 +66,6 @@ function BuildABot({ user }) {
                 }
             });
             if (allModels[selectedService]) {
-                console.log('Setting models:', allModels[selectedService]);
                 setModels(allModels[selectedService]);
             } else {
                 setModels([]);
@@ -80,7 +75,6 @@ function BuildABot({ user }) {
 
     useEffect(() => {
         if (selectedPineconeKey) {
-            console.log('cp3');
             const fetchPineconeIndexes = async () => {
                 const db = getFirestore();
                 const userRef = doc(db, 'users', user.uid);
@@ -121,6 +115,7 @@ function BuildABot({ user }) {
         if (selectedService === 'RAG: OpenAI+Pinecone') {
             botData.pineconeKey = selectedPineconeKey;
             botData.pineconeIndex = selectedPineconeIndex;
+            botData.top_k = topK;
         }
 
         updateDoc(userRef, {
@@ -162,27 +157,32 @@ function BuildABot({ user }) {
             </Form.Group>
             {selectedService === 'RAG: OpenAI+Pinecone' && (
                 <>
-                <Form.Group>
-                    <Form.Label>Pinecone Key</Form.Label>
-                    <Form.Control as="select"
-                                  value={selectedPineconeKey}
-                                  onChange={e => setSelectedPineconeKey(e.target.value)}>
-                        <option value="">Select a Pinecone key</option>
-                        {pineconeKeys.map((key, index) => (
-                            <option key={index} value={key}>{key}</option>
-                        ))}
-                    </Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Pinecone Index</Form.Label>
+                    <Form.Group>
+                        <Form.Label>Pinecone Key</Form.Label>
+                        <Form.Control as="select"
+                                      value={selectedPineconeKey}
+                                      onChange={e => setSelectedPineconeKey(e.target.value)}>
+                            <option value="">Select a Pinecone key</option>
+                            {pineconeKeys.map((key, index) => (
+                                <option key={index} value={key}>{key}</option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>Pinecone Index</Form.Label>
                         <Form.Control as="select"
                                       value={selectedPineconeIndex}
                                       onChange={e => setSelectedPineconeIndex(e.target.value)}>
                             <option value="">Select an index</option>
-                                {pineconeIndexes.map((index, i) => (
-                            <option key={i} value={index}>{index}</option>
+                            {pineconeIndexes.map((index, i) => (
+                                <option key={i} value={index}>{index}</option>
                             ))}
                         </Form.Control>
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>Top K</Form.Label>
+                        <Form.Control type="range" min="1" max="10" step="1" value={topK} onChange={e => setTopK(e.target.value)} />
+                        <Form.Text>{topK}</Form.Text>
                     </Form.Group>
                 </>
             )}
