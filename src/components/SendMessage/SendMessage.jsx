@@ -156,6 +156,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                 name: bot.name,
                 new_msg_id: newMsgId,
                 api_key: bot.key,
+                top_k: bot.top_k ? bot.top_k : 1,
                 last_message_id: messages[messages.length - 1]?.id
             };
 

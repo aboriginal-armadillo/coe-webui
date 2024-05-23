@@ -178,7 +178,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                           openai_api_key=api_key,
                                           pinecone_index_name=req.data['pinecone_index_name'],
                                           pinecone_api_key=pinecone_api_key,
-                                          top_k=3)
+                                          top_k=int(req.data['top_k']))
         elders = Cohort(agents=[agent], history=hx)
         logger.log("History updated")
         msg = elders.agents[0].generate_next_message()
