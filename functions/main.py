@@ -191,8 +191,9 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
             "text": msg,
             "timestamp": firestore.SERVER_TIMESTAMP,
             "id": req.data['new_msg_id'],
-            "sources": elders.agents[0].sources
         }}
+        if service=="RAG: OpenAI+Pinecone":
+            update_data["sources"]= elders.agents[0].sources
 
         chat_doc_ref.update(update_data)
 
