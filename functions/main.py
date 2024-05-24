@@ -183,14 +183,15 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
         logger.log("History updated")
         msg = elders.agents[0].generate_next_message()
         logger.log("Message generated")
-
+        #kickstart
         update_data = {req.data['new_msg_id']: {
             "children": [],
             "selectedChild": None,
             "sender": req.data['name'],
             "text": msg,
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "id": req.data['new_msg_id']
+            "id": req.data['new_msg_id'],
+            "sources": elders.agents[0].sources
         }}
 
         chat_doc_ref.update(update_data)
