@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ListGroupItem } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCodeFork, faGear, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-
+import { faCodeFork,
+    faInfo,
+    faGear, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import SourcesModal from '../SourcesModal/SourcesModal';
 function Message({ msg, updateSelectedChild, forkMessage }) {
+    const [showModal, setShowModal] = useState(false);
+
     // Handlers to increment or decrement the selected child index
     const handleNextChild = () => {
         if (msg.selectedChild < msg.children.length - 1) {
@@ -22,6 +26,14 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
             updateSelectedChild(msg.id, newChildIndex);
         }
 
+    };
+
+    const showSourcesModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
     };
 
     return (
@@ -47,6 +59,11 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
                 </>
             )}
             <div style={{ position: 'absolute', right: '10px', bottom: '5px' }}>
+                {msg.sources && msg.sources.length > 0 && (
+                    <FontAwesomeIcon icon={faInfo}
+                               style={{marginRight: '5px', cursor: 'pointer'}}
+                                     onClick={showSourcesModal} />
+                )}
                 {msg.children && msg.children.length > 1 && (
                     <>
                         {msg.selectedChild + 1} / {msg.children.length}{' '}
@@ -65,6 +82,10 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
                                  onClick={() => forkMessage(msg.id)}/>
                 <FontAwesomeIcon icon={faGear} />
             </div>
+            {msg.sources && msg.sources.length > 0 && (
+                <SourcesModal show={showModal} handleClose={handleCloseModal} sources={msg.sources} />
+            )}
+
         </ListGroupItem>
     );
 }
