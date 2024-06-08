@@ -10,7 +10,7 @@ import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 import { Pinecone } from '@pinecone-database/pinecone';
 
-import PubMedDataLoader from '../DataLoaders/PubMedDataLoader/PubMedDataLoader';
+import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
 
 
 
@@ -127,7 +127,7 @@ function ManagePinecone({ user }) {
                             <FontAwesomeIcon icon={faFileCirclePlus} />
                         </Button>
                     </Card.Body>
-                    <PubMedDataLoader
+                    <DataLoaderModal
                         show={loaderModalShow}
                         handleClose={handleLoaderModalClose}
                         pineconeApiKey={selectedApiKey}
