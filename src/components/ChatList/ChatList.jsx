@@ -74,7 +74,7 @@ function ChatList({ user }) {
                         </InputGroup>
                     ) : (
                         <Nav.Link as={Link} to={`/chat/${chat.id}`} className="text-dark flex-grow-1">
-                            {chat.name.length > 20 ? `${chat.name.substring(0, 24)}...` : chat.name}
+                            {chat.name.length > 20 ? `${chat.name.substring(0, 20)}...` : chat.name}
                         </Nav.Link>
                     )}
                     <Dropdown>
