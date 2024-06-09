@@ -14,8 +14,13 @@
 }
 
 .content {
-  margin-left: 100px;
   transition: margin-left 0.3s ease;
+  transition: background-color 0.3s ease;
+}
+
+.content.pushed {
+  margin-left: 200px; /* Adjust this value to match the sidebar width */
+  background-color: rgba(0, 0, 0, 0.5); /* Gray out the content */
 }
 
 .content .toggle-button {
@@ -40,8 +45,7 @@
     width: 100%; /* Sidebar takes full width on small screens */
   }
 
-  .content {
-    margin-left: 0; /* Content takes full width when sidebar is not open */
+  .content.pushed {
+    margin-left: 100%; /* Content pushed to the right on small screens */
   }
-
 }

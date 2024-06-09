@@ -1,0 +1,28 @@
+.manage-pinecone-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.manage-pinecone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.manage-pinecone-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.index-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
