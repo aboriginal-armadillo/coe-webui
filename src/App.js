@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Sidebar from './components/Sidebar/Sidebar';
@@ -8,15 +8,14 @@ import MessagesView from './components/MessagesView/MessagesView';
 // import Footer from './components/Footer/Footer';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import {getAuth} from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
 import BuildABot from "./components/BuildABot/BuildABot";
 import './App.css';
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faBars} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 import BotZoo from "./components/BotZoo/BotZoo";
 import ManagePinecone from "./components/ManagePinecone/ManagePinecone";
-
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -26,7 +25,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyA1pru2boBx0-N3NhfWpPXoy_bDGebMUSM",
     authDomain: "council-of-elders-web-ui.firebaseapp.com",
     projectId: "council-of-elders-web-ui",
-    storageBucket: "council-of-elders-web-ui.appspot.com",
+    storageBucket: "council-of-elders-web-ui",
     messagingSenderId: "274516107404",
     appId: "1:274516107404:web:96933f3fb2f86fd9addba9"
 };
@@ -34,7 +33,6 @@ const firebaseConfig = {
 // Initialize Firebase
 // eslint-disable-next-line
 const app = initializeApp(firebaseConfig);
-
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -70,20 +68,19 @@ function App() {
     return (
         <Router>
             <div className="App">
-
                 {isLoggedIn ? (
                     <>
                         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                            <Sidebar user={user} toggleSidebar={toggleSidebar} isOpen={sidebarOpen}/>
+                            <Sidebar user={user} toggleSidebar={toggleSidebar} isOpen={sidebarOpen} />
                         </div>
-                        <div className="content">
+                        <div className={`content ${sidebarOpen ? 'pushed' : ''}`}>
                             <FontAwesomeIcon icon={faBars} className="toggle-button" onClick={toggleSidebar} />
                             <Routes>
                                 <Route path="/account" element={<AccountPage />} />
                                 <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
                                 <Route path="/buildabot" element={<BuildABot user={user} />} />
-                                <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false}/>} />
-                                <Route path="/chat" element={<MessagesView user={user} isNew={true}/>} />
+                                <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false} />} />
+                                <Route path="/chat" element={<MessagesView user={user} isNew={true} />} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
                                 <Route path="/manage-pinecone" element={<ManagePinecone user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
