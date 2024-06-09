@@ -1,15 +1,16 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { InputGroup, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import DynamicTextArea from "../DynamicTextArea/DynamicTextArea";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Spinner } from 'react-bootstrap';
 
 function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
     const [newMessage, setNewMessage] = useState("");
     const [selectedAction, setSelectedAction] = useState("Me");
     const [selectedFile, setSelectedFile] = useState(null);
-
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (isNew) {
@@ -76,6 +77,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
             throw new Error("File upload failed: " + error.message);
         }
     }
+
     const handleSendMessage = async (action) => {
         const db = getFirestore();
         const functions = getFunctions();
@@ -143,6 +145,7 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
             }
         } else {
             // Handle sending a message via bot
+            setLoading(true);
             const bot = botsAvail.find(bot => bot.name === action);
             const newMsgId = `msg_${Date.now()}`;
             const callNextMessage = httpsCallable(functions, 'call_next_msg');
@@ -166,11 +169,14 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
             }
 
             console.log("Calling function with data:", callData);
-            callNextMessage(callData).then((result) => {
+            try {
+                await callNextMessage(callData);
                 // Optionally handle the UI update based on result
-            }).catch((error) => {
+            } catch (error) {
                 console.error("Error calling function:", error);
-            });
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -188,11 +194,11 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                         Send
                     </Button>
                 </>
-            ) : <Button variant="primary"
-                        onClick={() => handleSendMessage(selectedAction)}
-                        >
-                Respond with {selectedAction}
-            </Button>}
+            ) : (
+                <Button variant="primary" onClick={() => handleSendMessage(selectedAction)} disabled={loading}>
+                    {loading ? <Spinner as="span" animation="border" size="sm" /> : `Respond with ${selectedAction}`}
+                </Button>
+            )}
             {!isNew && ( // This checks if isNew is false
                 <Dropdown as={ButtonGroup}>
                     <Dropdown.Toggle split variant="info" id="dropdown-split-basic" />
@@ -220,10 +226,9 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                         Upload
                     </Button>
                 </div>
-                )}
+            )}
         </InputGroup>
     );
-
 }
 
 export default SendMessage;
