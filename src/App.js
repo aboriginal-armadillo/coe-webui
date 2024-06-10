@@ -16,6 +16,8 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
 import BotZoo from "./components/BotZoo/BotZoo";
 import ManagePinecone from "./components/ManagePinecone/ManagePinecone";
+import ShareMessagesView
+    from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -71,10 +73,8 @@ function App() {
         <Router>
             <div className="App">
                 <Routes>
-                    <Route path="/share/:chatId" element={<MessagesView user={{
-                        uid: 'share',
-
-                    }} isNew={false} isShare={true}/>} />
+                    <Route path="/share/:chatId" element={<ShareMessagesView
+                    isShare={true}/>} />
                 </Routes>
                 {isLoggedIn ? (
                     <>
@@ -99,7 +99,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Login />} />
 
-                        <Route path="*" element={<Navigate to="/" />} />
+                        {/*<Route path="*" element={<Navigate to="/" />} />*/}
                     </Routes>
                 )}
             </div>
