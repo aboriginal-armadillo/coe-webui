@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeFork,
     faInfo,
     faGear, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-import SourcesModal from '../SourcesModal/SourcesModal';
+import SourcesModal from '../../SourcesModal/SourcesModal';
 function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
     const [showModal, setShowModal] = useState(false);
 
