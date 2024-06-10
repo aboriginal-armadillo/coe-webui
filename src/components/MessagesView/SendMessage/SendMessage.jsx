@@ -107,4 +107,5 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
     );
 }
 
+
 export default SendMessage;
