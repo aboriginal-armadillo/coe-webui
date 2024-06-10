@@ -6,7 +6,7 @@ import { faCodeFork,
     faInfo,
     faGear, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import SourcesModal from '../SourcesModal/SourcesModal';
-function Message({ msg, updateSelectedChild, forkMessage }) {
+function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
     const [showModal, setShowModal] = useState(false);
 
     // Handlers to increment or decrement the selected child index
@@ -75,11 +75,13 @@ function Message({ msg, updateSelectedChild, forkMessage }) {
                                          onClick={handleNextChild} />
                     </>
                 )}
-                <FontAwesomeIcon icon={faCodeFork}
+                {!isShare && (
+                    <FontAwesomeIcon icon={faCodeFork}
                                  style={{ marginRight: '5px',
                                      cursor: 'pointer',
                                      transform: 'rotate(180deg)' }}
                                  onClick={() => forkMessage(msg.id)}/>
+                    )}
                 <FontAwesomeIcon icon={faGear} />
             </div>
             {msg.sources && msg.sources.length > 0 && (

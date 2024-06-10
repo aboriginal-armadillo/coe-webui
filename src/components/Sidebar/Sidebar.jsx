@@ -4,7 +4,7 @@ import { Nav, Dropdown } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import ChatList from '../ChatList/ChatList';
+import ChatList from './ChatList/ChatList';
 
 function Sidebar({ user, isOpen, toggleSidebar }) {
     // const [isOpen, setIsOpen] = useState(true); // State to manage sidebar visibility

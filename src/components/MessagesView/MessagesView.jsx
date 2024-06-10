@@ -13,7 +13,7 @@ import SendMessage from '../SendMessage/SendMessage';
 import Message from '../Message/Message';
 import './style.css';
 
-function MessagesView({ user, isNew }) {
+function MessagesView({ user, isNew, isShare }) {
     const { chatId } = useParams();
     const [messages, setMessages] = useState([]);
     const [chatTitle, setChatTitle] = useState("");
@@ -26,8 +26,8 @@ function MessagesView({ user, isNew }) {
     };
 
     const forkMessage = useCallback(async (messageId) => {
-
         const db = getFirestore();
+
         const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
 
         // Retrieve the current chat document to fetch the message data
@@ -54,19 +54,19 @@ function MessagesView({ user, isNew }) {
     }, [user.uid, chatId]);
 
     const updateSelectedChild = useCallback(async (messageId, childIndex) => {
-
         const db = getFirestore();
-        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
+        const collectionPath = isShare ? `public` : `users/${user.uid}/chats`;
+        const chatRef = doc(db, collectionPath, chatId);
         const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
         // Update Firestore by specifying the nested field to update
-        updateDoc(chatRef, {[updatePath]: childIndex})
+        updateDoc(chatRef, { [updatePath]: childIndex })
             .then({})
             .catch(error => console.error("Error updating Firestore:", error));
-
-    }, [user.uid, chatId]);
+    }, [user.uid, chatId, isShare]);
 
     const loadMessages = useCallback(async (messageId, accumulatedMessages, db) => {
-        const messageRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+        const collectionPath = isShare ? `public` : `users/${user.uid}/chats`;
+        const messageRef = doc(db, collectionPath, chatId);
         const messageSnap = await getDoc(messageRef);
         if (messageSnap.exists()) {
             let messageData = messageSnap.data()[messageId];
@@ -87,15 +87,21 @@ function MessagesView({ user, isNew }) {
         } else {
             setMessages(accumulatedMessages);
         }
-    }, [user, chatId]);
+    }, [user, chatId, isShare]);
 
     useEffect(() => {
+        console.log("MessagesView useEffect", isShare);
         const db = getFirestore();
         if (user && chatId) {
-            const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+            const collectionPath = isShare ? `public` : `users/${user.uid}/chats`;
+            console.log("Collection path:", collectionPath);
+            const chatRef = doc(db, collectionPath, chatId);
             onSnapshot(chatRef, (chatSnap) => {
                 if (chatSnap.exists()) {
-                    const chatData = chatSnap.data();
+                    console.log('Chat exists');
+                    // const chatData = chatSnap.data();
+                    const chatData = [];
+                    console.log('chat name: ', chatData.name);
                     setChatTitle(chatData.name);
                     loadMessages('root', [], db);
                 } else {
@@ -104,19 +110,22 @@ function MessagesView({ user, isNew }) {
             }, (error) => {
                 console.error("Failed to subscribe to chat updates:", error);
             });
-
-            const userRef = doc(db, `users/${user.uid}`);
-            getDoc(userRef).then(userSnap => {
-                if (userSnap.exists()) {
-                    const userData = userSnap.data();
-                    setBotsAvail(userData.bots);
-                }
-            });
+            console.log('user:', user.uid);
+            if (user.uid !=='share') {
+                console.log('chatId:', chatId);
+                const userRef = doc(db, `users/${user.uid}`);
+                getDoc(userRef).then(userSnap => {
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        setBotsAvail(userData.bots);
+                    }
+                });
+            }
         } else {
             setChatTitle("");
             setMessages([]);
         }
-    }, [user, chatId, loadMessages]);
+    }, [user, chatId, loadMessages, isShare]);
 
     useEffect(() => {
         scrollToBottom();
@@ -130,18 +139,20 @@ function MessagesView({ user, isNew }) {
                     <Message key={msg.id}
                              msg={msg}
                              updateSelectedChild={updateSelectedChild}
-                             forkMessage={forkMessage}
-
-                                 />
+                             forkMessage={isShare ? forkMessage : null} // Conditionally pass forkMessage
+                             isShare={isShare} // Pass isShare to Message component
+                    />
                 ))}
                 <div ref={messagesEndRef} />
             </ListGroup>
-            <SendMessage user={user}
-                         botsAvail={botsAvail}
-                         chatId={chatId}
-                         messages={messages}
-                         navigate={navigate}
-                         isNew={isNew}/>
+            {!isShare && (
+                <SendMessage user={user}
+                             botsAvail={botsAvail}
+                             chatId={chatId}
+                             messages={messages}
+                             navigate={navigate}
+                             isNew={isNew}/>
+            )}
         </Container>
     );
 }
