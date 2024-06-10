@@ -13,7 +13,7 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
     const handleNextChild = () => {
         if (msg.selectedChild < msg.children.length - 1) {
             const newChildIndex = msg.selectedChild < (msg.children.length - 1) ? msg.selectedChild + 1 : 0;
-
+            console.log("Child index: ", msg.selectedChild, newChildIndex);
             updateSelectedChild(msg.id, newChildIndex);
         }
 
@@ -22,7 +22,7 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
     const handlePrevChild = () => {
         if (msg.selectedChild > 0) {
             const newChildIndex = msg.selectedChild > 0 ? msg.selectedChild - 1 : 0;
-
+            console.log("Child index: ", msg.selectedChild, newChildIndex);
             updateSelectedChild(msg.id, newChildIndex);
         }
 
