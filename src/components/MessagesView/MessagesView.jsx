@@ -9,8 +9,8 @@ import {
     updateDoc
 } from 'firebase/firestore';
 
-import SendMessage from '../SendMessage/SendMessage';
-import Message from '../Message/Message';
+import SendMessage from './SendMessage/SendMessage';
+import Message from './Message/Message';
 import './style.css';
 
 function MessagesView({ user, isNew, isShare }) {

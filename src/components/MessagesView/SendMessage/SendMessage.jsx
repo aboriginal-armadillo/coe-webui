@@ -1,21 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { InputGroup, Button, Spinner } from 'react-bootstrap';
-import DynamicTextArea from "../DynamicTextArea/DynamicTextArea";
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import DynamicTextArea from "../../DynamicTextArea/DynamicTextArea";
 import DropdownMenu from './DropdownMenu/DropdownMenu';
 import FileUpload from './FileUpload/FileUpload';
 import sendMessage from './utils/sendMessage';
 
-function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
+function SendMessage({ user, chatId, messages, navigate, isNew }) {
     const [newMessage, setNewMessage] = useState("");
     const [selectedAction, setSelectedAction] = useState("Me");
     const [loading, setLoading] = useState(false);
+    const [botsAvail, setBotsAvail] = useState([]);
+    const [chatBots, setChatBots] = useState([]);
 
     useEffect(() => {
         if (isNew) {
-            setNewMessage("");      // Reset the message
-            setSelectedAction("Me"); // Reset the selected action
+            setNewMessage("");
+            setSelectedAction("Me");
         }
     }, [isNew]);
+
+    useEffect(() => {
+        const fetchChatBots = async () => {
+            const db = getFirestore();
+            if (chatId) {
+                const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+                const chatSnap = await getDoc(chatRef);
+                if (chatSnap.exists()) {
+                    const chatData = chatSnap.data();
+                    setChatBots(chatData.bots || []);
+                } else {
+                    setChatBots([]);
+                }
+            }
+        };
+
+        const fetchBotsAvail = async () => {
+            const db = getFirestore();
+            const userRef = doc(db, `users/${user.uid}`);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()){
+                const userData = userSnap.data();
+                setBotsAvail(userData.bots || []);
+            } else {
+                setBotsAvail([]);
+            }
+
+        };
+
+        fetchChatBots();
+        fetchBotsAvail();
+    }, [chatId, user.uid]);
 
     const handleSendMessage = async (action) => {
         await sendMessage({
@@ -51,7 +86,14 @@ function SendMessage({ user, botsAvail, chatId, messages, navigate, isNew }) {
                 </Button>
             )}
             {!isNew && (
-                <DropdownMenu botsAvail={botsAvail} setSelectedAction={setSelectedAction} />
+                <DropdownMenu
+                    user={user}
+                    chatId={chatId}
+                    chatBots={chatBots}
+                    botsAvail={botsAvail}
+                    setSelectedAction={setSelectedAction}
+                    updateChatBots={setChatBots}
+                />
             )}
             {selectedAction === "Upload File" && (
                 <FileUpload
