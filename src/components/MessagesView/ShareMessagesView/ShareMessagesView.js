@@ -17,20 +17,6 @@ function ShareMessagesView({ isShare }) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const updateSelectedChild = useCallback((messageId, childIndex) => {
-        const updatedChatData = {
-            ...chatData,
-            [messageId]: {
-                ...chatData[messageId],
-                selectedChild: childIndex
-            }
-        }
-        setChatData(updatedChatData);
-        loadMessages('root', [], updatedChatData);
-
-
-    }, []);
-
     const loadMessages = useCallback(async (messageId, accumulatedMessages, chatData) => {
         if (messageId in chatData) {
             let messageData = chatData[messageId];
@@ -52,6 +38,22 @@ function ShareMessagesView({ isShare }) {
             setMessages(accumulatedMessages);
         }
     }, []);
+
+    const updateSelectedChild = useCallback((messageId, childIndex) => {
+        const updatedChatData = {
+            ...chatData,
+            [messageId]: {
+                ...chatData[messageId],
+                selectedChild: childIndex
+            }
+        }
+        setChatData(updatedChatData);
+        loadMessages('root', [], updatedChatData);
+
+
+    }, [chatData, loadMessages]);
+
+
 
     useEffect(() => {
         const fetchChatData = async () => {
