@@ -7,7 +7,7 @@ import {
     collection,
     doc, getDoc, setDoc
 } from 'firebase/firestore';
-import {getDownloadURL, getStorage, ref, uploadBytes} from "firebase/storage";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import axios from 'axios';
 import { encoding_for_model } from 'tiktoken';
 
@@ -16,27 +16,36 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
     const [gitUrl, setGitUrl] = useState('');
     const [targetDir, setTargetDir] = useState('');
 
+    async function fetchFilesRecursively(repository, apiKey, dir, fileContents = '') {
+        const url = `https://api.github.com/repos/${repository}/contents/${dir}?ref=main`;
+        const response = await axios.get(url, {
+            headers: {
+                Authorization: `token ${apiKey}`
+            }
+        });
+
+        const files = response.data;
+        const branch = "main"
+        for (const file of files) {
+            if (file.type === 'file') {
+                console.log('Fetching file: ', file.path, file.download_url);
+                const fileResponse = await axios.get(file.download_url);
+                fileContents += `${file.path}\n\`\`\`\n${fileResponse.data}\n\`\`\`\n\n`;
+            } else if (file.type === 'dir') {
+                console.log('Fetching directory: ', file.path)
+                fileContents = await fetchFilesRecursively(repository, apiKey, file.path, fileContents);
+            }
+        }
+
+        return fileContents;
+    }
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
             const repository = gitUrl.split('github.com/')[1];
-            const url = `https://api.github.com/repos/${repository}/contents/${targetDir}?ref=main`;
+            let fileContents = await fetchFilesRecursively(repository, apiKey, targetDir);
 
-            const response = await axios.get(url, {
-                headers: {
-                    Authorization: `token ${apiKey}`
-                }
-            });
-
-            const files = response.data;
-            let fileContents = '';
-
-            for (const file of files) {
-                if (file.type === 'file') {
-                    const fileResponse = await axios.get(file.download_url);
-                    fileContents += `${file.path}\n\`\`\`\n${fileResponse.data}\n\`\`\`\n\n`;
-                }
-            }
             const encoding = encoding_for_model('gpt-4');
             const tokens = encoding.encode(fileContents);
             const tokenCount = tokens.length;
