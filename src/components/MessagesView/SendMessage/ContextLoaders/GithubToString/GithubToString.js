@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import {
     getFirestore,
@@ -15,6 +15,19 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
     const [apiKey, setApiKey] = useState('');
     const [gitUrl, setGitUrl] = useState('');
     const [targetDir, setTargetDir] = useState('');
+    const [githubKeys, setGithubKeys] = useState([]);
+
+    useEffect(() => {
+        const fetchApiKeys = async () => {
+            const db = getFirestore();
+            const userDoc = await getDoc(doc(db, `users/${user.uid}`));
+            const userData = userDoc.data();
+            if (userData && userData.apiKeys) {
+                setGithubKeys(userData.apiKeys.filter(key => key.svc === 'Github'));
+            }
+        };
+        fetchApiKeys();
+    }, [user.uid]);
 
     async function fetchFilesRecursively(repository, apiKey, dir, fileContents = '') {
         const url = `https://api.github.com/repos/${repository}/contents/${dir}?ref=main`;
@@ -117,11 +130,16 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
             <Form.Group controlId="apiKey" style={{ width: "300px", marginBottom: "10px" }}>
                 <Form.Label>API Key</Form.Label>
                 <Form.Control
-                    type="text"
+                    as="select"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     required
-                />
+                >
+                    <option value="">Select API Key</option>
+                    {githubKeys.map((key, index) => (
+                        <option key={index} value={key.apikey}>{key.name}</option>
+                    ))}
+                </Form.Control>
             </Form.Group>
             <Form.Group controlId="gitUrl" style={{ width: "300px", marginBottom: "10px" }}>
                 <Form.Label>Git URL</Form.Label>
