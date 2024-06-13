@@ -88,7 +88,7 @@ function App() {
                                 <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
                                 <Route path="/buildabot" element={<BuildABot user={user} />} />
                                 <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false} isShare={false}/>} />
-                                <Route path="/chat" element={<MessagesView user={user} isNew={true}/>} />
+                                <Route path="/chat" element={<MessagesView user={user} isNew={true} isShare={false}/>} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
                                 <Route path="/manage-pinecone" element={<ManagePinecone user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}

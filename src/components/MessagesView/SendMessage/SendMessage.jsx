@@ -3,7 +3,7 @@ import { InputGroup, Button, Spinner } from 'react-bootstrap';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import DynamicTextArea from "../../DynamicTextArea/DynamicTextArea";
 import DropdownMenu from './DropdownMenu/DropdownMenu';
-import FileUpload from './FileUpload/FileUpload';
+import FileUpload from './ContextLoaders/FileUpload/FileUpload';
 import sendMessage from './utils/sendMessage';
 
 function SendMessage({ user, chatId, messages, navigate, isNew }) {
@@ -93,6 +93,8 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
                     botsAvail={botsAvail}
                     setSelectedAction={setSelectedAction}
                     updateChatBots={setChatBots}
+                    messages={messages}
+                    navigate={navigate}
                 />
             )}
             {selectedAction === "Upload File" && (
