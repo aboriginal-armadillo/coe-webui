@@ -38,7 +38,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
         });
 
         const files = response.data;
-        const branch = "main"
+
         for (const file of files) {
             if (file.type === 'file') {
                 console.log('Fetching file: ', file.path, file.download_url);
