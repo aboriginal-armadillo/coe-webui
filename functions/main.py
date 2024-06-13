@@ -6,8 +6,6 @@ from firebase_functions import https_fn, logger, options
 from firebase_admin import initialize_app, firestore
 from typing import Any
 
-
-
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
 from councilofelders.anthropic import AnthropicAgent
@@ -21,6 +19,7 @@ import io
 
 from requests import get, RequestException
 
+from functions.utils.contextLoaders import public_facing_fn
 from utils.rag import pubMedLoader, arxivLoader
 
 initialize_app()
@@ -240,8 +239,16 @@ def ragLoader(req: https_fn.CallableRequest):
     else:
         logger.log("Invalid type: ", request_json['type'])
 
-
-
+@https_fn.on_call(memory=options.MemoryOption.GB_1)
+def load_context(req: https_fn.CallableRequest):
+    public_facing_fn(req.data['repo_url'],
+                     req.data['directory_path'],
+                     req.data['uid'],
+                     req.data['message_id'],
+                     req.data['github_token_name'],
+                     req.data['name'],
+                     db,
+                     req.data['chat_id'])
 
 
 

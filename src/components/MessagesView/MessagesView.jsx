@@ -139,7 +139,7 @@ function MessagesView({ user, isNew, isShare }) {
                     <Message key={msg.id}
                              msg={msg}
                              updateSelectedChild={updateSelectedChild}
-                             forkMessage={isShare ? forkMessage : null} // Conditionally pass forkMessage
+                             forkMessage={forkMessage}
                              isShare={isShare} // Pass isShare to Message component
                     />
                 ))}

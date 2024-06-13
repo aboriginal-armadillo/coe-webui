@@ -41,7 +41,7 @@ const sendMessage = async ({ action, user, chatId, newMessage, messages, botsAva
             const chatSnap = await getDoc(chatRef);
             const chatData = chatSnap.data();
             const lastMessageId = messages[messages.length - 1]?.id;
-
+            console.log("chatData", chatData, "lastMessageId", lastMessageId);
             if (lastMessageId) {
                 chatData[lastMessageId].children.push(newMsgId);
             }

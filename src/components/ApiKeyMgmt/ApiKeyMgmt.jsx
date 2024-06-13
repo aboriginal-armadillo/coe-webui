@@ -72,6 +72,7 @@ function ApiKeyMgmt({ user }) {
                         <Dropdown.Item eventKey="Vertex">Vertex</Dropdown.Item>
                         <Dropdown.Item eventKey="Replicate">Replicate</Dropdown.Item>
                         <Dropdown.Item eventKey="Pinecone">Pinecone</Dropdown.Item>
+                        <Dropdown.Item eventKey="Github">Github</Dropdown.Item>
                     </DropdownButton>
                 </Col>
                 <Col xs={4}>
