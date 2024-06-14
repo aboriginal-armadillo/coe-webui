@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeFork, faInfo, faGear, faCaretLeft, faCaretRight, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism'; // You can choose any other theme if you like
-import SourcesModal from '../../SourcesModal/SourcesModal';
+import SourcesModal from '../../rag/SourcesModal/SourcesModal';
 
 function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
     const [showModal, setShowModal] = useState(false);

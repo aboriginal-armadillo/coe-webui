@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { InputGroup, Button, Spinner } from 'react-bootstrap';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import DynamicTextArea from "../../DynamicTextArea/DynamicTextArea";
+import DynamicTextArea from "./DynamicTextArea/DynamicTextArea";
 import DropdownMenu from './DropdownMenu/DropdownMenu';
 import FileUpload from './ContextLoaders/FileUpload/FileUpload';
 import sendMessage from './utils/sendMessage';
