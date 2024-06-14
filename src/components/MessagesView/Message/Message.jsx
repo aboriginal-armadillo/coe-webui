@@ -59,6 +59,8 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
         );
     };
 
+    const formatText = (text) => text.replace(/\n/g, '  \n');
+
     return (
         <ListGroupItem className="message-item"
                        style={{
@@ -77,7 +79,7 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
                 </>
             ) : (
                 <>
-                    <strong>{msg.sender}</strong>: <ReactMarkdown components={{ code: CodeBlock }}>{msg.text}</ReactMarkdown><br />
+                    <strong>{msg.sender}</strong>: <ReactMarkdown components={{ code: CodeBlock }}>{formatText(msg.text)}</ReactMarkdown><br />
                     <small>{msg.timestamp.toLocaleString()}</small>
                 </>
             )}
