@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import {
     getFirestore,
     Timestamp,
@@ -16,6 +18,8 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
     const [gitUrl, setGitUrl] = useState('');
     const [targetDir, setTargetDir] = useState('');
     const [githubKeys, setGithubKeys] = useState([]);
+    const [fileTypes, setFileTypes] = useState(['.py', '.js', '.jsx', '.md', '.txt']);
+    const [isEditingFileTypes, setIsEditingFileTypes] = useState(false);
 
     useEffect(() => {
         const fetchApiKeys = async () => {
@@ -40,7 +44,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
         const files = response.data;
 
         for (const file of files) {
-            if (file.type === 'file') {
+            if (file.type === 'file' && (fileTypes.includes('*') || fileTypes.some(ext => file.name.endsWith(ext)))) {
                 console.log('Fetching file: ', file.path, file.download_url);
                 const fileResponse = await axios.get(file.download_url);
                 fileContents += `${file.path}\n\`\`\`\n${fileResponse.data}\n\`\`\`\n\n`;
@@ -158,6 +162,27 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
                     onChange={(e) => setTargetDir(e.target.value)}
                     required
                 />
+            </Form.Group>
+            <Form.Group controlId="fileTypes" style={{ width: "300px", marginBottom: "10px", display: "flex", alignItems: "center" }}>
+                <Form.Label style={{ marginRight: "10px" }}>File Types</Form.Label>
+                {isEditingFileTypes ? (
+                    <Form.Control
+                        type="text"
+                        value={fileTypes.join(', ')}
+                        onChange={(e) => setFileTypes(e.target.value.split(',').map(type => type.trim()))}
+                        onBlur={() => setIsEditingFileTypes(false)}
+                        autoFocus
+                    />
+                ) : (
+                    <>
+                        <div>{fileTypes.join(', ')}</div>
+                        <FontAwesomeIcon
+                            icon={faPenToSquare}
+                            style={{ marginLeft: "10px", cursor: "pointer" }}
+                            onClick={() => setIsEditingFileTypes(true)}
+                        />
+                    </>
+                )}
             </Form.Group>
             <Button variant="primary" type="submit">
                 Submit
