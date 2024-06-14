@@ -10,12 +10,12 @@ import MessagesView from './components/MessagesView/MessagesView';
 import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
-import BuildABot from "./components/BuildABot/BuildABot";
+import BuildABot from "./components/Bots/BuildABot/BuildABot";
 import './App.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
-import BotZoo from "./components/BotZoo/BotZoo";
-import ManagePinecone from "./components/ManagePinecone/ManagePinecone";
+import BotZoo from "./components/Bots/BotZoo/BotZoo";
+import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView
     from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 
