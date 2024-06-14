@@ -4,21 +4,21 @@ import { Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
 
-function BuildABot({ user }) {
+function BuildABot({ user, botData }) {
     const [services, setServices] = useState([]);
-    const [selectedService, setSelectedService] = useState('');
+    const [selectedService, setSelectedService] = useState(botData?.service || '');
     const [keys, setKeys] = useState([]);
-    const [selectedKey, setSelectedKey] = useState('');
+    const [selectedKey, setSelectedKey] = useState(botData?.key || '');
     const [pineconeKeys, setPineconeKeys] = useState([]);
-    const [selectedPineconeKey, setSelectedPineconeKey] = useState('');
-    const [selectedPineconeIndex, setSelectedPineconeIndex] = useState('');
+    const [selectedPineconeKey, setSelectedPineconeKey] = useState(botData?.pineconeKey || '');
+    const [selectedPineconeIndex, setSelectedPineconeIndex] = useState(botData?.pineconeIndex || '');
     const [pineconeIndexes, setPineconeIndexes] = useState([]);
     const [allModels, setAllModels] = useState({});
     const [models, setModels] = useState([]);
-    const [temperature, setTemperature] = useState(0.5);
-    const [systemPrompt, setSystemPrompt] = useState('');
-    const [botName, setBotName] = useState('');
-    const [topK, setTopK] = useState(5);
+    const [temperature, setTemperature] = useState(botData?.temperature || 0.5);
+    const [systemPrompt, setSystemPrompt] = useState(botData?.systemPrompt || '');
+    const [botName, setBotName] = useState(botData?.name || '');
+    const [topK, setTopK] = useState(botData?.top_k || 5);
     const modelRef = useRef(null);
 
     const navigate = useNavigate();
@@ -97,6 +97,20 @@ function BuildABot({ user }) {
             fetchPineconeIndexes();
         }
     }, [selectedPineconeKey, user.uid]);
+
+    useEffect(() => {
+        if (botData && botData.service === 'RAG: OpenAI+Pinecone') {
+            setSelectedPineconeKey(botData.pineconeKey);
+            setSelectedPineconeIndex(botData.pineconeIndex);
+            setTopK(botData.top_k);
+        }
+
+        setSelectedService(botData?.service || '');
+        setSelectedKey(botData?.key || '');
+        setTemperature(botData?.temperature || 0.5);
+        setSystemPrompt(botData?.systemPrompt || '');
+        setBotName(botData?.name || '');
+    }, [botData]);
 
     const handleSubmit = (event) => {
         event.preventDefault();
