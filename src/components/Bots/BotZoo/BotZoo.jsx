@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Container, Row, Col } from 'react-bootstrap';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import BuildABotModal from '../BuildABotModal/BuildABotModal';
 
 function BotZoo({ user }) {
     const [bots, setBots] = useState([]);
+    const [selectedBot, setSelectedBot] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         console.log("Loading BotZoo...");
         const fetchUserBots = async () => {
             if (!user?.uid) return;
-            // Initialize Firebase Firestore
             const db = getFirestore();
-
             const userRef = doc(db, 'users', user.uid);
             try {
                 const userDoc = await getDoc(userRef);
@@ -30,6 +32,28 @@ function BotZoo({ user }) {
         fetchUserBots();
     }, [user]);
 
+    const handleEditClick = (bot) => {
+        setSelectedBot(bot);
+        setShowModal(true);
+    };
+
+    const handleDeleteClick = async (bot) => {
+        if (!user?.uid) return;
+        const db = getFirestore();
+        const userRef = doc(db, 'users', user.uid);
+        try {
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const updatedBots = userData.bots.filter(b => b.key !== bot.key);
+                await updateDoc(userRef, { bots: updatedBots });
+                setBots(updatedBots);
+            }
+        } catch (error) {
+            console.error("Error deleting bot:", error);
+        }
+    };
+
     return (
         <Container>
             <Row xs={1} md={2} lg={3} className="g-4">
@@ -37,7 +61,19 @@ function BotZoo({ user }) {
                     <Col key={index}>
                         <Card>
                             <Card.Body>
-                                <Card.Title>{bot.name}</Card.Title>
+                                <Card.Title>
+                                    {bot.name}
+                                    <FontAwesomeIcon
+                                        icon={faPenToSquare}
+                                        style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                        onClick={() => handleEditClick(bot)}
+                                    />
+                                    <FontAwesomeIcon
+                                        icon={faTrash}
+                                        style={{ cursor: 'pointer', marginLeft: '10px', color: 'red' }}
+                                        onClick={() => handleDeleteClick(bot)}
+                                    />
+                                </Card.Title>
                                 <Card.Subtitle className="mb-2 text-muted">{bot.model}</Card.Subtitle>
                                 <Card.Text>
                                     Key: {bot.key}<br />
@@ -50,6 +86,13 @@ function BotZoo({ user }) {
                     </Col>
                 ))}
             </Row>
+            <BuildABotModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                botData={selectedBot}
+                user={user}
+
+            />
         </Container>
     );
 }
