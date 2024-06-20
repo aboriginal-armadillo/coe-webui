@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { FormControl } from 'react-bootstrap';
+import {FormControl} from 'react-bootstrap';
 
 const DynamicTextarea = ({ newMessage, setNewMessage }) => {
 
@@ -8,7 +8,7 @@ const DynamicTextarea = ({ newMessage, setNewMessage }) => {
     useEffect(() => {
         const textarea = textareaRef.current;
         if (!textarea) return;
-
+        console.log()
         // Reset the rows to the default minimum to correctly reduce size if needed
         textarea.rows = 1;
         // Adjust the rows based on the scroll height of the textarea
@@ -16,16 +16,14 @@ const DynamicTextarea = ({ newMessage, setNewMessage }) => {
         textarea.rows = currentRows;
     }, [newMessage]);
 
+
     return (
         <FormControl
             as="textarea"
             ref={textareaRef}
             placeholder="Type a message..."
-            value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
-            onKeyPress={e => e.key === 'Enter' && e.preventDefault()} // Assuming you handle send here or prevent default
-            style={{ width: '100%', resize: 'none' }} // Disabling resize if desired
-        />
+            ></FormControl>
     );
 }
 

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection,
-    deleteDoc,
-    query, orderBy, getFirestore, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { collection, deleteDoc, query, orderBy, getFirestore, onSnapshot, updateDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { Nav, Dropdown, Button, FormControl, InputGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsis, faSave } from '@fortawesome/free-solid-svg-icons';
@@ -23,7 +21,8 @@ function ChatList({ user }) {
             const updatedChats = snapshot.docs.map(doc => ({
                 id: doc.id,
                 name: doc.data().name,
-                created: doc.data().createdAt
+                created: doc.data().createdAt,
+                shared: doc.data().shared || false
             }));
             setChats(updatedChats);
         }, (error) => {
@@ -56,6 +55,37 @@ function ChatList({ user }) {
         }
     };
 
+    const handleShare = async (chatId) => {
+        const db = getFirestore();
+        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
+        const chatSnap = await getDoc(chatRef);
+        if (chatSnap.exists()) {
+            const chatData = chatSnap.data();
+            const publicChatRef = doc(db, 'public', chatId);
+            await setDoc(publicChatRef, chatData);
+            await updateDoc(chatRef, { shared: true });
+        } else {
+            console.error("No such document!");
+        }
+    };
+
+    const handleUnshare = async (chatId) => {
+        const db = getFirestore();
+        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
+        const publicChatRef = doc(db, 'public', chatId);
+        await deleteDoc(publicChatRef);
+        await updateDoc(chatRef, { shared: false });
+    };
+
+    const handleCopyLink = (chatId) => {
+        const link = `${window.location.origin}/share/${chatId}`;
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link copied to clipboard');
+        }).catch(err => {
+            console.error('Failed to copy link: ', err);
+        });
+    };
+
     return (
         <Nav className="flex-column mb-auto">
             {chats.map(chat => (
@@ -73,8 +103,8 @@ function ChatList({ user }) {
                             </Button>
                         </InputGroup>
                     ) : (
-                        <Nav.Link as={Link} to={`/chat/${chat.id}`} className="text-dark flex-grow-1">
-                            {chat.name.length > 20 ? `${chat.name.substring(0, 24)}...` : chat.name}
+                        <Nav.Link as={Link} to={`/chat/${chat.id}`} className="text-dark flex-grow-1" style={{ fontWeight: chat.shared ? 'bold' : 'normal' }}>
+                            {chat.name.length > 20 ? `${chat.name.substring(0, 20)}...` : chat.name}
                         </Nav.Link>
                     )}
                     <Dropdown>
@@ -84,7 +114,14 @@ function ChatList({ user }) {
                         <Dropdown.Menu>
                             <Dropdown.Item onClick={() => handleRenameStart(chat.id, chat.name)}>Rename Chat</Dropdown.Item>
                             <Dropdown.Item onClick={() => handleDelete(chat.id)}>Delete Chat</Dropdown.Item>
-                            {/* <Dropdown.Item onClick={() => handleShare(chat.id)}>Share Chat</Dropdown.Item> */}
+                            {chat.shared ? (
+                                <>
+                                    <Dropdown.Item onClick={() => handleUnshare(chat.id)}>Unshare Chat</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCopyLink(chat.id)}>Copy Link to Clipboard</Dropdown.Item>
+                                </>
+                            ) : (
+                                <Dropdown.Item onClick={() => handleShare(chat.id)}>Share Chat</Dropdown.Item>
+                            )}
                         </Dropdown.Menu>
                     </Dropdown>
                 </div>

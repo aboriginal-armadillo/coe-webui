@@ -4,7 +4,7 @@ import { Nav, Dropdown } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import ChatList from '../ChatList/ChatList';
+import ChatList from './ChatList/ChatList';
 
 function Sidebar({ user, isOpen, toggleSidebar }) {
     // const [isOpen, setIsOpen] = useState(true); // State to manage sidebar visibility
@@ -29,7 +29,7 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
 
             {isOpen && (
                 <>
-                    <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex justify-content-between align-items-center p-3">
                         <Link to="/" className="d-flex align-items-center mb-md-0 me-md-auto link-dark text-decoration-none">
                             <span className="fs-4"></span>
                         </Link>
@@ -38,26 +38,30 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                         </Link>
                     </div>
                     <hr />
-                    <div style={{ height: "100%", overflow: "auto" }}>
+                    <div style={{ height: "100%",
+                        overflow: "auto",
+                        padding: "0 1rem" }}>
                         <ChatList user={user} />
                     </div>
                     <hr />
-                    <Dropdown>
-                        <Dropdown.Toggle as={Nav.Link}
-                                         className="text-dark d-flex align-items-center" id="dropdown-account">
-                            <strong>{user?.displayName}</strong>
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                            <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/bots">The Bot Zoo</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item as={Link} to="/manage-pinecone">Manage Pinecone</Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item as="button" onClick={handleSignOut}>Sign out</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
+                    <div className="p-3">
+                        <Dropdown>
+                            <Dropdown.Toggle as={Nav.Link}
+                                             className="text-dark d-flex align-items-center" id="dropdown-account">
+                                <strong>{user?.displayName}</strong>
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                                <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/bots">The Bot Zoo</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item as={Link} to="/manage-pinecone">Manage Pinecone</Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item as="button" onClick={handleSignOut}>Sign out</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </div>
                 </>
             )}
         </div>

@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { Form, Button } from 'react-bootstrap';
+import {Form, Button, Card} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
 
-function BuildABot({ user }) {
+function BuildABot({ user, botData }) {
     const [services, setServices] = useState([]);
-    const [selectedService, setSelectedService] = useState('');
+    const [selectedService, setSelectedService] = useState(botData?.service || '');
     const [keys, setKeys] = useState([]);
-    const [selectedKey, setSelectedKey] = useState('');
+    const [selectedKey, setSelectedKey] = useState(botData?.key || '');
     const [pineconeKeys, setPineconeKeys] = useState([]);
-    const [selectedPineconeKey, setSelectedPineconeKey] = useState('');
-    const [selectedPineconeIndex, setSelectedPineconeIndex] = useState('');
+    const [selectedPineconeKey, setSelectedPineconeKey] = useState(botData?.pineconeKey || '');
+    const [selectedPineconeIndex, setSelectedPineconeIndex] = useState(botData?.pineconeIndex || '');
     const [pineconeIndexes, setPineconeIndexes] = useState([]);
     const [allModels, setAllModels] = useState({});
     const [models, setModels] = useState([]);
-    const [temperature, setTemperature] = useState(0.5);
-    const [systemPrompt, setSystemPrompt] = useState('');
-    const [botName, setBotName] = useState('');
-    const [topK, setTopK] = useState(5);
+    const [temperature, setTemperature] = useState(botData?.temperature || 0.5);
+    const [minTemp, setMinTemp] = useState(0.0);
+    const [maxTemp, setMaxTemp] = useState(2.0);
+    const [botName, setBotName] = useState(botData?.name || '');
+    const [systemPrompt, setSystemPrompt] = useState(botData?.systemPrompt || '');
+    const [topK, setTopK] = useState(botData?.top_k || 5);
     const modelRef = useRef(null);
 
     const navigate = useNavigate();
@@ -32,6 +34,7 @@ function BuildABot({ user }) {
             const configDocPromise = getDoc(configRef);
 
             const [userDoc, configDoc] = await Promise.all([userDocPromise, configDocPromise]);
+
             if (userDoc.exists()) {
                 const apiKeys = userDoc.data().apiKeys;
                 let serviceSet = Array.from(new Set(apiKeys.map(item => item.svc)));
@@ -40,8 +43,16 @@ function BuildABot({ user }) {
                 }
                 setServices(serviceSet.filter(service => service !== "Pinecone"));
             }
+
             if (configDoc.exists()) {
-                setAllModels(configDoc.data());
+                const configData = configDoc.data();
+                const processedModels = Object.fromEntries(Object.entries(configData).map(([serviceName, models]) => {
+                    if (models.length > 0 && typeof models[0] === 'object') {
+                        return [serviceName, models];
+                    }
+                    return [serviceName, models.map(model => ({ name: model }))];
+                }));
+                setAllModels(processedModels);
             }
         };
         fetchUserDataAndModels();
@@ -65,7 +76,18 @@ function BuildABot({ user }) {
                     }
                 }
             });
+
             if (allModels[selectedService]) {
+                const firstModel = allModels[selectedService][0];
+                if (firstModel && firstModel.hasOwnProperty('minTemp')) {
+                    setMinTemp(firstModel.minTemp);
+                    setMaxTemp(firstModel.maxTemp);
+                    setTemperature(firstModel.defaultTemp); // Set to default temperature when service changes
+                } else {
+                    setMinTemp(0.0);
+                    setMaxTemp(2.0);
+                    setTemperature(1.0);  // Setting a neutral default temperature if not specified
+                }
                 setModels(allModels[selectedService]);
             } else {
                 setModels([]);
@@ -97,6 +119,21 @@ function BuildABot({ user }) {
             fetchPineconeIndexes();
         }
     }, [selectedPineconeKey, user.uid]);
+
+    useEffect(() => {
+        if (botData) {
+            if (botData.service === 'RAG: OpenAI+Pinecone') {
+                setSelectedPineconeKey(botData.pineconeKey);
+                setSelectedPineconeIndex(botData.pineconeIndex);
+                setTopK(botData.top_k);
+            }
+            setSelectedService(botData?.service || '');
+            setSelectedKey(botData?.key || '');
+            setTemperature(botData?.temperature || 0.5);
+            setSystemPrompt(botData?.systemPrompt || '');
+            setBotName(botData?.name || '');
+        }
+    }, [botData]);
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -132,7 +169,8 @@ function BuildABot({ user }) {
     };
 
     return (
-        <Form onSubmit={handleSubmit}>
+        <Card>
+            <Form onSubmit={handleSubmit}>
             <Form.Group>
                 <Form.Label>Bot Name</Form.Label>
                 <Form.Control type="text" value={botName} onChange={e => setBotName(e.target.value)} placeholder="Enter bot name" />
@@ -159,9 +197,7 @@ function BuildABot({ user }) {
                 <>
                     <Form.Group>
                         <Form.Label>Pinecone Key</Form.Label>
-                        <Form.Control as="select"
-                                      value={selectedPineconeKey}
-                                      onChange={e => setSelectedPineconeKey(e.target.value)}>
+                        <Form.Control as="select" value={selectedPineconeKey} onChange={e => setSelectedPineconeKey(e.target.value)}>
                             <option value="">Select a Pinecone key</option>
                             {pineconeKeys.map((key, index) => (
                                 <option key={index} value={key}>{key}</option>
@@ -170,9 +206,7 @@ function BuildABot({ user }) {
                     </Form.Group>
                     <Form.Group>
                         <Form.Label>Pinecone Index</Form.Label>
-                        <Form.Control as="select"
-                                      value={selectedPineconeIndex}
-                                      onChange={e => setSelectedPineconeIndex(e.target.value)}>
+                        <Form.Control as="select" value={selectedPineconeIndex} onChange={e => setSelectedPineconeIndex(e.target.value)}>
                             <option value="">Select an index</option>
                             {pineconeIndexes.map((index, i) => (
                                 <option key={i} value={index}>{index}</option>
@@ -188,16 +222,16 @@ function BuildABot({ user }) {
             )}
             <Form.Group>
                 <Form.Label>Model</Form.Label>
-                <Form.Control as="select" ref={modelRef}>
+                <Form.Control as="select" ref={modelRef} defaultValue={botData?.model || ''}>
                     <option value="">Select a model</option>
                     {models.map((model, index) => (
-                        <option key={index} value={model}>{model}</option>
+                        <option key={index} value={model.name}>{model.name}</option>
                     ))}
                 </Form.Control>
             </Form.Group>
             <Form.Group>
                 <Form.Label>Temperature</Form.Label>
-                <Form.Control type="range" min="0.0" max="2.0" step="0.05" value={temperature} onChange={e => setTemperature(e.target.value)} />
+                <Form.Control type="range" min={minTemp} max={maxTemp} step="0.05" value={temperature} onChange={e => setTemperature(e.target.value)} />
                 <Form.Text>{temperature}</Form.Text>
             </Form.Group>
             <Form.Group>
@@ -208,6 +242,7 @@ function BuildABot({ user }) {
                 Submit
             </Button>
         </Form>
+        </Card>
     );
 }
 

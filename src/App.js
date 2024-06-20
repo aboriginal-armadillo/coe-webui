@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Sidebar from './components/Sidebar/Sidebar';
 import AccountPage from './components/AccountPage/AccountPage';
@@ -10,12 +10,14 @@ import MessagesView from './components/MessagesView/MessagesView';
 import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
-import BuildABot from "./components/BuildABot/BuildABot";
+import BuildABot from "./components/Bots/BuildABot/BuildABot";
 import './App.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBars} from "@fortawesome/free-solid-svg-icons";
-import BotZoo from "./components/BotZoo/BotZoo";
-import ManagePinecone from "./components/ManagePinecone/ManagePinecone";
+import BotZoo from "./components/Bots/BotZoo/BotZoo";
+import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
+import ShareMessagesView
+    from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -70,7 +72,10 @@ function App() {
     return (
         <Router>
             <div className="App">
-
+                <Routes>
+                    <Route path="/share/:chatId" element={<ShareMessagesView
+                    isShare={true}/>} />
+                </Routes>
                 {isLoggedIn ? (
                     <>
                         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -82,8 +87,8 @@ function App() {
                                 <Route path="/account" element={<AccountPage />} />
                                 <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
                                 <Route path="/buildabot" element={<BuildABot user={user} />} />
-                                <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false}/>} />
-                                <Route path="/chat" element={<MessagesView user={user} isNew={true}/>} />
+                                <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false} isShare={false}/>} />
+                                <Route path="/chat" element={<MessagesView user={user} isNew={true} isShare={false}/>} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
                                 <Route path="/manage-pinecone" element={<ManagePinecone user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
@@ -93,7 +98,8 @@ function App() {
                 ) : (
                     <Routes>
                         <Route path="/" element={<Login />} />
-                        <Route path="*" element={<Navigate to="/" />} />
+
+                        {/*<Route path="*" element={<Navigate to="/" />} />*/}
                     </Routes>
                 )}
             </div>
