@@ -24,6 +24,8 @@ from bs4 import BeautifulSoup
 import io
 
 from requests import get, RequestException
+import fitz
+
 initialize_app()
 db = firestore.client()
 
@@ -55,6 +57,13 @@ def extract_messages(data, current_key):
                                 text.append(soup.get_text())
 
                         decoded_content = '\n'.join(text)
+                    elif current['fileName'].endswith('.pdf'):
+                        pdf_document = fitz.open("pdf", content)
+                        text = ""
+                        for page_num in range(len(pdf_document)):
+                            page = pdf_document.load_page(page_num)
+                            text += page.get_text()
+                        decoded_content = text
                     else:
                         decoded_content = content.decode('utf-8')
 
