@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Dropdown, Card, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlug,
-    faPlugCirclePlus,
-    faPlugCircleMinus,
-    faRotate,
-    faFileCirclePlus} from '@fortawesome/free-solid-svg-icons';
+import { faPlug, faPlugCirclePlus, faPlugCircleMinus, faRotate, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
-
 import { Pinecone } from '@pinecone-database/pinecone';
-
-import PubMedDataLoader from '../DataLoaders/PubMedDataLoader/PubMedDataLoader';
-
-
+import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
+import './ManagePinecone.css';
 
 function ManagePinecone({ user }) {
     const [apiKeys, setApiKeys] = useState([]);
     const [selectedApiKey, setSelectedApiKey] = useState(null);
     const [indices, setIndices] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '', metric: '', name: '' });
+    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '',
+        // metric: '',
+        name: '' });
 
     const [loaderModalShow, setLoaderModalShow] = useState(false);
 
@@ -34,27 +29,23 @@ function ManagePinecone({ user }) {
             const apiKeysArray = userDoc.data().apiKeys || [];
             const openAiKeys = apiKeysArray.filter(key => key.svc === "Pinecone");
             setApiKeys(openAiKeys);
-
         };
         fetchApiKeys();
-    }, [user.uid, firestore] );
+    }, [user.uid, firestore]);
 
     const handleSetApiKey = async (keyObject) => {
-        console.log("Setting API key:", keyObject.apikey);
         setSelectedApiKey(keyObject.apikey);
-        console.log("Creating Pinecone instance with API key: ", keyObject.apikey);
         const pinecone = new Pinecone({ apiKey: keyObject.apikey });
-        console.log("Pinecone instance created:", pinecone);
         const fetchedIndices = await pinecone.listIndexes();
-        console.log("Fetched indices:", fetchedIndices);
         setIndices(fetchedIndices.indexes);
     };
 
     const handleCreateIndex = async () => {
         try {
-            const { dimensions, metric, name } = newIndexParams;
-            metric.charAt(0)
-            const pinecone = new Pinecone({ apiKey: selectedApiKey});
+            const { dimensions,
+                // metric,
+                name } = newIndexParams;
+            const pinecone = new Pinecone({ apiKey: selectedApiKey });
             await pinecone.createIndex({
                 name: name,
                 dimension: parseInt(dimensions),
@@ -66,7 +57,6 @@ function ManagePinecone({ user }) {
                 },
             });
             const fetchedIndices = await pinecone.listIndexes();
-            console.log("Fetched indices:", fetchedIndices);
             setIndices(fetchedIndices.indexes);
             setShowModal(false);
         } catch (error) {
@@ -75,10 +65,8 @@ function ManagePinecone({ user }) {
     };
 
     const handleDeleteIndex = async (indexName) => {
-        console.log("Deleting index:", indexName);
         try {
-            console.log("Initializing pinecone client with API key:", selectedApiKey);
-            const pinecone = new Pinecone({ apiKey: selectedApiKey});
+            const pinecone = new Pinecone({ apiKey: selectedApiKey });
             await pinecone.deleteIndex(indexName);
             const newIndices = indices.filter(index => index.name !== indexName);
             setIndices(newIndices);
@@ -98,44 +86,53 @@ function ManagePinecone({ user }) {
     };
 
     return (
-        <div>
-            <Dropdown onSelect={(e) => handleSetApiKey(apiKeys[e])}>
-                <Dropdown.Toggle variant="success">Select API Key</Dropdown.Toggle>
-                <Dropdown.Menu>
-                    {apiKeys.map((key, index) => (
-                        <Dropdown.Item key={key.name} eventKey={index}>
-                            {key.name}
-                        </Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
-            </Dropdown>
-            <Button onClick={() => setShowModal(true)}>
-                <FontAwesomeIcon icon={faPlugCirclePlus} />
-            </Button>
-            <Button onClick={() => handleSyncIndices()}>
-                <FontAwesomeIcon icon={faRotate} />
-            </Button>
-            {indices.map((index) => (
-                <Card key={index.name}>
-                    <Card.Body>
-                        <Card.Title>{index.name}</Card.Title>
-                        <FontAwesomeIcon icon={faPlug} color={"green"} />
-                        <Button variant="danger" onClick={() => handleDeleteIndex(index.name)}>
-                            <FontAwesomeIcon icon={faPlugCircleMinus} />
-                        </Button>
-                        <Button onClick={handleLoaderModalShow}>
-                            <FontAwesomeIcon icon={faFileCirclePlus} />
-                        </Button>
-                    </Card.Body>
-                    <PubMedDataLoader
-                        show={loaderModalShow}
-                        handleClose={handleLoaderModalClose}
-                        pineconeApiKey={selectedApiKey}
-                        uid={user.uid}
-                        indexName={index.name}
-                    />
-                </Card>
-            ))}
+        <div className="manage-pinecone-container">
+            <div className="manage-pinecone-header">
+                <Dropdown onSelect={(e) => handleSetApiKey(apiKeys[e])}>
+                    <Dropdown.Toggle variant="success">Select API Key</Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        {apiKeys.map((key, index) => (
+                            <Dropdown.Item key={key.name} eventKey={index}>
+                                {key.name}
+                            </Dropdown.Item>
+                        ))}
+                    </Dropdown.Menu>
+                </Dropdown>
+                <Button variant="primary" onClick={() => setShowModal(true)}>
+                    <FontAwesomeIcon icon={faPlugCirclePlus} /> Create Index
+                </Button>
+                <Button variant="secondary" onClick={() => handleSyncIndices()}>
+                    <FontAwesomeIcon icon={faRotate} /> Sync Indices
+                </Button>
+            </div>
+            <div className="manage-pinecone-content">
+                {indices.map((index) => (
+                    <Card key={index.name} className="index-card">
+                        <Card.Body>
+                            <Card.Title>
+                                <FontAwesomeIcon icon={faPlug} color={"green"} />
+                                &nbsp;
+                                {index.name}
+                            </Card.Title>
+
+                            <Button variant="danger" onClick={() => handleDeleteIndex(index.name)} style={{ marginRight: '10px' }}>
+                                <FontAwesomeIcon icon={faPlugCircleMinus} /> Delete
+                            </Button>
+                            <Button variant="info" onClick={handleLoaderModalShow}>
+                                <FontAwesomeIcon icon={faFileCirclePlus} /> Load Data
+                            </Button>
+
+                        </Card.Body>
+                        <DataLoaderModal
+                            show={loaderModalShow}
+                            handleClose={handleLoaderModalClose}
+                            pineconeApiKey={selectedApiKey}
+                            uid={user.uid}
+                            indexName={index.name}
+                        />
+                    </Card>
+                ))}
+            </div>
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Create New Index</Modal.Title>
@@ -160,8 +157,6 @@ function ManagePinecone({ user }) {
                                 onChange={(e) => setNewIndexParams({ ...newIndexParams, dimensions: e.target.value })}
                             />
                         </Form.Group>
-
-
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -169,8 +164,6 @@ function ManagePinecone({ user }) {
                     <Button variant="primary" onClick={() => handleCreateIndex()}>Create Index</Button>
                 </Modal.Footer>
             </Modal>
-
-
         </div>
     );
 }
