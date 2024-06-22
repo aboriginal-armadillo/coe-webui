@@ -4,6 +4,7 @@ import { Modal,  Form, Alert } from 'react-bootstrap';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import PubMedDataLoader from "../PubMedDataLoader/PubMedDataLoader";
 import ArxivDataLoader from "../ArxivDataLoader/ArxivDataLoader";
+import UrlDataLoader from "../UrlDataLoader/UrlDataLoader";
 
 const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) => {
     const [errorMessage, setErrorMessage] = useState('');
@@ -14,7 +15,8 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
 
     const sources = [
         { id: 'pubmed', name: 'PubMed' },
-        { id: 'arxiv', name: 'ArXiv' }
+        { id: 'arxiv', name: 'ArXiv' },
+        { id: 'url', name: 'From URL' }
 
     ];
 
@@ -28,6 +30,12 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
                     indexName={indexName}/>;
             case 'arxiv':
                 return <ArxivDataLoader
+                    pineconeApiKey={pineconeApiKey}
+                    uid={uid}
+                    handleClose={handleClose}
+                    indexName={indexName}/>;
+            case 'url':
+                return <UrlDataLoader
                     pineconeApiKey={pineconeApiKey}
                     uid={uid}
                     handleClose={handleClose}
