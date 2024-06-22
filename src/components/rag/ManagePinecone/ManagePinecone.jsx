@@ -12,7 +12,7 @@ function ManagePinecone({ user }) {
     const [selectedApiKey, setSelectedApiKey] = useState(null);
     const [indices, setIndices] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '',
+    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '1536',
         // metric: '',
         name: '' });
 
