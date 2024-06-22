@@ -22,7 +22,9 @@ from requests import get, RequestException
 import fitz
 
 from utils.contextLoaders import public_facing_fn
-from utils.rag import pubMedLoader, arxivLoader
+from utils.rag import pubMedLoader, \
+    arxivLoader, \
+    fileLoader
 
 
 initialize_app()
@@ -115,7 +117,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     - new_msg_id: str
     - api_key: str
     """
-    #kickstart
+    ## kickstart
     try:
         logger.log("Request data: ", req.data)
         service = req.data['service']
@@ -232,18 +234,27 @@ def ragLoader(req: https_fn.CallableRequest):
     #kickstart
     logger.log("ragLoader called with request: ", request_json)
     if request_json['type'] == 'pubmed':
-        if request_json and 'query' in request_json and 'max_results' in \
+        if request_json and 'url' in request_json and 'max_results' in \
             request_json and 'pineconeApiKey' in request_json and 'openAiApiKey'\
             in request_json and 'indexName' in request_json:
             pubMedLoader(request_json)
         else:
             logger.log("missing required parameters")
     elif request_json['type'] == 'arxiv':
-        if request_json and 'query' in request_json and 'max_results' in \
+        if request_json and 'url' in request_json and 'max_results' in \
                 request_json and 'pineconeApiKey' in request_json and 'openAiApiKey' \
                 in request_json and 'indexName' in request_json:
             logger.log("arxivLoader called")
             arxivLoader(request_json)
+        else:
+            logger.log("missing required parameters")
+    elif request_json['type'] == 'url':
+        if request_json and 'url' in request_json \
+            and 'pineconeApiKey' in request_json \
+                and 'openAiApiKey' in request_json \
+                and 'indexName' in request_json:
+            logger.log("urlLoader called")
+            fileLoader(request_json)
         else:
             logger.log("missing required parameters")
     else:
@@ -251,6 +262,7 @@ def ragLoader(req: https_fn.CallableRequest):
 
 @https_fn.on_call(memory=options.MemoryOption.GB_1)
 def load_context(req: https_fn.CallableRequest):
+    # kickstart
     public_facing_fn(req.data['repo_url'],
                      req.data['directory_path'],
                      req.data['uid'],
