@@ -61,10 +61,17 @@ def arxivLoader(request_json):
 
 def fileLoader(request_json):
     url = request_json['url']
+    title = request_json['title']
+    author = request_json['author']
     print(f"Loading file from {url}")
     ## make directory ./data if it does not exist
     if not os.path.exists('./data'):
         os.makedirs('./data')
+    else:
+        ## remove all files from ./data
+        files = os.listdir('./data')
+        for file in files:
+            os.remove(f'./data/{file}')
     ## download file from url to ./data/{filename}
     with open(f'./data/{url.split("/")[-1]}', 'wb') as f:
         response = get(url)
@@ -82,7 +89,16 @@ def fileLoader(request_json):
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
     documents = SimpleDirectoryReader('./data').load_data()
+    print(f"Metadata: {documents[0].metadata}")
+    for i in range(len(documents)):
+        metadata = documents[i].metadata
+        metadata.update({'url': url,
+                         'title': title,
+                         'author': author})
+
+        documents[i].metadata = metadata
     n_docs = len(documents)
+    print(f"Metadata: {documents[0].metadata}")
     logger.log(f"Loading {n_docs} documents")
     index = VectorStoreIndex.from_documents(
         documents,
