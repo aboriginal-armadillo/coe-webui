@@ -5,11 +5,14 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 const UrlDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) => {
     const [url, setUrl] = useState('');
+    const [title, setTitle] = useState('');
+    const [author, setAuthor] = useState('');
 
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [apiKeys, setApiKeys] = useState([]);
     const [selectedApiKey, setSelectedApiKey] = useState('');
+
 
     useEffect(() => {
         const fetchApiKeys = async () => {
@@ -45,6 +48,8 @@ const UrlDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) =>
 
         const payload = {
             url,
+            title,
+            author,
             pineconeApiKey,
             openAiApiKey,
             indexName,
@@ -79,6 +84,27 @@ const UrlDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) =>
                 />
             </Form.Group>
 
+            <Form.Group className="mb-3" controlId="formTitle">
+                <Form.Label>Title of Document</Form.Label>
+                <Form.Control
+                    type="text"
+                    placeholder="Title of Document"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formAuthor">
+                <Form.Label>Author</Form.Label>
+                <Form.Control
+                    type="text"
+                    placeholder="Author of Document"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    required
+                />
+            </Form.Group>
             <Form.Group className="mb-3" controlId="formApiKey">
                 <Form.Label>OpenAI API Key</Form.Label>
                 <Form.Control
