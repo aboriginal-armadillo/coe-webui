@@ -38,9 +38,11 @@ const GDriveBrowserModal = ({ show, handleClose, uid }) => {
 
                 await signInWithPopup(auth, provider);
                 await auth.currentUser.getIdToken(true); // Refresh token with the new scope
+
                 console.log("They should have it now though...")
                 const hasDriveScope = tokenResult.claims['https://www.googleapis.com/auth/drive.readonly'];
                 console.log(hasDriveScope);
+
             }
 
             return await fetchDriveFiles(await user.getIdToken());
