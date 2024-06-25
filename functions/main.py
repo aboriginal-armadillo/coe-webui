@@ -21,6 +21,8 @@ from requests import get, RequestException
 
 import fitz
 
+from pinecone import Pinecone
+
 from utils.contextLoaders import public_facing_fn
 from utils.rag import pubMedLoader, \
     arxivLoader, \
@@ -273,4 +275,31 @@ def load_context(req: https_fn.CallableRequest):
                      req.data['chat_id'])
 
 
+@https_fn.on_call(memory=options.MemoryOption.MB_512)  # Adjust memory as needed
+def delete_documents(req: https_fn.CallableRequest) -> Any:
+    """
+    Request Params:
+    - pinecone_api_key: str
+    - index_name: str
+    - delete_list: list
+    """
+    try:
+        logger.log("Request data: ", req.data)
 
+        pinecone_api_key = req.data['pinecone_api_key']
+        index_name = req.data['index_name']
+        delete_list = req.data['delete_list']
+
+        pinecone = Pinecone(api_key=pinecone_api_key)
+        pc_index = pinecone.Index(index_name)
+
+        logger.log("Deleting documents: ", delete_list)
+        pc_index.delete(delete_list)
+
+        return {"status": "success", "message": f"Deleted {len(delete_list)} documents successfully."}
+
+    except Exception as e:
+        import traceback
+        error_message = traceback.format_exc()
+        logger.log("Error occurred: ", error_message)
+        raise https_fn.HttpsError('internal', "Failed to delete documents", details=error_message)
