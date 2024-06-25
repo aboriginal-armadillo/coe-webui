@@ -2,9 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Button, Dropdown, Card, Modal, Form, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlug, faPlugCirclePlus, faPlugCircleMinus, faRotate, faFileCirclePlus, faFileCircleMinus } from '@fortawesome/free-solid-svg-icons';
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { getFirestore,
+    doc,
+    getDoc,
+    updateDoc,
+    collection,
+    getDocs,
+    writeBatch } from 'firebase/firestore';
 import { Pinecone } from '@pinecone-database/pinecone';
 import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
 import './ManagePinecone.css';
 
 function ManagePinecone({ user }) {
@@ -35,13 +43,18 @@ function ManagePinecone({ user }) {
     }
 
     const firestore = getFirestore();
+    const functions = getFunctions();
 
     useEffect(() => {
         const fetchApiKeys = async () => {
-            const userDoc = await getDoc(doc(firestore, `users/${user.uid}`));
-            const apiKeysArray = userDoc.data().apiKeys || [];
-            const openAiKeys = apiKeysArray.filter(key => key.svc === "Pinecone");
-            setApiKeys(openAiKeys);
+            try {
+                const userDoc = await getDoc(doc(firestore, `users/${user.uid}`));
+                const apiKeysArray = userDoc.data().apiKeys || [];
+                const openAiKeys = apiKeysArray.filter(key => key.svc === "Pinecone");
+                setApiKeys(openAiKeys);
+            } catch (error) {
+                console.error("Error fetching API keys:", error);
+            }
         };
         fetchApiKeys();
     }, [user.uid, firestore]);
@@ -98,13 +111,17 @@ function ManagePinecone({ user }) {
 
     const fetchMetadataFields = async (indexName) => {
         if (!user || !indexName) return;
-        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${indexName}/documents`));
-        let fields = new Set();
-        docsSnap.forEach(doc => {
-            const metadata = doc.data();
-            Object.keys(metadata).forEach(key => fields.add(key));
-        });
-        setMetadataFields(Array.from(fields));
+        try {
+            const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${indexName}/documents`));
+            let fields = new Set();
+            docsSnap.forEach(doc => {
+                const metadata = doc.data();
+                Object.keys(metadata).forEach(key => fields.add(key));
+            });
+            setMetadataFields(Array.from(fields));
+        } catch (error) {
+            console.error("Error fetching metadata fields:", error);
+        }
     };
 
     const handleFieldChange = async (e) => {
@@ -113,32 +130,46 @@ function ManagePinecone({ user }) {
     };
 
     const fetchUniqueValues = async () => {
-        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
-        let values = {};
-        docsSnap.forEach(doc => {
-            const metadata = doc.data();
-            if (metadata[selectedField]) {
-                values[metadata[selectedField]] = (values[metadata[selectedField]] || 0) + 1;
-            }
-        });
-        setUniqueValues(Object.entries(values));
+        try {
+            const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
+            let values = {};
+            docsSnap.forEach(doc => {
+                const metadata = doc.data();
+                if (metadata[selectedField]) {
+                    values[metadata[selectedField]] = (values[metadata[selectedField]] || 0) + 1;
+                }
+            });
+            setUniqueValues(Object.entries(values));
+        } catch (error) {
+            console.error("Error fetching unique values:", error);
+        }
     };
 
     const handleRemoveEntries = async (value) => {
-        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
-        const pinecone = new Pinecone({ apiKey: selectedApiKey });
-        const pcIndex = pinecone.Index(selectedIndex);
-        const deleteList = [];
-        docsSnap.forEach(async (doc) => {
-            const metadata = doc.data();
-            if (metadata[selectedField] === value) {
-                deleteList.push(doc.id);
-                await deleteDoc(doc.ref);
-            }
-        });
-        console.log("Deleting documents:", deleteList);
-        await pcIndex.deleteMany(deleteList);
-        fetchUniqueValues();
+        try {
+            const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
+            const deleteList = [];
+            const batch = writeBatch(firestore);
+            docsSnap.forEach((doc) => {
+                const metadata = doc.data();
+                if (metadata[selectedField] === value) {
+                    deleteList.push(doc.id);
+                    batch.delete(doc.ref);
+                }
+            });
+            await batch.commit();
+
+            const deleteDocuments = httpsCallable(functions, 'delete_documents');
+            await deleteDocuments({
+                pinecone_api_key: selectedApiKey,
+                index_name: selectedIndex,
+                delete_list: deleteList
+            });
+
+            fetchUniqueValues();
+        } catch (error) {
+            console.error("Error removing entries:", error);
+        }
     };
 
     return (
@@ -253,7 +284,7 @@ function ManagePinecone({ user }) {
                                         <td>{value}</td>
                                         <td>{count}</td>
                                         <td>
-                                            <Button disabled={true} variant="danger" onClick={() => handleRemoveEntries(value)}>
+                                            <Button variant="danger" onClick={() => handleRemoveEntries(value)}>
                                                 <FontAwesomeIcon icon={faFileCircleMinus} /> Remove
                                             </Button>
                                         </td>
