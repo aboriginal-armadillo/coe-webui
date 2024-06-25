@@ -6,6 +6,7 @@ from firebase_functions import https_fn, logger, options
 from firebase_admin import initialize_app, firestore
 from typing import Any
 
+
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
 from councilofelders.anthropic import AnthropicAgent
@@ -26,7 +27,8 @@ from pinecone import Pinecone
 from utils.contextLoaders import public_facing_fn
 from utils.rag import pubMedLoader, \
     arxivLoader, \
-    fileLoader
+    fileLoader, \
+    gdriveLoader
 
 
 initialize_app()
@@ -259,6 +261,9 @@ def ragLoader(req: https_fn.CallableRequest):
             fileLoader(request_json, db)
         else:
             logger.log("missing required parameters")
+    elif request_json['type'] == 'gdrive':
+        logger.log("gdriveLoader called")
+        gdriveLoader(request_json, db)
     else:
         logger.log("Invalid type: ", request_json['type'])
 

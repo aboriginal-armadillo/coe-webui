@@ -6,6 +6,7 @@ from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.pinecone import PineconeVectorStore
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.readers.papers import PubmedReader, ArxivReader
+from llama_index.readers.google import GoogleDriveReader
 
 from llama_index.core import SimpleDirectoryReader
 
@@ -124,6 +125,47 @@ def fileLoader(request_json, db):
     n_docs = len(documents)
     print(f"Metadata: {documents[0].metadata}")
     logger.log(f"Loading {n_docs} documents")
+    index = VectorStoreIndex.from_documents(
+        documents,
+        storage_context=storage_context,
+        embed_model=embed_model
+    )
+
+def gdriveLoader(request_json, db):
+    folder_or_file_id = request_json['folderOrFileId']
+    title = request_json['title']
+    author = request_json['author']
+    user_id = request_json['userId']  # ensure userId is passed in the payload
+
+    openai_api_key = request_json['openAiApiKey']
+    pineconeApiKey = request_json['pineconeApiKey']
+    embed_model = OpenAIEmbedding(api_key=openai_api_key)
+    indexName = request_json['indexName']
+
+    pc = Pinecone(api_key=pineconeApiKey)
+    pcIndex = pc.Index(indexName)
+
+    vector_store = PineconeVectorStore(pinecone_index=pcIndex)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+    # Create the GDrive reader
+    loader = GoogleDriveReader(file_ids=[folder_or_file_id])
+    documents = loader.load_data()
+
+    for i in range(len(documents)):
+        metadata = documents[i].metadata
+        metadata.update({'folder_or_file_id': folder_or_file_id,
+                         'title': title,
+                         'author': author})
+
+        documents[i].metadata = metadata
+
+        # Save metadata to Firestore
+        doc_id = documents[i].doc_id
+        db.collection('users').document(user_id).collection('pineconeIndexes').document(indexName).collection('documents').document(doc_id).set(metadata)
+
+    n_docs = len(documents)
+    print(f"Loading {n_docs} documents")
     index = VectorStoreIndex.from_documents(
         documents,
         storage_context=storage_context,

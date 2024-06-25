@@ -25,6 +25,7 @@ function Login() {
     const handleGoogleLogin = async () => {
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
+
         try {
             const userCredential = await signInWithPopup(auth, provider);
             await checkUserInFirestore(userCredential.user);
