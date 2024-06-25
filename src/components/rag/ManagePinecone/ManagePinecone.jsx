@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Dropdown, Card, Modal, Form } from 'react-bootstrap';
+import { Button, Dropdown, Card, Modal, Form, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlug, faPlugCirclePlus, faPlugCircleMinus, faRotate, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { faPlug, faPlugCirclePlus, faPlugCircleMinus, faRotate, faFileCirclePlus, faFileCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { Pinecone } from '@pinecone-database/pinecone';
 import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
 import './ManagePinecone.css';
@@ -12,14 +12,27 @@ function ManagePinecone({ user }) {
     const [selectedApiKey, setSelectedApiKey] = useState(null);
     const [indices, setIndices] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '1536',
-        // metric: '',
-        name: '' });
-
+    const [newIndexParams, setNewIndexParams] = useState({ dimensions: '1536', name: '' });
     const [loaderModalShow, setLoaderModalShow] = useState(false);
+    const [removeDataModalShow, setRemoveDataModalShow] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(null);
+    const [metadataFields, setMetadataFields] = useState([]);
+    const [selectedField, setSelectedField] = useState('');
+    const [uniqueValues, setUniqueValues] = useState([]);
 
     const handleLoaderModalClose = () => setLoaderModalShow(false);
     const handleLoaderModalShow = () => setLoaderModalShow(true);
+    const handleRemoveDataModalClose = () => {
+        setRemoveDataModalShow(false);
+        setMetadataFields([]);
+        setSelectedField('');
+        setUniqueValues([]);
+    }
+    const handleRemoveDataModalShow = async (indexName) => {
+        setSelectedIndex(indexName);
+        await fetchMetadataFields(indexName);  // Fetch metadata fields when modal is opened
+        setRemoveDataModalShow(true);
+    }
 
     const firestore = getFirestore();
 
@@ -42,9 +55,7 @@ function ManagePinecone({ user }) {
 
     const handleCreateIndex = async () => {
         try {
-            const { dimensions,
-                // metric,
-                name } = newIndexParams;
+            const { dimensions, name } = newIndexParams;
             const pinecone = new Pinecone({ apiKey: selectedApiKey });
             await pinecone.createIndex({
                 name: name,
@@ -85,6 +96,51 @@ function ManagePinecone({ user }) {
         });
     };
 
+    const fetchMetadataFields = async (indexName) => {
+        if (!user || !indexName) return;
+        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${indexName}/documents`));
+        let fields = new Set();
+        docsSnap.forEach(doc => {
+            const metadata = doc.data();
+            Object.keys(metadata).forEach(key => fields.add(key));
+        });
+        setMetadataFields(Array.from(fields));
+    };
+
+    const handleFieldChange = async (e) => {
+        const field = e.target.value;
+        setSelectedField(field);
+    };
+
+    const fetchUniqueValues = async () => {
+        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
+        let values = {};
+        docsSnap.forEach(doc => {
+            const metadata = doc.data();
+            if (metadata[selectedField]) {
+                values[metadata[selectedField]] = (values[metadata[selectedField]] || 0) + 1;
+            }
+        });
+        setUniqueValues(Object.entries(values));
+    };
+
+    const handleRemoveEntries = async (value) => {
+        const docsSnap = await getDocs(collection(firestore, `users/${user.uid}/pineconeIndexes/${selectedIndex}/documents`));
+        const pinecone = new Pinecone({ apiKey: selectedApiKey });
+        const pcIndex = pinecone.Index(selectedIndex);
+        const deleteList = [];
+        docsSnap.forEach(async (doc) => {
+            const metadata = doc.data();
+            if (metadata[selectedField] === value) {
+                deleteList.push(doc.id);
+                await deleteDoc(doc.ref);
+            }
+        });
+        console.log("Deleting documents:", deleteList);
+        await pcIndex.deleteMany(deleteList);
+        fetchUniqueValues();
+    };
+
     return (
         <div className="manage-pinecone-container">
             <div className="manage-pinecone-header">
@@ -118,10 +174,12 @@ function ManagePinecone({ user }) {
                             <Button variant="danger" onClick={() => handleDeleteIndex(index.name)} style={{ marginRight: '10px' }}>
                                 <FontAwesomeIcon icon={faPlugCircleMinus} /> Delete
                             </Button>
-                            <Button variant="info" onClick={handleLoaderModalShow}>
+                            <Button variant="info" onClick={handleLoaderModalShow} style={{ marginRight: '10px' }}>
                                 <FontAwesomeIcon icon={faFileCirclePlus} /> Load Data
                             </Button>
-
+                            <Button variant="info" onClick={() => handleRemoveDataModalShow(index.name)}>
+                                <FontAwesomeIcon icon={faFileCircleMinus} /> Remove Data
+                            </Button>
                         </Card.Body>
                         <DataLoaderModal
                             show={loaderModalShow}
@@ -161,7 +219,53 @@ function ManagePinecone({ user }) {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-                    <Button variant="primary" onClick={() => handleCreateIndex()}>Create Index</Button>
+                    <Button variant="primary" onClick={handleCreateIndex}>Create Index</Button>
+                </Modal.Footer>
+            </Modal>
+            <Modal show={removeDataModalShow} onHide={handleRemoveDataModalClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Remove Data from {selectedIndex}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group controlId="selectField">
+                        <Form.Label>Select Field</Form.Label>
+                        <Form.Control as="select" value={selectedField} onChange={handleFieldChange}>
+                            <option value="">Select Field</option>
+                            {metadataFields.map(field => (
+                                <option key={field} value={field}>{field}</option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                    {selectedField && (
+                        <>
+                            <Button variant="primary" onClick={fetchUniqueValues}>Show Unique Values</Button>
+                            <Table striped bordered hover>
+                                <thead>
+                                <tr>
+                                    <th>{selectedField}</th>
+                                    <th>Number of Documents</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {uniqueValues.map(([value, count]) => (
+                                    <tr key={value}>
+                                        <td>{value}</td>
+                                        <td>{count}</td>
+                                        <td>
+                                            <Button disabled={true} variant="danger" onClick={() => handleRemoveEntries(value)}>
+                                                <FontAwesomeIcon icon={faFileCircleMinus} /> Remove
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </Table>
+                        </>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleRemoveDataModalClose}>Close</Button>
                 </Modal.Footer>
             </Modal>
         </div>

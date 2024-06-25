@@ -48,6 +48,7 @@ const UrlDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) =>
 
         const payload = {
             url,
+            userId: uid,
             title,
             author,
             pineconeApiKey,
@@ -59,8 +60,8 @@ const UrlDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) =>
         try {
             setLoading(true);
             const functions = getFunctions();
-            const pubMedLoader = httpsCallable(functions, 'ragLoader');
-            await pubMedLoader(payload).then(() => {
+            const ragLoader = httpsCallable(functions, 'ragLoader');
+            await ragLoader(payload).then(() => {
                 handleClose()
             });
 
