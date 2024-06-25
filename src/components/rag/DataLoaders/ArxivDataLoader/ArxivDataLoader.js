@@ -52,6 +52,7 @@ const ArxivDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
 
         const payload = {
             query,
+            userId: uid,
             max_results: maxResultsInt,
             pineconeApiKey,
             openAiApiKey,
@@ -59,11 +60,12 @@ const ArxivDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
             type: "arxiv"
         };
 
+        console.log(payload);
         try {
             setLoading(true);
             const functions = getFunctions();
-            const pubMedLoader = httpsCallable(functions, 'ragLoader');
-            await pubMedLoader(payload).then(() => {
+            const ragLoader = httpsCallable(functions, 'ragLoader');
+            await ragLoader(payload).then(() => {
                 handleClose()
             });
 

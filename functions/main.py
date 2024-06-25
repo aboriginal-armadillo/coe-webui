@@ -234,18 +234,18 @@ def ragLoader(req: https_fn.CallableRequest):
     #kickstart
     logger.log("ragLoader called with request: ", request_json)
     if request_json['type'] == 'pubmed':
-        if request_json and 'url' in request_json and 'max_results' in \
+        if request_json and 'query' in request_json and 'max_results' in \
             request_json and 'pineconeApiKey' in request_json and 'openAiApiKey'\
             in request_json and 'indexName' in request_json:
-            pubMedLoader(request_json)
+            pubMedLoader(request_json, db)
         else:
             logger.log("missing required parameters")
     elif request_json['type'] == 'arxiv':
-        if request_json and 'url' in request_json and 'max_results' in \
+        if request_json and 'query' in request_json and 'max_results' in \
                 request_json and 'pineconeApiKey' in request_json and 'openAiApiKey' \
                 in request_json and 'indexName' in request_json:
             logger.log("arxivLoader called")
-            arxivLoader(request_json)
+            arxivLoader(request_json, db)
         else:
             logger.log("missing required parameters")
     elif request_json['type'] == 'url':
@@ -254,7 +254,7 @@ def ragLoader(req: https_fn.CallableRequest):
                 and 'openAiApiKey' in request_json \
                 and 'indexName' in request_json:
             logger.log("urlLoader called")
-            fileLoader(request_json)
+            fileLoader(request_json, db)
         else:
             logger.log("missing required parameters")
     else:

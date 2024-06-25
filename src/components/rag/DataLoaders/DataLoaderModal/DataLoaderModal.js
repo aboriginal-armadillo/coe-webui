@@ -23,12 +23,14 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
     const renderSourceComponent = () => {
         switch (selectedSource) {
             case 'pubmed':
+                console.log(indexName)
                 return <PubMedDataLoader
                     pineconeApiKey={pineconeApiKey}
                     uid={uid}
                     handleClose={handleClose}
                     indexName={indexName}/>;
             case 'arxiv':
+                console.log(indexName)
                 return <ArxivDataLoader
                     pineconeApiKey={pineconeApiKey}
                     uid={uid}

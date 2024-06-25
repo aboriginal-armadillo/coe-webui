@@ -52,6 +52,7 @@ const PubMedDataLoader = ({ show, handleClose, pineconeApiKey, uid, indexName })
 
         const payload = {
             query,
+            userId: uid,
             max_results: maxResultsInt,
             pineconeApiKey,
             openAiApiKey,
