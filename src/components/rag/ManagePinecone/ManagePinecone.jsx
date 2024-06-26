@@ -27,9 +27,12 @@ function ManagePinecone({ user }) {
     const [metadataFields, setMetadataFields] = useState([]);
     const [selectedField, setSelectedField] = useState('');
     const [uniqueValues, setUniqueValues] = useState([]);
-
+    const [currentIndexName, setCurrentIndexName] = useState('');
     const handleLoaderModalClose = () => setLoaderModalShow(false);
-    const handleLoaderModalShow = () => setLoaderModalShow(true);
+    const handleLoaderModalShow = (indexName) => {
+        setCurrentIndexName(indexName);
+        setLoaderModalShow(true);
+    }
     const handleRemoveDataModalClose = () => {
         setRemoveDataModalShow(false);
         setMetadataFields([]);
@@ -205,7 +208,7 @@ function ManagePinecone({ user }) {
                             <Button variant="danger" onClick={() => handleDeleteIndex(index.name)} style={{ marginRight: '10px' }}>
                                 <FontAwesomeIcon icon={faPlugCircleMinus} /> Delete
                             </Button>
-                            <Button variant="info" onClick={handleLoaderModalShow} style={{ marginRight: '10px' }}>
+                            <Button variant="info" onClick={() => handleLoaderModalShow(index.name)} style={{ marginRight: '10px' }}>
                                 <FontAwesomeIcon icon={faFileCirclePlus} /> Load Data
                             </Button>
                             <Button variant="info" onClick={() => handleRemoveDataModalShow(index.name)}>
@@ -217,7 +220,7 @@ function ManagePinecone({ user }) {
                             handleClose={handleLoaderModalClose}
                             pineconeApiKey={selectedApiKey}
                             uid={user.uid}
-                            indexName={index.name}
+                            indexName={currentIndexName}
                         />
                     </Card>
                 ))}
