@@ -30,7 +30,7 @@ const GDriveBrowserModal = ({ show, handleClose, uid }) => {
         if (user) {
             const tokenResult = await user.getIdTokenResult();
             const hasDriveScope = tokenResult.claims['https://www.googleapis.com/auth/drive.readonly'];
-
+            console.log(hasDriveScope);
             if (!hasDriveScope) {
                 console.log("User does not have the drive scope");
                 const provider = new GoogleAuthProvider();
@@ -38,6 +38,9 @@ const GDriveBrowserModal = ({ show, handleClose, uid }) => {
 
                 await signInWithPopup(auth, provider);
                 await auth.currentUser.getIdToken(true); // Refresh token with the new scope
+                console.log("They should have it now though...")
+                const hasDriveScope = tokenResult.claims['https://www.googleapis.com/auth/drive.readonly'];
+                console.log(hasDriveScope);
             }
 
             return await fetchDriveFiles(await user.getIdToken());
