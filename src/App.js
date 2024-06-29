@@ -18,6 +18,7 @@ import BotZoo from "./components/Bots/BotZoo/BotZoo";
 import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView
     from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
+import BrowseLibrary from "./components/BrowseLibrary/BrowseLibrary";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -91,6 +92,7 @@ function App() {
                                 <Route path="/chat" element={<MessagesView user={user} isNew={true} isShare={false}/>} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
                                 <Route path="/manage-pinecone" element={<ManagePinecone user={user} />} />
+                                <Route path="/browse-library" element={<BrowseLibrary user={user} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
                             </Routes>
                         </div>
