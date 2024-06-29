@@ -5,6 +5,7 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import PubMedDataLoader from "../PubMedDataLoader/PubMedDataLoader";
 import ArxivDataLoader from "../ArxivDataLoader/ArxivDataLoader";
 import UrlDataLoader from "../UrlDataLoader/UrlDataLoader";
+import LibraryDataLoader from "../LibraryDataLoader/LibraryDataLoader";
 
 const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) => {
     const [errorMessage, setErrorMessage] = useState('');
@@ -16,8 +17,8 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
     const sources = [
         { id: 'pubmed', name: 'PubMed' },
         { id: 'arxiv', name: 'ArXiv' },
-        { id: 'url', name: 'From URL' }
-
+        { id: 'url', name: 'From URL' },
+        { id: 'library', name: 'From Library'}
     ];
 
     const renderSourceComponent = () => {
@@ -42,6 +43,13 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
                     uid={uid}
                     handleClose={handleClose}
                     indexName={indexName}/>;
+                case 'library':
+                    return <LibraryDataLoader
+                        uid={uid}
+                        pineconeApiKey={pineconeApiKey}
+                        handleClose={handleClose}
+                        indexName={indexName}
+                    openAiApiKey={selectedApiKey}/>;
             default:
                 return null;
         }

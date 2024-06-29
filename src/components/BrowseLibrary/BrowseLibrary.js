@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Form } from 'react-bootstrap';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const BrowseLibrary = ({ user }) => {
+const BrowseLibrary = ({ uid, onClick, buttonIcon }) => {
     const [libraryOption, setLibraryOption] = useState('Public Library');
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -14,15 +15,12 @@ const BrowseLibrary = ({ user }) => {
         const db = getFirestore();
         const libraryCollection = libraryOption === 'Public Library'
             ? collection(db, 'publicLibrary')
-            : collection(db, `users/${user.uid}/library`);
-        console.log("Library Collection: ", libraryCollection);
+            : collection(db, `users/${uid}/library`);
         const q = query(libraryCollection, orderBy('title'), limit(itemsPerPage));
-        console.log("Query: ", q);
         try {
             const querySnapshot = await getDocs(q);
             const parsedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setItems(parsedItems);
-            console.log("Items: ", parsedItems.length);
         } catch (err) {
             console.error("Error fetching library items: ", err);
         } finally {
@@ -31,7 +29,6 @@ const BrowseLibrary = ({ user }) => {
     };
 
     const handleLibraryChange = (event) => {
-        console.log("Handle Library Change: ", event.target.value);
         setLibraryOption(event.target.value);
         setCurrentPage(1);
         fetchLibraryItems();
@@ -44,7 +41,6 @@ const BrowseLibrary = ({ user }) => {
 
     useEffect(() => {
         fetchLibraryItems();
-        // eslint-disable-next-line
     }, [libraryOption, currentPage]);
 
     const totalPages = Math.ceil(items.length / itemsPerPage);
@@ -79,6 +75,7 @@ const BrowseLibrary = ({ user }) => {
                         <th>Title</th>
                         <th>Author</th>
                         <th>Token Count</th>
+                        <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -87,6 +84,11 @@ const BrowseLibrary = ({ user }) => {
                             <td>{item.title}</td>
                             <td>{item.author}</td>
                             <td>{item.tokenCount}</td>
+                            <td>
+                                <Button onClick={() => onClick(item)}>
+                                    <FontAwesomeIcon icon={buttonIcon} />
+                                </Button>
+                            </td>
                         </tr>
                     ))}
                     </tbody>
