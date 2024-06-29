@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, Alert } from 'react-bootstrap';
+import { Button, Modal, Alert, Form } from 'react-bootstrap';
 import BrowseLibrary from '../../../BrowseLibrary/BrowseLibrary';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -10,6 +10,7 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [libraryOption, setLibraryOption] = useState('Public Library');
 
     const handleDocumentSelect = (doc) => {
         setSelectedDocument(doc);
@@ -28,7 +29,8 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
             const ragLoader = httpsCallable(functions, 'ragLoader');
             await ragLoader({
                 documentId: selectedDocument.id,
-                userId: uid,
+                userId: libraryOption === 'Private Library' ? uid : null,  // Pass userId only for private library
+                libraryType: libraryOption,
                 pineconeApiKey,
                 indexName,
                 type: 'library',
@@ -38,8 +40,6 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
             }).then(() => {
                 handleClose()
             });
-
-
         } catch (error) {
             setErrorMessage(`Function call failed: ${error.message}`);
         } finally {
@@ -49,6 +49,15 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
 
     return (
         <>
+            <Form>
+                <Form.Group controlId="libraryOption">
+                    <Form.Label>Select Library</Form.Label>
+                    <Form.Control as="select" value={libraryOption} onChange={e => setLibraryOption(e.target.value)}>
+                        <option value="Public Library">Public Library</option>
+                        <option value="Private Library">Private Library</option>
+                    </Form.Control>
+                </Form.Group>
+            </Form>
             <Button onClick={() => setShowModal(true)} variant="info">
                 <FontAwesomeIcon icon={faCartPlus} /> Select Document
             </Button>
@@ -59,6 +68,7 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
                 <Modal.Body>
                     <BrowseLibrary
                         uid={uid}
+                        libraryOption={libraryOption}
                         onClick={handleDocumentSelect}
                         buttonIcon={faCartPlus}
                     />
