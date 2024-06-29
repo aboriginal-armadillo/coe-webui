@@ -3,8 +3,7 @@ import { Table, Button, Form } from 'react-bootstrap';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const BrowseLibrary = ({ uid, onClick, buttonIcon }) => {
-    const [libraryOption, setLibraryOption] = useState('Public Library');
+const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -28,12 +27,6 @@ const BrowseLibrary = ({ uid, onClick, buttonIcon }) => {
         }
     };
 
-    const handleLibraryChange = (event) => {
-        setLibraryOption(event.target.value);
-        setCurrentPage(1);
-        fetchLibraryItems();
-    };
-
     const handlePageChange = (page) => {
         setCurrentPage(page);
         fetchLibraryItems();
@@ -47,25 +40,6 @@ const BrowseLibrary = ({ uid, onClick, buttonIcon }) => {
 
     return (
         <div>
-            <Form>
-                <Form.Group controlId="librarySelection">
-                    <Form.Check
-                        type="radio"
-                        label="Public Library"
-                        value="Public Library"
-                        checked={libraryOption === 'Public Library'}
-                        onChange={handleLibraryChange}
-                    />
-                    <Form.Check
-                        type="radio"
-                        label="Private Library"
-                        value="Private Library"
-                        checked={libraryOption === 'Private Library'}
-                        onChange={handleLibraryChange}
-                    />
-                </Form.Group>
-            </Form>
-
             {loading ? (
                 <p>Loading...</p>
             ) : (

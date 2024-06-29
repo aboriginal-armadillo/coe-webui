@@ -139,4 +139,24 @@
     - `ManagePinecone.jsx` for removing data based on specific criteria
 
 - **Location in Firestore:**
-    - Collection: `users/<user_id>/pineconeIndexes/<index_name>/documents`  
+    - Collection: `users/<user_id>/pineconeIndexes/<index_name>/documents` 
+### Library Metadata Document
+
+- **Fields:**
+    - `title: string`
+    - `author: string`
+    - `tokenCount: number`
+    - `filePath: string`
+    - `downloadUrl: string`
+    - `owner: string`
+  
+- **Created by:**
+    - `FileUpload.js` when user elects to add file to a library
+
+- **Location in Firestore:**
+    - Public Library
+      - Collection: `publicLibrary`
+      - Document: `<document_id>`
+    - User Library
+      - Collection: `users/<user_id>/library`
+      - Document: `<document_id>`
