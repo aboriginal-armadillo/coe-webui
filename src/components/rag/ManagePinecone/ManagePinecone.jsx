@@ -14,6 +14,8 @@ import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 import './ManagePinecone.css';
+import LibraryDataLoader
+    from "../DataLoaders/LibraryDataLoader/LibraryDataLoader";
 
 function ManagePinecone({ user }) {
     const [apiKeys, setApiKeys] = useState([]);
@@ -175,6 +177,11 @@ function ManagePinecone({ user }) {
         }
     };
 
+    const handleLoaderModalShowLibrary = (indexName) => {
+        setCurrentIndexName(indexName);
+        setLoaderModalShow(true);
+    }
+
     return (
         <div className="manage-pinecone-container">
             <div className="manage-pinecone-header">
@@ -222,6 +229,13 @@ function ManagePinecone({ user }) {
                             uid={user.uid}
                             indexName={currentIndexName}
                         />
+                        {/*<LibraryDataLoader*/}
+                        {/*    show={loaderModalShow}*/}
+                        {/*    handleClose={handleLoaderModalClose}*/}
+                        {/*    pineconeApiKey={selectedApiKey}*/}
+                        {/*    uid={user.uid}*/}
+                        {/*    indexName={index.name}*/}
+                        {/*/>*/}
                     </Card>
                 ))}
             </div>
