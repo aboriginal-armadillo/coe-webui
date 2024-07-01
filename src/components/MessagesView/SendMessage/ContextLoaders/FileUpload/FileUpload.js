@@ -22,15 +22,15 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
             const downloadUrl = await getDownloadURL(snapshot.ref);
             const newMsgId = `msg_${Date.now()}`;
 
+            // Create tiktoken encoding object
             const enc = get_encoding("cl100k_base");
             const fileContent = await file.text();
-
             const tokenCount = enc.encode(fileContent).length
 
             const messageData = {
                 sender: user.displayName || "CurrentUser",
                 fileName: file.name,
-                text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta): ${tokenCount}`,
+                text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta)    : ${tokenCount}`,
                 type: "text",
                 downloadUrl: downloadUrl,
                 timestamp: Timestamp.now(),
@@ -42,11 +42,12 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
             // Implement logic for different library options
             if (libraryOption === 'Public Library' || libraryOption === 'Private Library') {
 
-                // using tiktoken
+                // Metadata document including file path on Firebase Storage
                 const metadataDoc = {
                     title: metadata.title,
                     author: metadata.author,
                     tokenCount: tokenCount,
+                    filePath: storageRefPath,
                     downloadUrl: downloadUrl,
                     owner: user.uid
                 };
@@ -54,7 +55,7 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
                 if (libraryOption === 'Public Library') {
                     await addDoc(collection(db, 'publicLibrary'), metadataDoc);
 
-                    // Update storage rules accordingly
+                    // Update storage rules if necessary
                     await updateStorageRulesPublic();
                 } else if (libraryOption === 'Private Library') {
                     await addDoc(collection(db, `users/${user.uid}/library`), metadataDoc);

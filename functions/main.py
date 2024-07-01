@@ -28,9 +28,11 @@ from utils.rag import pubMedLoader, \
     arxivLoader, \
     fileLoader
 
+from libraryLoader import libraryLoader
 
 initialize_app()
 db = firestore.client()
+
 
 def extract_messages(data, current_key):
     # This list will hold all the message dictionaries
@@ -259,6 +261,9 @@ def ragLoader(req: https_fn.CallableRequest):
             fileLoader(request_json, db)
         else:
             logger.log("missing required parameters")
+    elif request_json['type'] == 'library':
+        logger.log("libraryLoader called")
+        libraryLoader(request_json)
     else:
         logger.log("Invalid type: ", request_json['type'])
 
