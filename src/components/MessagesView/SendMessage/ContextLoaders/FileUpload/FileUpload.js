@@ -30,7 +30,7 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
             const messageData = {
                 sender: user.displayName || "CurrentUser",
                 fileName: file.name,
-                text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta): ${tokenCount}`,
+                text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta)    : ${tokenCount}`,
                 type: "text",
                 downloadUrl: downloadUrl,
                 timestamp: Timestamp.now(),
