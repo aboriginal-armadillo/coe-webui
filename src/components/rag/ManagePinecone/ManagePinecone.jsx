@@ -14,8 +14,6 @@ import DataLoaderModal from "../DataLoaders/DataLoaderModal/DataLoaderModal";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 import './ManagePinecone.css';
-import LibraryDataLoader
-    from "../DataLoaders/LibraryDataLoader/LibraryDataLoader";
 
 function ManagePinecone({ user }) {
     const [apiKeys, setApiKeys] = useState([]);
@@ -177,10 +175,10 @@ function ManagePinecone({ user }) {
         }
     };
 
-    const handleLoaderModalShowLibrary = (indexName) => {
-        setCurrentIndexName(indexName);
-        setLoaderModalShow(true);
-    }
+    // const handleLoaderModalShowLibrary = (indexName) => {
+    //     setCurrentIndexName(indexName);
+    //     setLoaderModalShow(true);
+    // }
 
     return (
         <div className="manage-pinecone-container">
