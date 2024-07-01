@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Table, Button } from 'react-bootstrap';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -9,7 +9,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    const fetchLibraryItems = async () => {
+    const fetchLibraryItems = useCallback(async () => {
         setLoading(true);
         const db = getFirestore();
         const libraryCollection = libraryOption === 'Public Library'
@@ -25,7 +25,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [libraryOption, uid]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -34,7 +34,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     useEffect(() => {
         fetchLibraryItems();
-    }, [libraryOption, currentPage]);
+    }, [libraryOption, currentPage, fetchLibraryItems]);
 
     const totalPages = Math.ceil(items.length / itemsPerPage);
 
