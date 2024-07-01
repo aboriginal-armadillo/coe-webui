@@ -82,6 +82,13 @@ def libraryLoader(request_json):
             metadata['author'] = author
             documents[i].metadata = metadata
 
+            # Save metadata to Firestore
+            # Save metadata to Firestore
+            doc_id = documents[i].doc_id
+            db.collection('users').document(userId).collection(
+                'pineconeIndexes').document(indexName).collection(
+                'documents').document(doc_id).set(metadata)
+
         logger.log(f"Loading {len(documents)} documents")
         index = VectorStoreIndex.from_documents(
             documents,

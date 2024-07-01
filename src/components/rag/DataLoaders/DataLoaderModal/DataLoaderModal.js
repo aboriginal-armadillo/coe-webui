@@ -49,7 +49,7 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
                         pineconeApiKey={pineconeApiKey}
                         handleClose={handleClose}
                         indexName={indexName}
-                    openAiApiKey={selectedApiKey}/>;
+                        openAiApiKey={selectedApiKey}/>;
             default:
                 return null;
         }
@@ -87,7 +87,16 @@ const DataLoaderModal = ({ show, handleClose, pineconeApiKey, uid, indexName }) 
                         <Form.Control
                             as="select"
                             value={selectedApiKey}
-                            onChange={(e) => setSelectedApiKey(e.target.value)}
+                            onChange={(e) => {
+                                // Get the selected OpenAI API key
+                                const selectedKeyObj = apiKeys.find(key => key.name === e.target.value);
+                                if (!selectedKeyObj) {
+                                    setErrorMessage('Please select a valid OpenAI API Key.');
+                                    return;
+                                }
+                                const openAiApiKey = selectedKeyObj.apikey;
+                                setSelectedApiKey(openAiApiKey)
+                            }}
                             required
                         >
                             <option value="" disabled>Select an OpenAI API Key</option>
