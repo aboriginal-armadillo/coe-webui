@@ -58,7 +58,7 @@ const LibraryDataLoader = ({ uid, handleClose, pineconeApiKey, indexName, openAi
                     </Form.Control>
                 </Form.Group>
             </Form>
-            <Button onClick={() => setShowModal(true)} variant="info">
+            <Button onClick={() => setShowModal(true)} variant="info" style={{ marginTop: "10px" }}>
                 <FontAwesomeIcon icon={faCartPlus} /> Select Document
             </Button>
             <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
