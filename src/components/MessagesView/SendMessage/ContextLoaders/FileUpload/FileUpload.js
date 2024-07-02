@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form } from 'react-bootstrap';
+import { Button, Form, ProgressBar } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, getDoc, collection } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-// Import tiktoken library for calculating token count
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { get_encoding } from 'tiktoken';
 
-const FileUpload = ({ user, chatId, messages, navigate }) => {
+const FileUpload = ({ user, chatId, messages, navigate, onClose }) => {
     const [libraryOption, setLibraryOption] = useState(null);
-    const [showModal, setShowModal] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [metadata, setMetadata] = useState({ title: '', author: '' });
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const uploadFile = async (file) => {
         const db = getFirestore();
@@ -18,77 +17,85 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
         const storageRef = ref(storage, storageRefPath);
 
         try {
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadUrl = await getDownloadURL(snapshot.ref);
-            const newMsgId = `msg_${Date.now()}`;
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-            // Create tiktoken encoding object
-            const enc = get_encoding("cl100k_base");
-            const fileContent = await file.text();
-            const tokenCount = enc.encode(fileContent).length
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(progress);
+                },
+                (error) => {
+                    console.error("Upload File Error: ", error);
+                    throw new Error("File upload failed: " + error.message);
+                },
+                async () => {
+                    const snapshot = await uploadTask;
+                    const downloadUrl = await getDownloadURL(snapshot.ref);
+                    const newMsgId = `msg_${Date.now()}`;
 
-            const messageData = {
-                sender: user.displayName || "CurrentUser",
-                fileName: file.name,
-                text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta)    : ${tokenCount}`,
-                type: "text",
-                downloadUrl: downloadUrl,
-                timestamp: Timestamp.now(),
-                children: [],
-                selectedChild: null,
-                id: newMsgId
-            };
+                    const enc = get_encoding("cl100k_base");
+                    const fileContent = await file.text();
+                    const tokenCount = enc.encode(fileContent).length;
 
-            // Implement logic for different library options
-            if (libraryOption === 'Public Library' || libraryOption === 'Private Library') {
+                    const messageData = {
+                        sender: user.displayName || "CurrentUser",
+                        fileName: file.name,
+                        text: `FILE UPLOADED: ${file.name}\n\nApproximate Token Count (beta): ${tokenCount}`,
+                        type: "text",
+                        downloadUrl: downloadUrl,
+                        timestamp: Timestamp.now(),
+                        children: [],
+                        selectedChild: null,
+                        id: newMsgId
+                    };
 
-                // Metadata document including file path on Firebase Storage
-                const metadataDoc = {
-                    title: metadata.title,
-                    author: metadata.author,
-                    tokenCount: tokenCount,
-                    filePath: storageRefPath,
-                    downloadUrl: downloadUrl,
-                    owner: user.uid
-                };
+                    if (libraryOption === 'Public Library' || libraryOption === 'Private Library') {
+                        const metadataDoc = {
+                            title: metadata.title,
+                            author: metadata.author,
+                            tokenCount: tokenCount,
+                            filePath: storageRefPath,
+                            downloadUrl: downloadUrl,
+                            owner: user.uid
+                        };
 
-                if (libraryOption === 'Public Library') {
-                    await addDoc(collection(db, 'publicLibrary'), metadataDoc);
+                        if (libraryOption === 'Public Library') {
+                            await addDoc(collection(db, 'publicLibrary'), metadataDoc);
+                            await updateStorageRulesPublic();
+                        } else if (libraryOption === 'Private Library') {
+                            await addDoc(collection(db, `users/${user.uid}/library`), metadataDoc);
+                        }
+                    }
 
-                    // Update storage rules if necessary
-                    await updateStorageRulesPublic();
-                } else if (libraryOption === 'Private Library') {
-                    await addDoc(collection(db, `users/${user.uid}/library`), metadataDoc);
+                    if (!chatId) {
+                        const newChatData = {
+                            createdAt: Timestamp.now(),
+                            name: "New Chat",
+                            root: messageData
+                        };
+
+                        const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), newChatData);
+                        handleFileUploadComplete(newChatRef.id);
+                    } else {
+                        const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+                        const chatSnap = await getDoc(chatRef);
+                        const chatData = chatSnap.data() || {};
+                        const lastMessageId = messages && messages[messages.length - 1]?.id;
+
+                        if (lastMessageId) {
+                            chatData[lastMessageId] = chatData[lastMessageId] || {};
+                            chatData[lastMessageId].children = chatData[lastMessageId].children || [];
+                            chatData[lastMessageId].children.push(newMsgId);
+                        }
+                        chatData[newMsgId] = messageData;
+                        await setDoc(chatRef, chatData);
+                        handleFileUploadComplete();
+                    }
+
+                    return downloadUrl;
                 }
-            }
+            );
 
-            // Continue with chat update logic
-            if (!chatId) {
-                const newChatData = {
-                    createdAt: Timestamp.now(),
-                    name: "New Chat",
-                    root: messageData
-                };
-
-                const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), newChatData);
-                handleFileUploadComplete(newChatRef.id);
-            } else {
-                const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
-                const chatSnap = await getDoc(chatRef);
-                const chatData = chatSnap.data() || {};
-                const lastMessageId = messages && messages[messages.length - 1]?.id;
-
-                if (lastMessageId) {
-                    chatData[lastMessageId] = chatData[lastMessageId] || {};
-                    chatData[lastMessageId].children = chatData[lastMessageId].children || [];
-                    chatData[lastMessageId].children.push(newMsgId);
-                }
-                chatData[newMsgId] = messageData;
-                await setDoc(chatRef, chatData);
-                handleFileUploadComplete();
-            }
-
-            return downloadUrl;
         } catch (error) {
             console.error("Upload File Error: ", error);
             throw new Error("File upload failed: " + error.message);
@@ -99,35 +106,30 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
         if (newChatId) {
             navigate(`/chat/${newChatId}`);
         }
+        setUploadProgress(0);
+        onClose(); // Close the modal
     };
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (libraryOption === 'Public Library' || libraryOption === 'Private Library') {
-                setFileToUpload(file);
-                setShowModal(true); // Show metadata modal
-            } else {
-                uploadFile(file);
-            }
+            setFileToUpload(file);
         }
     };
 
     const handleSaveMetadata = () => {
-        console.log("Metadata: ", metadata);
         if (fileToUpload) {
             uploadFile(fileToUpload);
+            setMetadata({ title: '', author: '' });
         }
-        setShowModal(false);
-        setMetadata({ title: '', author: '' });
     };
 
     return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <Form.Select
                 aria-label="Library Selection"
                 onChange={(e) => setLibraryOption(e.target.value)}
-                style={{ flex: "1", marginRight: "10px" }}
+                style={{ marginBottom: '10px', width: '100%' }}
             >
                 <option value="">Do not persist to any Library</option>
                 <option value="Public Library">Save to Public Library</option>
@@ -136,17 +138,14 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
             <input
                 type="file"
                 onChange={handleFileChange}
-                style={{ flex: "1", marginRight: "10px" }}
+                style={{ marginBottom: '10px', width: '100%' }}
             />
             <Button variant="primary" onClick={() => document.querySelector('input[type="file"]').click()}>
                 Upload
             </Button>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Enter File Metadata</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+            {fileToUpload && (
+                <div className="file-upload-container" style={{ marginTop: '20px', padding: '20px', border: '1px solid #ccc', width: '100%' }}>
                     <Form>
                         <Form.Group className="mb-3" controlId="formTitle">
                             <Form.Label>Title</Form.Label>
@@ -166,20 +165,21 @@ const FileUpload = ({ user, chatId, messages, navigate }) => {
                                 onChange={(e) => setMetadata({ ...metadata, author: e.target.value })}
                             />
                         </Form.Group>
+                        <ProgressBar now={uploadProgress} label={`${uploadProgress.toFixed(2)}%`} style={{ marginBottom: '10px' }} />
                     </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>
-                        Close
-                    </Button>
-                    <Button variant="primary" onClick={handleSaveMetadata}>
-                        Save Metadata and Upload
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Button variant="secondary" onClick={() => setFileToUpload(null)}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={handleSaveMetadata} style={{ marginLeft: "10px" }}>
+                            Save Metadata and Upload
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
-};
+}
 
 async function updateStorageRulesPublic() {
     // Implement the logic to update Firebase Storage Rules to allow public access

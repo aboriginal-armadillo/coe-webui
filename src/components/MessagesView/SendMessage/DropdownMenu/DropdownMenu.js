@@ -40,6 +40,10 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
         setShowGitModal(!showGitModal);
     }
 
+    const onCloseFileUpload = () => {
+        setShowFileUpload(false);
+    }
+
     return (
         <Dropdown as={ButtonGroup}>
             <Dropdown.Toggle split variant="info" id="dropdown-split-basic" />
@@ -73,15 +77,21 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
                 </DropdownButton>
             </Dropdown.Menu>
             {showFileUpload === true && (
-                <Modal show={showFileUpload} onHide={handleFileUploadClick}>
-                    <Card>
+                <Modal show={showFileUpload} onHide={handleFileUploadClick}
+                       size="lg" centered
+                       style={{ border: '2px'}}>
+                    <Modal.Header>
+                        <h3>File Upload</h3>
+                    </Modal.Header>
+                    <Modal.Body>
                         <FileUpload
                             user={user}
                             chatId={chatId}
                             messages={messages}
                             navigate={navigate}
+                            onClose={onCloseFileUpload}
                         />
-                    </Card>
+                    </Modal.Body>
                 </Modal>
             )}
             {showGitModal === true && (
