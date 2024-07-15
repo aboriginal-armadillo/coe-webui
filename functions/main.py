@@ -235,7 +235,6 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                   timeout_sec=540)
 def ragLoader(req: https_fn.CallableRequest):
     request_json = req.data
-    #kickstart
     logger.log("ragLoader called with request: ", request_json)
     if request_json['type'] == 'pubmed':
         if request_json and 'query' in request_json and 'max_results' in \
