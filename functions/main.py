@@ -108,7 +108,7 @@ def extract_messages(data, current_key):
 
     return messages
 
-@https_fn.on_call(memory=options.MemoryOption.MB_512)  # GB_1)
+@https_fn.on_call(memory=options.MemoryOption.GB_1)
 def call_next_msg(req: https_fn.CallableRequest) -> Any:
     """Params:
     - service: str
@@ -308,3 +308,18 @@ def delete_documents(req: https_fn.CallableRequest) -> Any:
         error_message = traceback.format_exc()
         logger.log("Error occurred: ", error_message)
         raise https_fn.HttpsError('internal', "Failed to delete documents", details=error_message)
+
+@https_fn.on_call()
+def fetchWebContent(req: https_fn.CallableRequest) -> dict:
+    """
+    Function to fetch the content of a webpage to bypass CORS issues.
+    """
+    try:
+        url = req.data['url']
+        response = get(url)
+        response.raise_for_status()
+        content = response.text
+        return {'content': content}
+    except RequestException as e:
+        logger.log("Error fetching webpage content: ", str(e))
+        return {'error': str(e)}

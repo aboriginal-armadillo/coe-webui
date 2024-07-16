@@ -1,3 +1,5 @@
+// src/components/MessagesView/SendMessage/DropdownMenu/DropdownMenu.js
+
 import React from 'react';
 import {
     Dropdown,
@@ -11,10 +13,12 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import FileUpload from "../ContextLoaders/FileUpload/FileUpload";
 import GithubToString from "../ContextLoaders/GithubToString/GithubToString";
+import SimpleWebpage from "../ContextLoaders/SimpleWebpage/SimpleWebpage";
 
 const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, updateChatBots, messages, navigate }) => {
     const [showFileUpload, setShowFileUpload] = React.useState(false);
     const [showGitModal, setShowGitModal] = React.useState(false);
+    const [showWebModal, setShowWebModal] = React.useState(false);
     const db = getFirestore();
 
     const handleRemoveBot = async (botName) => {
@@ -36,8 +40,19 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
     }
 
     const handleGitClick = () => {
-        console.log("handleGitClick", !showGitModal);
         setShowGitModal(!showGitModal);
+    }
+
+    const handleWebClick = () => {
+        setShowWebModal(!showWebModal);
+    }
+
+    const onCloseFileUpload = () => {
+        setShowFileUpload(false);
+    }
+
+    const onCloseWebUpload = () => {
+        setShowWebModal(false);
     }
 
     return (
@@ -62,26 +77,30 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
                             {bot.name}
                         </Dropdown.Item>
                     ))}
-
                 </DropdownButton>
                 <Dropdown.Divider />
                 <DropdownButton drop="right" title="Load Context">
                     <Dropdown.Item key={"file"} onClick={() => handleFileUploadClick()}>Upload File</Dropdown.Item>
-
                     <Dropdown.Item key={"git"} onClick={() => handleGitClick()}>Git Repo</Dropdown.Item>
-
+                    <Dropdown.Item key={"web"} onClick={() => handleWebClick()}>Webpage</Dropdown.Item>
                 </DropdownButton>
             </Dropdown.Menu>
             {showFileUpload === true && (
-                <Modal show={showFileUpload} onHide={handleFileUploadClick}>
-                    <Card>
+                <Modal show={showFileUpload} onHide={handleFileUploadClick}
+                       size="lg" centered
+                       style={{ border: '2px'}}>
+                    <Modal.Header>
+                        <h3>File Upload</h3>
+                    </Modal.Header>
+                    <Modal.Body>
                         <FileUpload
                             user={user}
                             chatId={chatId}
                             messages={messages}
                             navigate={navigate}
+                            onClose={onCloseFileUpload}
                         />
-                    </Card>
+                    </Modal.Body>
                 </Modal>
             )}
             {showGitModal === true && (
@@ -92,6 +111,19 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
                             chatId={chatId}
                             messages={messages}
                             navigate={navigate}
+                        />
+                    </Card>
+                </Modal>
+            )}
+            {showWebModal === true && (
+                <Modal show={showWebModal} onHide={handleWebClick}>
+                    <Card>
+                        <SimpleWebpage
+                            user={user}
+                            chatId={chatId}
+                            messages={messages}
+                            navigate={navigate}
+                            onClose={onCloseWebUpload}
                         />
                     </Card>
                 </Modal>
