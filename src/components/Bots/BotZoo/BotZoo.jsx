@@ -4,11 +4,14 @@ import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import BuildABotModal from '../BuildABotModal/BuildABotModal';
+import PromptModal from './PromptModal/PromptModal'; // Import the new PromptModal component
 
 function BotZoo({ user }) {
     const [bots, setBots] = useState([]);
     const [selectedBot, setSelectedBot] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [showBuildModal, setShowBuildModal] = useState(false);
+    const [showPromptModal, setShowPromptModal] = useState(false); // State for prompt modal
+    const [currentPrompt, setCurrentPrompt] = useState(''); // State for the current prompt text
 
     useEffect(() => {
         console.log("Loading BotZoo...");
@@ -34,7 +37,7 @@ function BotZoo({ user }) {
 
     const handleEditClick = (bot) => {
         setSelectedBot(bot);
-        setShowModal(true);
+        setShowBuildModal(true);
     };
 
     const handleDeleteClick = async (bot) => {
@@ -52,6 +55,11 @@ function BotZoo({ user }) {
         } catch (error) {
             console.error("Error deleting bot:", error);
         }
+    };
+
+    const handlePromptClick = (prompt) => {
+        setCurrentPrompt(prompt);
+        setShowPromptModal(true);
     };
 
     return (
@@ -78,7 +86,7 @@ function BotZoo({ user }) {
                                 <Card.Text>
                                     Key: {bot.key}<br />
                                     Service: {bot.service}<br />
-                                    Prompt: {bot.systemPrompt}<br />
+                                    <a href="#" onClick={() => handlePromptClick(bot.systemPrompt)}>Prompt</a><br />
                                     Temperature: {bot.temperature}
                                 </Card.Text>
                             </Card.Body>
@@ -87,11 +95,15 @@ function BotZoo({ user }) {
                 ))}
             </Row>
             <BuildABotModal
-                show={showModal}
-                onHide={() => setShowModal(false)}
+                show={showBuildModal}
+                onHide={() => setShowBuildModal(false)}
                 botData={selectedBot}
                 user={user}
-
+            />
+            <PromptModal
+                show={showPromptModal}
+                onHide={() => setShowPromptModal(false)}
+                prompt={currentPrompt}
             />
         </Container>
     );
