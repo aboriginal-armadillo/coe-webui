@@ -86,7 +86,7 @@ function BotZoo({ user }) {
                                 <Card.Text>
                                     Key: {bot.key}<br />
                                     Service: {bot.service}<br />
-                                    <a href="#" onClick={() => handlePromptClick(bot.systemPrompt)}>Prompt</a><br />
+                                    <button onClick={() => handlePromptClick(bot.systemPrompt)}>Prompt</button><br />
                                     Temperature: {bot.temperature}
                                 </Card.Text>
                             </Card.Body>
