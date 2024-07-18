@@ -1,15 +1,31 @@
-// src/components/TagChat.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, FormControl, InputGroup, Badge } from 'react-bootstrap';
-import { getFirestore, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore';
 
-function TagChat({ show, handleClose, chatId, user }) {
+function TagChat({ show, handleClose, chatId, user, existingTags }) {
     const [newTag, setNewTag] = useState('');
-    const [tags, setTags] = useState([]);
+    const [chatTags, setChatTags] = useState([]);
+
+    useEffect(() => {
+        if (chatId) {
+            const fetchChatTags = async () => {
+                const db = getFirestore();
+                const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
+                const chatSnap = await getDoc(chatRef);
+                if (chatSnap.exists()) {
+                    const data = chatSnap.data();
+                    if (data.metadata && data.metadata.tags) {
+                        setChatTags(data.metadata.tags);
+                    }
+                }
+            };
+            fetchChatTags();
+        }
+    }, [chatId, user]);
 
     const handleAddTag = () => {
-        if (newTag && !tags.includes(newTag)) {
-            setTags([...tags, newTag]);
+        if (newTag && !chatTags.includes(newTag)) {
+            setChatTags([...chatTags, newTag]);
             setNewTag('');
         }
     };
@@ -17,8 +33,16 @@ function TagChat({ show, handleClose, chatId, user }) {
     const handleSaveTags = async () => {
         const db = getFirestore();
         const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
-        await updateDoc(chatRef, { "metadata.tags": arrayUnion(...tags) });
+        await updateDoc(chatRef, { "metadata.tags": chatTags });
         handleClose();
+    };
+
+    const handleTagClick = (tag) => {
+        if (chatTags.includes(tag)) {
+            setChatTags(chatTags.filter(t => t !== tag));
+        } else {
+            setChatTags([...chatTags, tag]);
+        }
     };
 
     return (
@@ -36,9 +60,34 @@ function TagChat({ show, handleClose, chatId, user }) {
                     />
                     <Button onClick={handleAddTag}>Add Tag</Button>
                 </InputGroup>
+                <div className="mb-3">
+                    <div>Existing Tags:</div>
+                    {existingTags.map(tag => (
+                        <Badge
+                            pill
+                            key={tag}
+                            className="m-1"
+                            bg={chatTags.includes(tag) ? 'primary' : 'secondary'}
+                            onClick={() => handleTagClick(tag)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
                 <div>
-                    {tags.map(tag => (
-                        <Badge pill bg="primary" key={tag} className="m-1">{tag}</Badge>
+                    <div>New Tags:</div>
+                    {chatTags.map(tag => (
+                        <Badge
+                            pill
+                            key={tag}
+                            className="m-1"
+                            bg={existingTags.includes(tag) ? 'primary' : 'dark'}
+                            onClick={() => handleTagClick(tag)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {tag}
+                        </Badge>
                     ))}
                 </div>
             </Modal.Body>
@@ -54,4 +103,4 @@ function TagChat({ show, handleClose, chatId, user }) {
     );
 }
 
-export default TagChat;
+export default TagChat;  
