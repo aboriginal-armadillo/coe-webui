@@ -19,6 +19,16 @@ function ApiKeyMgmt({ user }) {
 
     const handleAddApiKey = async () => {
         const newUserApiKey = { svc: service, apikey: apiKey, name: friendlyName };
+        // If the service is "Google", parse as a map
+        if (service === "Google") {
+            try {
+                const apiKeyJson = JSON.parse(apiKey);
+                newUserApiKey.apikey = apiKeyJson;
+            } catch (error) {
+                console.error('Invalid JSON provided for Google API Key');
+                return;
+            }
+        }
         const updatedApiKeys = [...userData.apiKeys, newUserApiKey];
         const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
@@ -34,6 +44,17 @@ function ApiKeyMgmt({ user }) {
         });
     };
 
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setApiKey(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+    };
+
     return (
         <div>
             <Row className="mb-2">
@@ -46,7 +67,7 @@ function ApiKeyMgmt({ user }) {
                 <Row key={index} className="mb-2">
                     <Col xs={4}>{key.name}</Col>
                     <Col xs={3}>{key.svc}</Col>
-                    <Col xs={4}>{key.apikey}</Col>
+                    <Col xs={4}>{typeof key.apikey === 'string' ? key.apikey : '[JSON]'}</Col>
                     <Col xs={1}>
                         <Button variant="outline-danger" onClick={() => handleDeleteApiKey(index)}>🗑</Button>
                     </Col>
@@ -73,14 +94,23 @@ function ApiKeyMgmt({ user }) {
                         <Dropdown.Item eventKey="Replicate">Replicate</Dropdown.Item>
                         <Dropdown.Item eventKey="Pinecone">Pinecone</Dropdown.Item>
                         <Dropdown.Item eventKey="Github">Github</Dropdown.Item>
+                        <Dropdown.Item eventKey="Google">Google</Dropdown.Item>
                     </DropdownButton>
                 </Col>
                 <Col xs={4}>
-                    <FormControl
-                        placeholder="API Key"
-                        aria-label="API Key"
-                        onChange={(e) => setApiKey(e.target.value)}
-                    />
+                    {service === 'Google' ? (
+                        <FormControl
+                            type="file"
+                            onChange={handleFileUpload}
+                            aria-label="Google API Key JSON"
+                        />
+                    ) : (
+                        <FormControl
+                            placeholder="API Key"
+                            aria-label="API Key"
+                            onChange={(e) => setApiKey(e.target.value)}
+                        />
+                    )}
                 </Col>
                 <Col xs={1}>
                     <Button variant="primary" onClick={handleAddApiKey}>Add</Button>

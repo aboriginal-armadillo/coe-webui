@@ -1,6 +1,8 @@
 module.exports = {
     webpack: {
         configure: (config) => {
+            config.ignoreWarnings = [/Failed to parse source map/];
+
             config.experiments = {
                 asyncWebAssembly: true,
                 layers: true,

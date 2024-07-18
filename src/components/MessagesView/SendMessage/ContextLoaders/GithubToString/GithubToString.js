@@ -17,6 +17,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
     const [apiKey, setApiKey] = useState('');
     const [gitUrl, setGitUrl] = useState('');
     const [targetDir, setTargetDir] = useState('');
+    const [branch, setBranch] = useState('main');
     const [githubKeys, setGithubKeys] = useState([]);
     const [fileTypes, setFileTypes] = useState(['.py', '.js', '.jsx', '.md', '.txt']);
     const [isEditingFileTypes, setIsEditingFileTypes] = useState(false);
@@ -33,8 +34,8 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
         fetchApiKeys();
     }, [user.uid]);
 
-    async function fetchFilesRecursively(repository, apiKey, dir, fileContents = '') {
-        const url = `https://api.github.com/repos/${repository}/contents/${dir}?ref=main`;
+    async function fetchFilesRecursively(repository, apiKey, dir, currentBranch, fileContents = '') {
+        const url = `https://api.github.com/repos/${repository}/contents/${dir}?ref=${currentBranch}`;
         const response = await axios.get(url, {
             headers: {
                 Authorization: `token ${apiKey}`
@@ -50,7 +51,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
                 fileContents += `${file.path}\n\`\`\`\n${fileResponse.data}\n\`\`\`\n\n`;
             } else if (file.type === 'dir') {
                 console.log('Fetching directory: ', file.path)
-                fileContents = await fetchFilesRecursively(repository, apiKey, file.path, fileContents);
+                fileContents = await fetchFilesRecursively(repository, apiKey, file.path, currentBranch, fileContents);
             }
         }
 
@@ -61,7 +62,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
         event.preventDefault();
         try {
             const repository = gitUrl.split('github.com/')[1];
-            let fileContents = await fetchFilesRecursively(repository, apiKey, targetDir);
+            let fileContents = await fetchFilesRecursively(repository, apiKey, targetDir, branch);
 
             const encoding = encoding_for_model('gpt-4');
             const tokens = encoding.encode(fileContents);
@@ -81,7 +82,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
             const messageData = {
                 sender: user.displayName || "CurrentUser",
                 fileName: fileName,
-                text: `GitHub contents uploaded: ${fileName}\nRepository: ${repository}\nTarget Directory: ${targetDir}\nToken Count: ${tokenCount}`,
+                text: `GitHub contents uploaded: ${fileName}\nRepository: ${repository}\nTarget Directory: ${targetDir}\nBranch: ${branch}\nToken Count: ${tokenCount}`,
                 type: "text",
                 downloadUrl: downloadUrl,
                 timestamp: Timestamp.now(),
@@ -161,6 +162,14 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
                     value={targetDir}
                     onChange={(e) => setTargetDir(e.target.value)}
                     required
+                />
+            </Form.Group>
+            <Form.Group controlId="branch" style={{ width: "300px", marginBottom: "10px" }}>
+                <Form.Label>Branch</Form.Label>
+                <Form.Control
+                    type="text"
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
                 />
             </Form.Group>
             <Form.Group controlId="fileTypes" style={{ width: "300px", marginBottom: "10px", display: "flex", alignItems: "center" }}>

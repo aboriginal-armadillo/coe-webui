@@ -55,6 +55,7 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
         setShowWebModal(false);
     }
 
+
     return (
         <Dropdown as={ButtonGroup}>
             <Dropdown.Toggle split variant="info" id="dropdown-split-basic" />
