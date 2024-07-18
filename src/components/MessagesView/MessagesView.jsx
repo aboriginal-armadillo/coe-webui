@@ -98,10 +98,7 @@ function MessagesView({ user, isNew, isShare }) {
             const chatRef = doc(db, collectionPath, chatId);
             onSnapshot(chatRef, (chatSnap) => {
                 if (chatSnap.exists()) {
-                    console.log('Chat exists');
-                    // const chatData = chatSnap.data();
                     const chatData = [];
-                    console.log('chat name: ', chatData.name);
                     setChatTitle(chatData.name);
                     loadMessages('root', [], db);
                 } else {

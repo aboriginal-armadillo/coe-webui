@@ -28,9 +28,11 @@ from utils.rag import pubMedLoader, \
     arxivLoader, \
     fileLoader
 
+from libraryLoader import libraryLoader
 
 initialize_app()
 db = firestore.client()
+
 
 def extract_messages(data, current_key):
     # This list will hold all the message dictionaries
@@ -233,7 +235,6 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                   timeout_sec=540)
 def ragLoader(req: https_fn.CallableRequest):
     request_json = req.data
-    #kickstart
     logger.log("ragLoader called with request: ", request_json)
     if request_json['type'] == 'pubmed':
         if request_json and 'query' in request_json and 'max_results' in \
@@ -259,6 +260,9 @@ def ragLoader(req: https_fn.CallableRequest):
             fileLoader(request_json, db)
         else:
             logger.log("missing required parameters")
+    elif request_json['type'] == 'library':
+        logger.log("libraryLoader called")
+        libraryLoader(request_json)
     else:
         logger.log("Invalid type: ", request_json['type'])
 
