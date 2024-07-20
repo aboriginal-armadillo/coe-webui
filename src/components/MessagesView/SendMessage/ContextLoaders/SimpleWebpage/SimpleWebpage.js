@@ -1,13 +1,12 @@
-// src/components/MessagesView/SendMessage/ContextLoaders/SimpleWebpage/SimpleWebpage.js
-
 import React, { useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import {Button, Card, CardBody, Form} from 'react-bootstrap';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, getDoc, collection } from 'firebase/firestore';
 
 const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
+    const [useBeautifulSoup, setUseBeautifulSoup] = useState(false); // New state for the checkbox  
 
     const handleFetchContent = async () => {
         setLoading(true);
@@ -15,7 +14,7 @@ const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
         const fetchWebContent = httpsCallable(functions, 'fetchWebContent');
 
         try {
-            const response = await fetchWebContent({ url });
+            const response = await fetchWebContent({ url, useBeautifulSoup });
             const content = response.data.content;
             const newMsgId = `msg_${Date.now()}`;
 
@@ -72,19 +71,33 @@ const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <Form.Control
-                type="text"
-                placeholder="Enter webpage URL..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                style={{ marginBottom: '10px', width: '100%' }}
-            />
-            <Button variant="primary" onClick={handleFetchContent} disabled={loading}>
-                {loading ? 'Fetching...' : 'Fetch and Upload'}
-            </Button>
-        </div>
+
+            <Card>
+                <Card.Header>Fetch Webpage Content</Card.Header>
+                <CardBody>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <Form.Control
+                        type="text"
+                        placeholder="Enter webpage URL..."
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        style={{ marginBottom: '10px', width: '100%' }}
+                    />
+                    <Form.Check
+                        type="checkbox"
+                        label="Use Beautiful Soup for text extraction"
+                        checked={useBeautifulSoup}
+                        onChange={(e) => setUseBeautifulSoup(e.target.checked)}
+                        style={{ marginBottom: '10px', width: '100%' }}
+                    />
+                    <Button variant="primary" onClick={handleFetchContent} disabled={loading}>
+                        {loading ? 'Fetching...' : 'Fetch and Upload'}
+                    </Button>
+                    </div>
+                </CardBody>
+            </Card>
+
     );
 };
 
-export default SimpleWebpage;
+export default SimpleWebpage;  
