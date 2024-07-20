@@ -308,16 +308,22 @@ def delete_documents(req: https_fn.CallableRequest) -> Any:
         logger.log("Error occurred: ", error_message)
         raise https_fn.HttpsError('internal', "Failed to delete documents", details=error_message)
 
-@https_fn.on_call()
+@https_fn.on_call(memory=options.MemoryOption.GB_1)
 def fetchWebContent(req: https_fn.CallableRequest) -> dict:
     """
-    Function to fetch the content of a webpage to bypass CORS issues.
+    Function to fetch the content of a webpage to bypass CORS issues, with optional Beautiful Soup text extraction.
     """
     try:
         url = req.data['url']
+        use_beautiful_soup = req.data['useBeautifulSoup']
         response = get(url)
         response.raise_for_status()
         content = response.text
+
+        if use_beautiful_soup:
+            soup = BeautifulSoup(content, 'html.parser')
+            content = soup.get_text(separator='\n')  # Extract all the text
+
         return {'content': content}
     except RequestException as e:
         logger.log("Error fetching webpage content: ", str(e))
