@@ -53,7 +53,9 @@ def extract_messages(data, current_key):
                     content = response.content
 
                     if current['fileName'].endswith('.epub'):
-                        book = epub.read_epub(io.BytesIO(content))
+                        with open('./temp.epub', 'wb') as f:
+                            f.write(content)
+                        book = epub.read_epub('./temp.epub')
                         text = []
 
                         for item in book.get_items():
