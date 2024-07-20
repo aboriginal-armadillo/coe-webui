@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ListGroupItem, Button } from 'react-bootstrap';
+import { ListGroupItem, Button, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeFork, faInfo, faGear, faCaretLeft, faCaretRight, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -61,6 +61,14 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
 
     const formatText = (text) => text.replace(/\n/g, '  \n');
 
+    const formatErrorMessage = error => {
+        const lines = error.split('\n');
+        if (lines.length > 5) {
+            return lines.slice(0, 5).join('\n') + '\n...';
+        }
+        return error;
+    };
+
     return (
         <ListGroupItem className="message-item"
                        style={{
@@ -73,10 +81,10 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
                            position: 'relative'
                        }}>
             {msg.error ? (
-                <>
-                    <strong>ERROR</strong>: {msg.error}<br />
+                <Alert variant='danger'>
+                    <strong>ERROR:</strong> <pre>{formatErrorMessage(msg.error)}</pre><br />
                     <small>{msg.timestamp.toLocaleString()}</small>
-                </>
+                </Alert>
             ) : (
                 <>
                     <strong>{msg.sender}</strong>: <ReactMarkdown components={{ code: CodeBlock }}>{formatText(msg.text)}</ReactMarkdown><br />

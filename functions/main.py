@@ -121,7 +121,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     - new_msg_id: str
     - api_key: str
     """
-    ## kickstart
+
     try:
         logger.log("Request data: ", req.data)
         service = req.data['service']
@@ -228,8 +228,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                 "selectedChild": None
             }
         })
-        # Optionally, you might want to re-raise the exception or handle it differently
-        raise e
+        return {"status": "error", "message": str(e)}
 
 @https_fn.on_call(memory=options.MemoryOption.GB_1,
                   timeout_sec=540)

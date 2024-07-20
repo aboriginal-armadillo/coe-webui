@@ -76,7 +76,28 @@ const sendMessage = async ({ action, user, chatId, newMessage, messages, botsAva
         }
 
         try {
-            await callNextMessage(callData);
+            const response = await callNextMessage(callData);
+            if (response.data.status === "error") {
+                // Handle error by adding error message to Firestore
+                const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
+                const chatSnap = await getDoc(chatRef);
+                const chatData = chatSnap.data();
+                const lastMessageId = messages[messages.length - 1]?.id;
+                chatData[newMsgId] = {
+                    error: response.data.message,
+                    timestamp: Timestamp.now(),
+                    children: [],
+                    selectedChild: null,
+                    sender: user.displayName || "System",
+                    id: newMsgId
+                };
+
+                if (lastMessageId) {
+                    chatData[lastMessageId].children.push(newMsgId);
+                }
+
+                await setDoc(chatRef, chatData);
+            }
         } catch (error) {
             console.error("Error calling function:", error);
         } finally {
