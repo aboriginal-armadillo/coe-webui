@@ -67,7 +67,12 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
     };
 
     return (
-        <InputGroup className="fixed-bottom-input" style={{ display: "flex", justifyContent: "center" }}>
+        <InputGroup className="fixed-bottom-input"
+                    style={{ display: "flex",
+                        justifyContent: "center",
+                        marginTop: "1rem",
+                        marginBottom: "1rem",
+                     }}>
             {selectedAction === "Me" ? (
                 <>
                     <DynamicTextArea
