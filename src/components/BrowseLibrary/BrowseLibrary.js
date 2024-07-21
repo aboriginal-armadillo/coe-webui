@@ -12,9 +12,13 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const fetchLibraryItems = useCallback(async () => {
         setLoading(true);
         const db = getFirestore();
+        const collectionName = libraryOption === 'Public Library' ? 'publicLibrary' : `users/${uid}/library`;
+        console.log("collectionName: ", collectionName);
         const libraryCollection = libraryOption === 'Public Library'
             ? collection(db, 'publicLibrary')
             : collection(db, `users/${uid}/library`);
+
+        console.log("libraryCollection: ", libraryCollection);
         const q = query(libraryCollection, orderBy('title'), limit(itemsPerPage));
         try {
             const querySnapshot = await getDocs(q);
@@ -59,9 +63,9 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                             <td>{item.author}</td>
                             <td>{item.tokenCount}</td>
                             <td>
-                                <Button onClick={() => onClick(item)}>
+                                {onClick ? (<Button onClick={() => onClick(item)}>
                                     <FontAwesomeIcon icon={buttonIcon} />
-                                </Button>
+                                </Button>) : null}
                             </td>
                         </tr>
                     ))}

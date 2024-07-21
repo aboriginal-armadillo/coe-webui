@@ -56,7 +56,8 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                                 <Dropdown.Item as={Link} to="/bots">The Bot Zoo</Dropdown.Item>
                                 <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
                                 <Dropdown.Divider />
-                                <Dropdown.Item as={Link} to="/browse-library">Browse Library</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/browse-my-library">Browse Personal Library</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/browse-public-library">Browse Public Library</Dropdown.Item>
                                 <Dropdown.Divider />
                                 <Dropdown.Item as={Link} to="/manage-pinecone">Manage Pinecone</Dropdown.Item>
                                 <Dropdown.Divider />
