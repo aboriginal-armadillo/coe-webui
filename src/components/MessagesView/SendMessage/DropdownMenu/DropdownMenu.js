@@ -1,5 +1,3 @@
-// src/components/MessagesView/SendMessage/DropdownMenu/DropdownMenu.js
-
 import React from 'react';
 import {
     Dropdown,
@@ -25,14 +23,14 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
         const updatedBots = chatBots.filter(bot => bot.name !== botName);
         const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
         await updateDoc(chatRef, { bots: updatedBots });
-        updateChatBots(updatedBots); // Update the chatBots state
+        updateChatBots(updatedBots); // Update the chatBots state  
     };
 
     const handleAddBot = async (bot) => {
         const updatedBots = [...chatBots, bot];
         const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
         await updateDoc(chatRef, { bots: updatedBots });
-        updateChatBots(updatedBots); // Update the chatBots state
+        updateChatBots(updatedBots); // Update the chatBots state  
     };
 
     const handleFileUploadClick = () => {
@@ -51,10 +49,13 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
         setShowFileUpload(false);
     }
 
+    const onCloseGitModal = () => {
+        setShowGitModal(false);
+    }
+
     const onCloseWebUpload = () => {
         setShowWebModal(false);
     }
-
 
     return (
         <Dropdown as={ButtonGroup}>
@@ -112,6 +113,7 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
                             chatId={chatId}
                             messages={messages}
                             navigate={navigate}
+                            onClose={onCloseGitModal}
                         />
                     </Card>
                 </Modal>
@@ -133,4 +135,4 @@ const DropdownMenu = ({ user, chatId, chatBots, botsAvail, setSelectedAction, up
     );
 };
 
-export default DropdownMenu;
+export default DropdownMenu;  
