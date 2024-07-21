@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -13,7 +13,7 @@ import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import axios from 'axios';
 import { encoding_for_model } from 'tiktoken';
 
-const GithubToString = ({ user, navigate, chatId, messages }) => {
+const GithubToString = ({ user, navigate, chatId, messages, onClose }) => {
     const [apiKey, setApiKey] = useState('');
     const [gitUrl, setGitUrl] = useState('');
     const [targetDir, setTargetDir] = useState('');
@@ -21,6 +21,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
     const [githubKeys, setGithubKeys] = useState([]);
     const [fileTypes, setFileTypes] = useState(['.py', '.js', '.jsx', '.md', '.txt']);
     const [isEditingFileTypes, setIsEditingFileTypes] = useState(false);
+    const [loading, setLoading] = useState(false); // Add loading state
 
     useEffect(() => {
         const fetchApiKeys = async () => {
@@ -60,6 +61,7 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setLoading(true); // Set loading to true when submit is clicked
         try {
             const repository = gitUrl.split('github.com/')[1];
             let fileContents = await fetchFilesRecursively(repository, apiKey, targetDir, branch);
@@ -121,6 +123,9 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
         } catch (error) {
             console.error("GitHub Fetch Error: ", error);
             throw new Error("Fetching GitHub contents failed: " + error.message);
+        } finally {
+            setLoading(false); // Set loading to false when the task is complete
+            onClose(); // Close the modal
         }
     };
 
@@ -193,8 +198,8 @@ const GithubToString = ({ user, navigate, chatId, messages }) => {
                     </>
                 )}
             </Form.Group>
-            <Button variant="primary" type="submit">
-                Submit
+            <Button variant="primary" type="submit" disabled={loading}>
+                {loading ? <Spinner as="span" animation="border" size="sm" /> : 'Submit'}
             </Button>
         </Form>
     );
