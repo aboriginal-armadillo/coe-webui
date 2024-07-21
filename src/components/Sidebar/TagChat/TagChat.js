@@ -61,28 +61,12 @@ function TagChat({ show, handleClose, chatId, user, existingTags }) {
                     <Button onClick={handleAddTag}>Add Tag</Button>
                 </InputGroup>
                 <div className="mb-3">
-                    <div>Existing Tags:</div>
                     {existingTags.map(tag => (
                         <Badge
                             pill
                             key={tag}
                             className="m-1"
                             bg={chatTags.includes(tag) ? 'primary' : 'secondary'}
-                            onClick={() => handleTagClick(tag)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            {tag}
-                        </Badge>
-                    ))}
-                </div>
-                <div>
-                    <div>New Tags:</div>
-                    {chatTags.map(tag => (
-                        <Badge
-                            pill
-                            key={tag}
-                            className="m-1"
-                            bg={existingTags.includes(tag) ? 'primary' : 'dark'}
                             onClick={() => handleTagClick(tag)}
                             style={{ cursor: 'pointer' }}
                         >
@@ -103,4 +87,4 @@ function TagChat({ show, handleClose, chatId, user, existingTags }) {
     );
 }
 
-export default TagChat;  
+export default TagChat;
