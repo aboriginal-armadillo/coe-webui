@@ -1,10 +1,11 @@
-// src/components/Sidebar/ChatList/ChatList.jsx  
+// src/components/Sidebar/ChatList/ChatList.jsx
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, deleteDoc, query, orderBy, getFirestore, onSnapshot, updateDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { Nav, Dropdown, Button, FormControl, InputGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsis, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsis, faSave, faCheck } from '@fortawesome/free-solid-svg-icons';
 import TagChat from '../TagChat/TagChat';
 
 function ChatList({ user }) {
@@ -33,7 +34,7 @@ function ChatList({ user }) {
             }));
             setChats(updatedChats);
 
-            // Update tag list  
+            // Update tag list
             const allTags = new Set();
             updatedChats.forEach(chat => chat.tags.forEach(tag => allTags.add(tag)));
             setTags([...allTags]);
@@ -63,7 +64,7 @@ function ChatList({ user }) {
             const db = getFirestore();
             const chatRef = doc(db, `users/${user.uid}/chats`, editableChatId);
             await updateDoc(chatRef, { name: editingName });
-            setEditableChatId(null); // Reset editing state  
+            setEditableChatId(null); // Reset editing state
         }
     };
 
@@ -112,7 +113,7 @@ function ChatList({ user }) {
         setFilterTags(prevTags => prevTags.includes(tag) ? prevTags.filter(t => t !== tag) : [...prevTags, tag]);
     };
 
-    // Filter chats based on selected tags  
+    // Filter chats based on selected tags
     const filteredChats = filterTags.length ? chats.filter(chat => chat.tags.some(tag => filterTags.includes(tag))) : chats;
 
     return (
@@ -124,8 +125,8 @@ function ChatList({ user }) {
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                         {tags.map(tag => (
-                            <Dropdown.Item onClick={() => toggleTagFilter(tag)} key={tag}>
-                                {filterTags.includes(tag) && <FontAwesomeIcon icon="check" className="me-2" />}
+                            <Dropdown.Item onClick={() => toggleTagFilter(tag)} key={tag} active={filterTags.includes(tag)}>
+                                {filterTags.includes(tag) && <FontAwesomeIcon icon={faCheck} className="me-2" />}
                                 {tag}
                             </Dropdown.Item>
                         ))}
@@ -179,4 +180,4 @@ function ChatList({ user }) {
     );
 }
 
-export default ChatList;  
+export default ChatList;
