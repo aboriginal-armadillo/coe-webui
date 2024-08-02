@@ -1,3 +1,5 @@
+// src/components/BrowseLibrary/BrowseLibrary.js  
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button } from 'react-bootstrap';
 import { getFirestore, collection, query, orderBy, limit, getDocs, startAfter } from 'firebase/firestore';
@@ -13,33 +15,29 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     const currentPageRef = useRef(currentPage);
 
-    // Fetch the total count of documents in the collection
+    // Fetch the total count of documents in the collection  
     const fetchTotalItems = async () => {
         setLoading(true);
         try {
             const db = getFirestore();
-            const libraryCollection = libraryOption === 'Public Library'
-                ? collection(db, 'publicLibrary')
-                : collection(db, `users/${uid}/library`);
+            const libraryCollection = libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
             const q = query(libraryCollection);
             const querySnapshot = await getDocs(q);
             setTotalItems(querySnapshot.size);
         } catch (err) {
-            console.error("Error fetching total items: ", err);
+            console.error('Error fetching total items: ', err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch the library items with pagination
+    // Fetch the library items with pagination  
     const fetchLibraryItems = async (page) => {
         setLoading(true);
         try {
             const db = getFirestore();
-            const libraryCollection = libraryOption === 'Public Library'
-                ? collection(db, 'publicLibrary')
-                : collection(db, `users/${uid}/library`);
+            const libraryCollection = libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
             let q;
             if (page === 1 || !lastDoc) {
@@ -56,7 +54,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                 setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
             }
         } catch (err) {
-            console.error("Error fetching library items: ", err);
+            console.error('Error fetching library items: ', err);
         } finally {
             setLoading(false);
         }
@@ -67,17 +65,17 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         currentPageRef.current = page;
     };
 
-    // Initial load to get total items and first page of data
+    // Initial load to get total items and first page of data  
     useEffect(() => {
         fetchTotalItems();
         fetchLibraryItems(currentPageRef.current);
-        // eslint-disable-next-line
+        // eslint-disable-next-line  
     }, [libraryOption, uid]);
 
-    // Fetch data when currentPage changes
+    // Fetch data when currentPage changes  
     useEffect(() => {
         fetchLibraryItems(currentPageRef.current);
-        // eslint-disable-next-line
+        // eslint-disable-next-line  
     }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -130,4 +128,4 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     );
 };
 
-export default BrowseLibrary;
+export default BrowseLibrary;  
