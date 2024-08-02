@@ -3,12 +3,35 @@ import { Button, Form, ProgressBar } from 'react-bootstrap';
 import { getFirestore, Timestamp, doc, setDoc, addDoc, getDoc, collection } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { get_encoding } from 'tiktoken';
+import ePub from 'epubjs'; // Add this
 
 const FileUpload = ({ user, chatId, messages, navigate, onClose }) => {
     const [libraryOption, setLibraryOption] = useState(null);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [metadata, setMetadata] = useState({ title: '', author: '' });
     const [uploadProgress, setUploadProgress] = useState(0);
+
+    const isEpubFile = (file) => file.type === 'application/epub+zip';
+
+    const extractEpubMetadata = async (file) => {
+        const fileReader = new FileReader();
+
+        return new Promise((resolve, reject) => {
+            fileReader.onload = async (event) => {
+                const epub = ePub(event.target.result);
+
+                epub.loaded.metadata.then(data => {
+                    resolve({ title: data.title, author: data.creator });
+                }).catch(err => {
+                    reject(err);
+                });
+            };
+
+            fileReader.onerror = (error) => reject(error);
+
+            fileReader.readAsArrayBuffer(file);
+        });
+    };
 
     const uploadFile = async (file) => {
         const db = getFirestore();
@@ -110,10 +133,19 @@ const FileUpload = ({ user, chatId, messages, navigate, onClose }) => {
         onClose(); // Close the modal
     };
 
-    const handleFileChange = (event) => {
+    const handleFileChange = async (event) => {
         const file = event.target.files[0];
         if (file) {
             setFileToUpload(file);
+
+            if (isEpubFile(file)) {
+                try {
+                    const epMetadata = await extractEpubMetadata(file);
+                    setMetadata(epMetadata);
+                } catch (err) {
+                    console.error("Failed to read EPUB metadata: ", err);
+                }
+            }
         }
     };
 
