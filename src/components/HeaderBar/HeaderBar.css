@@ -1,0 +1,11 @@
+/* src/components/HeaderBar/HeaderBar.css */
+
+.header-bar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 0;
+}
+
+.header-title {
+    margin: 0;
+}

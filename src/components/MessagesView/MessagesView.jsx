@@ -1,3 +1,5 @@
+// src/components/MessagesView/MessagesView.jsx  
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, ListGroup } from 'react-bootstrap';
@@ -11,6 +13,7 @@ import {
 
 import SendMessage from './SendMessage/SendMessage';
 import Message from './Message/Message';
+import HeaderBar from '../HeaderBar/HeaderBar';
 import './style.css';
 
 function MessagesView({ user, isNew, isShare }) {
@@ -40,7 +43,6 @@ function MessagesView({ user, isNew, isShare }) {
                     const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
                     // Update Firestore by specifying the nested field to update
                     updateDoc(chatRef, { [updatePath]: newSelectedChild })
-                        .then({})
                         .catch(error => console.error("Error updating Firestore:", error));
                 } else {
                     console.error("Message not found in the chat document.");
@@ -60,7 +62,6 @@ function MessagesView({ user, isNew, isShare }) {
         const updatePath = `${messageId}.selectedChild`; // Constructing the path for nested update
         // Update Firestore by specifying the nested field to update
         updateDoc(chatRef, { [updatePath]: childIndex })
-            .then({})
             .catch(error => console.error("Error updating Firestore:", error));
     }, [user.uid, chatId, isShare]);
 
@@ -98,8 +99,8 @@ function MessagesView({ user, isNew, isShare }) {
             const chatRef = doc(db, collectionPath, chatId);
             onSnapshot(chatRef, (chatSnap) => {
                 if (chatSnap.exists()) {
-                    const chatData = [];
-                    setChatTitle(chatData.name);
+                    const chatData = chatSnap.data();
+                    setChatTitle(chatData.name); // Set chat title here
                     loadMessages('root', [], db);
                 } else {
                     console.log("Chat does not exist or was deleted.");
@@ -108,7 +109,7 @@ function MessagesView({ user, isNew, isShare }) {
                 console.error("Failed to subscribe to chat updates:", error);
             });
             console.log('user:', user.uid);
-            if (user.uid !=='share') {
+            if (user.uid !== 'share') {
                 console.log('chatId:', chatId);
                 const userRef = doc(db, `users/${user.uid}`);
                 getDoc(userRef).then(userSnap => {
@@ -130,7 +131,7 @@ function MessagesView({ user, isNew, isShare }) {
 
     return (
         <Container className="full-height-container d-flex flex-column">
-            <h2 className="chat-title">{chatTitle}</h2>
+            <HeaderBar title={chatTitle} userUid={user.uid} chatId={chatId} />
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
                     <Message key={msg.id}
@@ -154,4 +155,4 @@ function MessagesView({ user, isNew, isShare }) {
     );
 }
 
-export default MessagesView;
+export default MessagesView;  
