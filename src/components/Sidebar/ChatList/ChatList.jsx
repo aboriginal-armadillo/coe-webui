@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, deleteDoc, query, orderBy, getFirestore, onSnapshot, updateDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, updateDoc, query, orderBy, onSnapshot} from 'firebase/firestore';
 import { Nav, Dropdown, Button, FormControl, InputGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsis, faSave, faCheck } from '@fortawesome/free-solid-svg-icons';
 import TagChat from '../TagChat/TagChat';
+import { shareChat, unshareChat, deleteChat } from '../../../utils/chatUtils';
 
 function ChatList({ user }) {
     const [chats, setChats] = useState([]);
@@ -45,11 +46,6 @@ function ChatList({ user }) {
         return () => unsubscribe();
     }, [user]);
 
-    const handleDelete = async (chatId) => {
-        const db = getFirestore();
-        await deleteDoc(doc(db, `users/${user.uid}/chats`, chatId));
-    };
-
     const handleRenameStart = (chatId, currentName) => {
         setEditableChatId(chatId);
         setEditingName(currentName);
@@ -66,37 +62,6 @@ function ChatList({ user }) {
             await updateDoc(chatRef, { name: editingName });
             setEditableChatId(null); // Reset editing state
         }
-    };
-
-    const handleShare = async (chatId) => {
-        const db = getFirestore();
-        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
-        const chatSnap = await getDoc(chatRef);
-        if (chatSnap.exists()) {
-            const chatData = chatSnap.data();
-            const publicChatRef = doc(db, 'public', chatId);
-            await setDoc(publicChatRef, chatData);
-            await updateDoc(chatRef, { shared: true });
-        } else {
-            console.error("No such document!");
-        }
-    };
-
-    const handleUnshare = async (chatId) => {
-        const db = getFirestore();
-        const chatRef = doc(db, `users/${user.uid}/chats`, chatId);
-        const publicChatRef = doc(db, 'public', chatId);
-        await deleteDoc(publicChatRef);
-        await updateDoc(chatRef, { shared: false });
-    };
-
-    const handleCopyLink = (chatId) => {
-        const link = `${window.location.origin}/share/${chatId}`;
-        navigator.clipboard.writeText(link).then(() => {
-            alert('Link copied to clipboard');
-        }).catch(err => {
-            console.error('Failed to copy link: ', err);
-        });
     };
 
     const handleTagChat = (chatId) => {
@@ -160,15 +125,22 @@ function ChatList({ user }) {
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={() => handleRenameStart(chat.id, chat.name)}>Rename Chat</Dropdown.Item>
-                                <Dropdown.Item onClick={() => handleDelete(chat.id)}>Delete Chat</Dropdown.Item>
+                                <Dropdown.Item onClick={() => deleteChat(user.uid, chat.id)}>Delete Chat</Dropdown.Item>
                                 <Dropdown.Item onClick={() => handleTagChat(chat.id)}>Tag Chat</Dropdown.Item>
                                 {chat.shared ? (
                                     <>
-                                        <Dropdown.Item onClick={() => handleUnshare(chat.id)}>Unshare Chat</Dropdown.Item>
-                                        <Dropdown.Item onClick={() => handleCopyLink(chat.id)}>Copy Link to Clipboard</Dropdown.Item>
+                                        <Dropdown.Item onClick={() => unshareChat(user.uid, chat.id)}>Unshare Chat</Dropdown.Item>
+                                        <Dropdown.Item onClick={() => {
+                                            const link = `${window.location.origin}/share/${chat.id}`;
+                                            navigator.clipboard.writeText(link).then(() => {
+                                                alert('Link copied to clipboard');
+                                            }).catch(err => {
+                                                console.error('Failed to copy link: ', err);
+                                            });
+                                        }}>Copy Link to Clipboard</Dropdown.Item>
                                     </>
                                 ) : (
-                                    <Dropdown.Item onClick={() => handleShare(chat.id)}>Share Chat</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => shareChat(user.uid, chat.id)}>Share Chat</Dropdown.Item>
                                 )}
                             </Dropdown.Menu>
                         </Dropdown>
