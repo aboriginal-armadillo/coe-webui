@@ -33,6 +33,9 @@ const HeaderBar = ({ title, userUid, chatId }) => {
         const messageData = {
             sender: "Library",
             text: `LIBRARY ITEM: ${item.title}\n\n${item.content}`,
+            downloadUrl: item.downloadUrl,
+            fileName: item.filePath,
+            type: "text",
             timestamp: new Date(),
             children: [],
             selectedChild: null,
