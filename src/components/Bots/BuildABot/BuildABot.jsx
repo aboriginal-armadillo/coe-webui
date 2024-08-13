@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { v4 as uuid } from 'uuid';  // Import uuid package
 
-function BuildABot({ user, botData }) {
+function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) {
     const [services, setServices] = useState([]);
     const [selectedService, setSelectedService] = useState(botData?.service || '');
     const [keys, setKeys] = useState([]);
@@ -142,9 +142,8 @@ function BuildABot({ user, botData }) {
         const db = getFirestore();
         const userRef = doc(db, 'users', user.uid);
 
-        // Create bot object with an UUID
         const bot = {
-            uuid: botData?.uuid || uuid(),  // Use existing uuid if editing, otherwise generate new one
+            uuid: botData?.uuid || uuid(), // Use existing uuid if editing, otherwise generate new one
             name: botName,
             service: selectedService,
             key: selectedKey,
@@ -160,28 +159,51 @@ function BuildABot({ user, botData }) {
         }
 
         try {
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                let updatedBots;
+            if (isWorkflowBot && workflowId) {
+                const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+                const workflowDoc = await getDoc(workflowRef);
+                if (workflowDoc.exists()) {
+                    const workflowData = workflowDoc.data();
+                    let updatedBots;
 
-                if (botData) {
-                    // Edit existing bot
-                    updatedBots = userData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
-                } else {
-                    // Add new bot
-                    updatedBots = [...userData.bots, bot];
+                    if (botData) {
+                        // Edit existing bot in workflow
+                        updatedBots = workflowData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
+                    } else {
+                        // Add new bot to workflow
+                        updatedBots = [...workflowData.bots, bot];
+                    }
+
+                    await updateDoc(workflowRef, { bots: updatedBots });
                 }
+            } else {
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    let updatedBots;
 
-                await updateDoc(userRef, { bots: updatedBots });
-                alert('Bot configuration saved successfully!');
-                navigate('/bots');
+                    if (botData) {
+                        // Edit existing bot
+                        updatedBots = userData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
+                    } else {
+                        // Add new bot
+                        updatedBots = [...userData.bots, bot];
+                    }
+
+                    await updateDoc(userRef, { bots: updatedBots });
+                    if (!isWorkflowBot) {
+                        alert('Bot configuration saved successfully!');
+                        navigate('/bots');
+                    }
+                }
             }
+            alert('Bot configuration saved successfully!');
         } catch (error) {
             console.error('Error updating bot configuration: ', error);
             alert('Failed to save bot configuration.');
         }
     };
+
 
     return (
         <Card>

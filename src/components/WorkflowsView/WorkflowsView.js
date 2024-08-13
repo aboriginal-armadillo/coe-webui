@@ -1,14 +1,13 @@
-// src/components/WorkflowsView/WorkflowsView.jsx
-
-import React, { useEffect, useState } from 'react';
-import { Container, Button, Row, Col } from 'react-bootstrap';
-import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { useParams, useNavigate } from 'react-router-dom';
+// ... other imports
 import BuildABotModal from '../Bots/BuildABotModal/BuildABotModal';
-import { getFunctions, httpsCallable } from "firebase/functions";
 import NodeModal from './NodeModal/NodeModal';
 import './WorkflowsView.css';
 import { v4 as uuidv4 } from 'uuid';
+import {useNavigate, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot} from "firebase/firestore";
+import {Button, Col, Container, Form, Row} from "react-bootstrap";
+import {getFunctions, httpsCallable} from "firebase/functions";
 
 function WorkflowsView({ user, isNew }) {
     const { workflowId } = useParams();
@@ -17,29 +16,46 @@ function WorkflowsView({ user, isNew }) {
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
     const [showNodeModal, setShowNodeModal] = useState(false);
     const [selectedNode, setSelectedNode] = useState(null);
+    const [workflowName, setWorkflowName] = useState('New Workflow');
+    const [isEditingName, setIsEditingName] = useState(false);
 
     const navigate = useNavigate();
 
     useEffect(() => {
         const db = getFirestore();
-        if (user && workflowId) {
-            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-            onSnapshot(workflowRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    setNodes(data.nodes || []);
-                    setEdges(data.edges || []);
+        const initializeWorkflow = async () => {
+            if (user && workflowId) {
+                const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+                const docSnap = await getDoc(workflowRef);
+                if (!docSnap.exists()) {
+                    await setDoc(workflowRef, {
+                        name: 'New Workflow',
+                        createdAt: serverTimestamp(),
+                        nodes: [],
+                        edges: [],
+                        runsList: []
+                    });
                 }
-            }, (error) => {
-                console.error('Failed to subscribe to workflow updates:', error);
-            });
-        }
+                onSnapshot(workflowRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setWorkflowName(data.name || 'New Workflow');
+                        setNodes(data.nodes || []);
+                        setEdges(data.edges || []);
+                    }
+                }, (error) => {
+                    console.error('Failed to subscribe to workflow updates:', error);
+                });
+            }
+        };
+
+        initializeWorkflow();
     }, [user, workflowId]);
 
     const addNode = (type) => {
         if (workflowId === undefined) {
-            let workflowId = uuidv4();
-            navigate(`/workflows/${workflowId}`);
+            let newWorkflowId = uuidv4();
+            navigate(`/workflows/${newWorkflowId}`);
         }
         const newNode = {
             id: `${Date.now()}`,
@@ -57,16 +73,13 @@ function WorkflowsView({ user, isNew }) {
     const saveWorkflow = async () => {
         const db = getFirestore();
         const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-        await setDoc(workflowRef, { nodes, edges });
+        await setDoc(workflowRef, { name: workflowName, nodes, edges }, { merge: true });
     };
 
     const runWorkflow = async () => {
-        // Call the Firebase function to run the workflow
         const functions = getFunctions();
         const run_workflow = httpsCallable(functions, 'run_workflow');
-        await run_workflow({ workflowid: workflowId });
-
-        // Alternatively, handle UI updates based on workflow execution
+        await run_workflow({ workflowId });
     };
 
     const handleNodeClick = (node) => {
@@ -74,12 +87,31 @@ function WorkflowsView({ user, isNew }) {
         setShowNodeModal(true);
     };
 
+    const handleNameChange = async (e) => {
+        e.preventDefault();
+        const db = getFirestore();
+        const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+        await setDoc(workflowRef, { name: workflowName }, { merge: true });
+        setIsEditingName(false);
+    };
 
     return (
         <Container>
-            <h1>Workflows View: {workflowId}</h1>
             <Row className="mb-3">
                 <Col>
+                    {isEditingName ? (
+                        <Form onSubmit={handleNameChange} inline>
+                            <Form.Control
+                                type="text"
+                                value={workflowName}
+                                onChange={(e) => setWorkflowName(e.target.value)}
+                                onBlur={handleNameChange}
+                                autoFocus
+                            />
+                        </Form>
+                    ) : (
+                        <h1 onClick={() => setIsEditingName(true)}>{workflowName}</h1>
+                    )}
                     <Button className="me-2" onClick={() => addNode('User Input')}>Add User Input Node</Button>
                     <Button className="me-2" onClick={() => { setSelectedNode({ botModal: true }); setShowBuildBotModal(true); }}>Add LLM Node</Button>
                     <Button className="me-2" onClick={() => addNode('Tool')}>Add Tool Node</Button>
@@ -109,6 +141,8 @@ function WorkflowsView({ user, isNew }) {
                 onHide={() => setShowBuildBotModal(false)}
                 botData={selectedNode}
                 user={user}
+                isWorkflowBot={true} // Pass this prop to signal workflow context
+                workflowId={workflowId} // Pass workflowId to `BuildABot`
             />
 
             {/* Node modal */}
