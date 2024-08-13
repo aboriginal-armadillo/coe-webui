@@ -18,6 +18,7 @@ import BotZoo from "./components/Bots/BotZoo/BotZoo";
 import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 import BrowseLibraryView from "./components/BrowseLibrary/BrowseLibraryView/BrowseLibraryView";
+import WorkflowsView from "./components/WorkflowsView/WorkflowsView";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -92,6 +93,7 @@ function App() {
                                 <Route path="/browse-my-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Personal Library'}/>} />
                                 <Route path="/browse-public-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Public Library'} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
+                                <Route path="/workflows/:workflowId" element={<WorkflowsView user={user} isNew={false} />} />
                             </Routes>
                         </div>
                     </>
