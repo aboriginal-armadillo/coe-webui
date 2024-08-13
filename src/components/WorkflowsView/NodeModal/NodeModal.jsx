@@ -1,17 +1,9 @@
-// src/components/NodeModal/NodeModal.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Dropdown, DropdownButton } from 'react-bootstrap';
-import {
-    getFirestore,
-    doc,
-    setDoc,
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
-    getDoc
-} from 'firebase/firestore';
-
-function NodeModal({ show, onHide, node, workflowId, user }) {
-    const [nodeName, setNodeName] = useState(node?.name || `Unnamed ${node?.coeType}`);
+function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
+    const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
     const [bots, setBots] = useState([]);
     const [selectedBot, setSelectedBot] = useState(node?.botName || '');
 
@@ -30,9 +22,9 @@ function NodeModal({ show, onHide, node, workflowId, user }) {
     }, [user.uid, workflowId]);
 
     const handleSave = async () => {
-        const db = getFirestore();
-        const nodeRef = doc(db, `users/${node.userId}/workflows/${workflowId}/nodes/${node.id}`);
-        await setDoc(nodeRef, { nodeName, botName: selectedBot }, { merge: true });
+        const updatedNode = { ...node, data: { ...node.data, label: nodeName }, botName: selectedBot };
+
+        updateNodeData(updatedNode); // Invoke callback to update the node in the parent component
         onHide();
     };
 
@@ -53,9 +45,9 @@ function NodeModal({ show, onHide, node, workflowId, user }) {
                     </Form.Group>
                     <Form.Group>
                         <Form.Label>Type</Form.Label>
-                        <Form.Control type="text" value={node?.type} readOnly />
+                        <Form.Control type="text" value={node?.coeType} readOnly />
                     </Form.Group>
-                    {node?.coeTYpe === 'LLM Node' && (
+                    {node?.coeType === 'LLM Node' && (
                         <Form.Group>
                             <Form.Label>Bot</Form.Label>
                             <DropdownButton
@@ -68,7 +60,6 @@ function NodeModal({ show, onHide, node, workflowId, user }) {
                             </DropdownButton>
                         </Form.Group>
                     )}
-
                 </Form>
             </Modal.Body>
             <Modal.Footer>
