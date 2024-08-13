@@ -113,9 +113,10 @@ function WorkflowsView({ user, isNew }) {
                         <h1 onClick={() => setIsEditingName(true)}>{workflowName}</h1>
                     )}
                     <Button className="me-2" onClick={() => addNode('User Input')}>Add User Input Node</Button>
-                    <Button className="me-2" onClick={() => { setSelectedNode({ botModal: true }); setShowBuildBotModal(true); }}>Add LLM Node</Button>
-                    <Button className="me-2" onClick={() => addNode('Tool')}>Add Tool Node</Button>
-                    <Button className="me-2" onClick={() => addNode('Custom Node')}>Add Custom Node</Button>
+                    <Button className="me-2" onClick={() => addNode('LLM Node')}>Add LLM Node</Button>
+                    <Button className="me-2" disabled={true} onClick={() => addNode('Tool')}>Add Tool Node</Button>
+                    <Button className="me-2" onClick={() => { setSelectedNode({ botModal: true }); setShowBuildBotModal(true); }}>Add Bot</Button>
+                    {/*<Button className="me-2" onClick={() => addNode('Custom Node')}>Add Custom Node</Button>*/}
                     <Button variant="primary" className="me-2" onClick={saveWorkflow}>Save</Button>
                     <Button variant="danger" onClick={runWorkflow}>Run</Button>
                 </Col>
