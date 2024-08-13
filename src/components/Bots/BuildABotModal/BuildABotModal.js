@@ -6,7 +6,7 @@ function BuildABotModal({ show, onHide, botData, user, isWorkflowBot = false, wo
     return (
         <Modal show={show} onHide={onHide} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Edit Bot</Modal.Title>
+                <Modal.Title>{botData ? "Edit Bot" : "Create Bot"}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <BuildABot user={user} botData={botData} isWorkflowBot={isWorkflowBot} workflowId={workflowId} />

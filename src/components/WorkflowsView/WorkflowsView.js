@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { getFunctions, httpsCallable } from "firebase/functions";
+import ReactFlow, { applyEdgeChanges, applyNodeChanges, addEdge as addEdgeReactFlow } from 'react-flow-renderer';
 import BuildABotModal from '../Bots/BuildABotModal/BuildABotModal';
 import NodeModal from './NodeModal/NodeModal';
 import { v4 as uuidv4 } from 'uuid';
-import ReactFlow, { applyEdgeChanges, applyNodeChanges, addEdge as addEdgeReactFlow } from 'react-flow-renderer';
 import './WorkflowsView.css';
 
 function WorkflowsView({ user, isNew }) {
@@ -24,8 +24,6 @@ function WorkflowsView({ user, isNew }) {
     useEffect(() => {
         const db = getFirestore();
         const initializeWorkflow = async () => {
-
-
             let initDoc = {
                 name: 'New Workflow',
                 createdAt: serverTimestamp(),
@@ -62,7 +60,7 @@ function WorkflowsView({ user, isNew }) {
         };
 
         initializeWorkflow();
-    }, [user, workflowId]);
+    }, [user, workflowId, navigate]);
 
     useEffect(() => {
         if (workflowId && user) {
@@ -92,8 +90,8 @@ function WorkflowsView({ user, isNew }) {
 
     const runWorkflow = async () => {
         const functions = getFunctions();
-        const run_workflow = httpsCallable(functions, 'run_workflow');
-        await run_workflow({ workflowId });
+        const runWorkflow = httpsCallable(functions, 'runWorkflow');
+        await runWorkflow({ userId: user.uid, workflowId });
     };
 
     const handleNodeClick = (event, node) => {

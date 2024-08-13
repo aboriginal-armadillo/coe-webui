@@ -1,20 +1,25 @@
-/* src/components/WorkflowsView/WorkflowsView.css */
-.graph-view {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 20px;
+.container {
+    padding: 16px;
 }
 
-.node {
-    padding: 10px;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    cursor: pointer;
+.row {
+    margin-bottom: 16px;
 }
 
-.edge {
-    margin-top: 10px;
-    color: #6c757d;
+button {
+    margin-right: 8px;
+}
+
+.react-flow__renderer {
+    height: 500px;
+    background: #fafafa;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.react-flow__node {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 16px;
+    background: #fff;
 }

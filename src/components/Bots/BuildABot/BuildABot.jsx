@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { Form, Button, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { v4 as uuid } from 'uuid';  // Import uuid package
+import { v4 as uuidv4 } from 'uuid';
 
 function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) {
     const [services, setServices] = useState([]);
@@ -63,7 +63,7 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
         if (selectedService) {
             const db = getFirestore();
             const userRef = doc(db, 'users', user.uid);
-            getDoc(userRef).then(docSnap => {
+            getDoc(userRef).then((docSnap) => {
                 if (docSnap.exists()) {
                     const apiKeys = docSnap.data().apiKeys;
                     const filteredKeys = apiKeys.filter(item => selectedService.includes(item.svc)).map(item => item.name);
@@ -109,13 +109,13 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
                         const pinecone = new Pinecone({ apiKey: pineconeKeyObj.apikey });
                         try {
                             const fetchedIndices = await pinecone.listIndexes();
-                            const indexStrings = fetchedIndices.indexes.map(index => index.name);
+                            const indexStrings = fetchedIndices.indexes.map((index) => index.name);
                             setPineconeIndexes(indexStrings);
                         } catch (error) {
                             console.error('Error fetching Pinecone indexes:', error);
                         }
                     }
-                };
+                }
             };
             fetchPineconeIndexes();
         }
@@ -140,16 +140,14 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
         event.preventDefault();
         const modelValue = modelRef.current.value;
         const db = getFirestore();
-        const userRef = doc(db, 'users', user.uid);
-
         const bot = {
-            uuid: botData?.uuid || uuid(), // Use existing uuid if editing, otherwise generate new one
+            uuid: botData?.uuid || uuidv4(), // Use existing uuid if editing, otherwise generate new one
             name: botName,
             service: selectedService,
             key: selectedKey,
             model: modelValue,
             temperature: parseFloat(temperature),
-            systemPrompt: systemPrompt
+            systemPrompt: systemPrompt,
         };
 
         if (selectedService === 'RAG: OpenAI+Pinecone') {
@@ -165,68 +163,79 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
                 if (workflowDoc.exists()) {
                     const workflowData = workflowDoc.data();
                     let updatedBots;
-
-                    if (botData) {
+                    if (botData && botData.uuid) {
                         // Edit existing bot in workflow
                         updatedBots = workflowData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
                     } else {
                         // Add new bot to workflow
                         updatedBots = [...workflowData.bots, bot];
                     }
-
                     await updateDoc(workflowRef, { bots: updatedBots });
+                    alert('Bot configuration saved successfully!');
                 }
             } else {
+                const userRef = doc(db, 'users', user.uid);
                 const userDoc = await getDoc(userRef);
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     let updatedBots;
-
-                    if (botData) {
+                    if (botData && botData.uuid) {
                         // Edit existing bot
                         updatedBots = userData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
                     } else {
                         // Add new bot
                         updatedBots = [...userData.bots, bot];
                     }
-
                     await updateDoc(userRef, { bots: updatedBots });
-                    if (!isWorkflowBot) {
-                        alert('Bot configuration saved successfully!');
-                        navigate('/bots');
-                    }
+                    alert('Bot configuration saved successfully!');
+                    navigate('/bots');
                 }
             }
-            alert('Bot configuration saved successfully!');
         } catch (error) {
             console.error('Error updating bot configuration: ', error);
             alert('Failed to save bot configuration.');
         }
     };
 
-
     return (
         <Card>
             <Form onSubmit={handleSubmit}>
                 <Form.Group>
                     <Form.Label>Bot Name</Form.Label>
-                    <Form.Control type="text" value={botName} onChange={e => setBotName(e.target.value)} placeholder="Enter bot name" />
+                    <Form.Control
+                        type="text"
+                        value={botName}
+                        onChange={(e) => setBotName(e.target.value)}
+                        placeholder="Enter bot name"
+                    />
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Service</Form.Label>
-                    <Form.Control as="select" value={selectedService} onChange={e => setSelectedService(e.target.value)}>
+                    <Form.Control
+                        as="select"
+                        value={selectedService}
+                        onChange={(e) => setSelectedService(e.target.value)}
+                    >
                         <option value="">Select a service</option>
                         {services.map((service, index) => (
-                            <option key={index} value={service}>{service}</option>
+                            <option key={index} value={service}>
+                                {service}
+                            </option>
                         ))}
                     </Form.Control>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>LLM Key</Form.Label>
-                    <Form.Control as="select" value={selectedKey} onChange={e => setSelectedKey(e.target.value)}>
+                    <Form.Control
+                        as="select"
+                        value={selectedKey}
+                        onChange={(e) => setSelectedKey(e.target.value)}
+                    >
                         <option value="">Select a key</option>
                         {keys.map((key, index) => (
-                            <option key={index} value={key}>{key}</option>
+                            <option key={index} value={key}>
+                                {key}
+                            </option>
                         ))}
                     </Form.Control>
                 </Form.Group>
@@ -234,25 +243,44 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
                     <>
                         <Form.Group>
                             <Form.Label>Pinecone Key</Form.Label>
-                            <Form.Control as="select" value={selectedPineconeKey} onChange={e => setSelectedPineconeKey(e.target.value)}>
+                            <Form.Control
+                                as="select"
+                                value={selectedPineconeKey}
+                                onChange={(e) => setSelectedPineconeKey(e.target.value)}
+                            >
                                 <option value="">Select a Pinecone key</option>
                                 {pineconeKeys.map((key, index) => (
-                                    <option key={index} value={key}>{key}</option>
+                                    <option key={index} value={key}>
+                                        {key}
+                                    </option>
                                 ))}
                             </Form.Control>
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Pinecone Index</Form.Label>
-                            <Form.Control as="select" value={selectedPineconeIndex} onChange={e => setSelectedPineconeIndex(e.target.value)}>
+                            <Form.Control
+                                as="select"
+                                value={selectedPineconeIndex}
+                                onChange={(e) => setSelectedPineconeIndex(e.target.value)}
+                            >
                                 <option value="">Select an index</option>
                                 {pineconeIndexes.map((index, i) => (
-                                    <option key={i} value={index}>{index}</option>
+                                    <option key={i} value={index}>
+                                        {index}
+                                    </option>
                                 ))}
                             </Form.Control>
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Top K</Form.Label>
-                            <Form.Control type="range" min="1" max="10" step="1" value={topK} onChange={e => setTopK(e.target.value)} />
+                            <Form.Control
+                                type="range"
+                                min="1"
+                                max="10"
+                                step="1"
+                                value={topK}
+                                onChange={(e) => setTopK(e.target.value)}
+                            />
                             <Form.Text>{topK}</Form.Text>
                         </Form.Group>
                     </>
@@ -262,18 +290,32 @@ function BuildABot({ user, botData, isWorkflowBot = false, workflowId = null }) 
                     <Form.Control as="select" ref={modelRef} defaultValue={botData?.model || ''}>
                         <option value="">Select a model</option>
                         {models.map((model, index) => (
-                            <option key={index} value={model.name}>{model.name}</option>
+                            <option key={index} value={model.name}>
+                                {model.name}
+                            </option>
                         ))}
                     </Form.Control>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Temperature</Form.Label>
-                    <Form.Control type="range" min={minTemp} max={maxTemp} step="0.05" value={temperature} onChange={e => setTemperature(e.target.value)} />
+                    <Form.Control
+                        type="range"
+                        min={minTemp}
+                        max={maxTemp}
+                        step="0.05"
+                        value={temperature}
+                        onChange={(e) => setTemperature(e.target.value)}
+                    />
                     <Form.Text>{temperature}</Form.Text>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>System Prompt</Form.Label>
-                    <Form.Control as="textarea" rows={3} value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)} />
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={systemPrompt}
+                        onChange={(e) => setSystemPrompt(e.target.value)}
+                    />
                 </Form.Group>
                 <Button variant="primary" type="submit">
                     Submit
