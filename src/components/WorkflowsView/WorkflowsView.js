@@ -24,17 +24,29 @@ function WorkflowsView({ user, isNew }) {
     useEffect(() => {
         const db = getFirestore();
         const initializeWorkflow = async () => {
+
+
+            let initDoc = {
+                name: 'New Workflow',
+                createdAt: serverTimestamp(),
+                nodes: [],
+                edges: [],
+                runsList: [],
+                bots: []
+            };
+            if (user && !workflowId) {
+                console.log('Creating new workflow')
+                const newWorkflowId = uuidv4();
+                const workflowRef = doc(db, `users/${user.uid}/workflows/${newWorkflowId}`);
+                await setDoc(workflowRef, initDoc);
+                navigate(`/workflows/${newWorkflowId}`);
+            }
             if (user && workflowId) {
                 const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
                 const docSnap = await getDoc(workflowRef);
                 if (!docSnap.exists()) {
-                    await setDoc(workflowRef, {
-                        name: 'New Workflow',
-                        createdAt: serverTimestamp(),
-                        nodes: [],
-                        edges: [],
-                        runsList: []
-                    });
+                    console.log('Creating new workflow')
+                    await setDoc(workflowRef, initDoc);
                 }
                 onSnapshot(workflowRef, (docSnap) => {
                     if (docSnap.exists()) {
@@ -71,7 +83,7 @@ function WorkflowsView({ user, isNew }) {
         }
         const newNode = {
             id: `${Date.now()}`,
-            type,
+            coeType: type,
             data: { label: type },
             position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
@@ -100,6 +112,17 @@ function WorkflowsView({ user, isNew }) {
     const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
     const onEdgesChange = (changes) => setEdges((eds) => applyEdgeChanges(changes, eds));
     const onConnect = (params) => setEdges((eds) => addEdgeReactFlow(params, eds));
+
+    const updateNodeData = async (updatedNode) => {
+        const updatedNodes = nodes.map((node) => (node.id === updatedNode.id ? updatedNode : node));
+        setNodes(updatedNodes);
+
+        if (workflowId && user) {
+            const db = getFirestore();
+            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+            await setDoc(workflowRef, { nodes: updatedNodes }, { merge: true });
+        }
+    };
 
     return (
         <Container>
@@ -151,6 +174,8 @@ function WorkflowsView({ user, isNew }) {
                 onHide={() => setShowNodeModal(false)}
                 node={selectedNode}
                 user={user}
+                workflowId={workflowId}
+                updateNodeData={updateNodeData}
             />
         </Container>
     );
