@@ -52,6 +52,17 @@ function WorkflowsView({ user, isNew }) {
         initializeWorkflow();
     }, [user, workflowId]);
 
+    useEffect(() => {
+        if (workflowId && user) {
+            const db = getFirestore();
+            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+            const saveWorkflowChanges = async () => {
+                await setDoc(workflowRef, { nodes, edges: edges || [] }, { merge: true });
+            };
+            saveWorkflowChanges();
+        }
+    }, [nodes, edges, workflowId, user]);
+
     const addNode = (type) => {
         if (!workflowId) {
             const newWorkflowId = uuidv4();
@@ -65,12 +76,6 @@ function WorkflowsView({ user, isNew }) {
             position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
         setNodes((nodes) => [...nodes, newNode]);
-    };
-
-    const saveWorkflow = async () => {
-        const db = getFirestore();
-        const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-        await setDoc(workflowRef, { name: workflowName, nodes, edges: edges || [] }, { merge: true });
     };
 
     const runWorkflow = async () => {
@@ -117,7 +122,6 @@ function WorkflowsView({ user, isNew }) {
                     <Button className="me-2" onClick={() => addNode('LLM Node')}>Add LLM Node</Button>
                     <Button className="me-2" disabled onClick={() => addNode('Tool')}>Add Tool Node</Button>
                     <Button className="me-2" onClick={() => { setSelectedNode({ botModal: true }); setShowBuildBotModal(true); }}>Add Bot</Button>
-                    <Button variant="primary" className="me-2" onClick={saveWorkflow}>Save</Button>
                     <Button variant="danger" onClick={runWorkflow}>Run</Button>
                 </Col>
             </Row>
