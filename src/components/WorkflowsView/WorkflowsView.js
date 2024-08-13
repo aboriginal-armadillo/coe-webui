@@ -1,13 +1,13 @@
-// ... other imports
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
+import { doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { Button, Col, Container, Form, Row } from 'react-bootstrap';
+import { getFunctions, httpsCallable } from "firebase/functions";
 import BuildABotModal from '../Bots/BuildABotModal/BuildABotModal';
 import NodeModal from './NodeModal/NodeModal';
-import './WorkflowsView.css';
 import { v4 as uuidv4 } from 'uuid';
-import {useNavigate, useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot} from "firebase/firestore";
-import {Button, Col, Container, Form, Row} from "react-bootstrap";
-import {getFunctions, httpsCallable} from "firebase/functions";
+import ReactFlow, { applyEdgeChanges, applyNodeChanges, addEdge as addEdgeReactFlow } from 'react-flow-renderer';
+import './WorkflowsView.css';
 
 function WorkflowsView({ user, isNew }) {
     const { workflowId } = useParams();
@@ -53,27 +53,24 @@ function WorkflowsView({ user, isNew }) {
     }, [user, workflowId]);
 
     const addNode = (type) => {
-        if (workflowId === undefined) {
-            let newWorkflowId = uuidv4();
+        if (!workflowId) {
+            const newWorkflowId = uuidv4();
             navigate(`/workflows/${newWorkflowId}`);
+            return;
         }
         const newNode = {
             id: `${Date.now()}`,
             type,
-            // Additional properties depending on the type of node
+            data: { label: type },
+            position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
-        setNodes([...nodes, newNode]);
-    };
-
-    const addEdge = (source, target) => {
-        const newEdge = { source, target };
-        setEdges([...edges, newEdge]);
+        setNodes((nodes) => [...nodes, newNode]);
     };
 
     const saveWorkflow = async () => {
         const db = getFirestore();
         const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-        await setDoc(workflowRef, { name: workflowName, nodes, edges }, { merge: true });
+        await setDoc(workflowRef, { name: workflowName, nodes, edges: edges || [] }, { merge: true });
     };
 
     const runWorkflow = async () => {
@@ -82,7 +79,7 @@ function WorkflowsView({ user, isNew }) {
         await run_workflow({ workflowId });
     };
 
-    const handleNodeClick = (node) => {
+    const handleNodeClick = (event, node) => {
         setSelectedNode(node);
         setShowNodeModal(true);
     };
@@ -94,6 +91,10 @@ function WorkflowsView({ user, isNew }) {
         await setDoc(workflowRef, { name: workflowName }, { merge: true });
         setIsEditingName(false);
     };
+
+    const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
+    const onEdgesChange = (changes) => setEdges((eds) => applyEdgeChanges(changes, eds));
+    const onConnect = (params) => setEdges((eds) => addEdgeReactFlow(params, eds));
 
     return (
         <Container>
@@ -114,43 +115,38 @@ function WorkflowsView({ user, isNew }) {
                     )}
                     <Button className="me-2" onClick={() => addNode('User Input')}>Add User Input Node</Button>
                     <Button className="me-2" onClick={() => addNode('LLM Node')}>Add LLM Node</Button>
-                    <Button className="me-2" disabled={true} onClick={() => addNode('Tool')}>Add Tool Node</Button>
+                    <Button className="me-2" disabled onClick={() => addNode('Tool')}>Add Tool Node</Button>
                     <Button className="me-2" onClick={() => { setSelectedNode({ botModal: true }); setShowBuildBotModal(true); }}>Add Bot</Button>
-                    {/*<Button className="me-2" onClick={() => addNode('Custom Node')}>Add Custom Node</Button>*/}
                     <Button variant="primary" className="me-2" onClick={saveWorkflow}>Save</Button>
                     <Button variant="danger" onClick={runWorkflow}>Run</Button>
                 </Col>
             </Row>
 
-            {/* Render nodes and edges visually */}
-            <div className="graph-view">
-                {nodes.map(node => (
-                    <div key={node.id} className="node" onClick={() => handleNodeClick(node)}>
-                        <span>{node.type}</span>
-                    </div>
-                ))}
-                {edges.map(edge => (
-                    <div key={`${edge.source}-${edge.target}`} className="edge">
-                        <span>{edge.source} -> {edge.target}</span>
-                    </div>
-                ))}
+            <div style={{ height: '500px', width: '100%' }}>
+                <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onNodeClick={handleNodeClick}
+                />
             </div>
 
-            {/* Bot configuration modal */}
             <BuildABotModal
                 show={showBuildBotModal}
                 onHide={() => setShowBuildBotModal(false)}
                 botData={selectedNode}
                 user={user}
-                isWorkflowBot={true} // Pass this prop to signal workflow context
-                workflowId={workflowId} // Pass workflowId to `BuildABot`
+                isWorkflowBot={true}
+                workflowId={workflowId}
             />
 
-            {/* Node modal */}
             <NodeModal
                 show={showNodeModal}
                 onHide={() => setShowNodeModal(false)}
                 node={selectedNode}
+                user={user}
             />
         </Container>
     );
