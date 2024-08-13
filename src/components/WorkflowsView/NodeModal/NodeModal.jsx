@@ -70,4 +70,4 @@ function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
     );
 }
 
-export default NodeModal;
+export default NodeModal;  
