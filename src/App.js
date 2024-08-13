@@ -93,6 +93,7 @@ function App() {
                                 <Route path="/browse-my-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Personal Library'}/>} />
                                 <Route path="/browse-public-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Public Library'} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
+                                <Route path="/workflows" element={<WorkflowsView user={user} isNew={false} />} />
                                 <Route path="/workflows/:workflowId" element={<WorkflowsView user={user} isNew={false} />} />
                             </Routes>
                         </div>
