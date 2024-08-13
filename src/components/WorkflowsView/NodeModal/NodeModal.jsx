@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Dropdown, DropdownButton } from 'react-bootstrap';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 
 function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
     const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
@@ -8,22 +8,22 @@ function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
     const [selectedBot, setSelectedBot] = useState(node?.botName || '');
 
     useEffect(() => {
-        const fetchBots = async () => {
-            const db = getFirestore();
-            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-            const workflowSnap = await getDoc(workflowRef);
+        const db = getFirestore();
+        const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
 
-            if (workflowSnap.exists()) {
-                const data = workflowSnap.data();
-                setBots(data.bots || []);  // Default to an empty array if bots field is undefined
+        const unsubscribe = onSnapshot(workflowRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setBots(data.bots || []);
             }
-        };
-        fetchBots();
+        });
+
+        // Cleanup the Firestore listener on component unmount
+        return () => unsubscribe();
     }, [user.uid, workflowId]);
 
-    const handleSave = async () => {
-        const updatedNode = { ...node, data: { ...node.data, label: nodeName }, botName: selectedBot };
-
+    const handleSave = () => {
+        const updatedNode = { ...node, data: { ...node.data, label: nodeName , botName: selectedBot }};
         updateNodeData(updatedNode); // Invoke callback to update the node in the parent component
         onHide();
     };
@@ -52,10 +52,12 @@ function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
                             <Form.Label>Bot</Form.Label>
                             <DropdownButton
                                 title={selectedBot || 'Select a Bot'}
-                                onSelect={(e) => setSelectedBot(e)}
+                                onSelect={(eventKey) => setSelectedBot(eventKey)}
                             >
                                 {bots.map((bot, index) => (
-                                    <Dropdown.Item eventKey={bot.name} key={index}>{bot.name}</Dropdown.Item>
+                                    <Dropdown.Item eventKey={bot.name} key={index}>
+                                        {bot.name}
+                                    </Dropdown.Item>
                                 ))}
                             </DropdownButton>
                         </Form.Group>
@@ -70,4 +72,4 @@ function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
     );
 }
 
-export default NodeModal;  
+export default NodeModal;
