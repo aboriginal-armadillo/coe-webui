@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Nav, Dropdown } from 'react-bootstrap';
+import { Nav, Dropdown, Button } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faChevronDown, faChevronRight, faComment, faProjectDiagram } from '@fortawesome/free-solid-svg-icons';
 import ChatList from './ChatList/ChatList';
+import WorkflowsList from './WorkflowsList/WorkflowsList'; // Import WorkflowsList
 
 function Sidebar({ user, isOpen, toggleSidebar }) {
-    // const [isOpen, setIsOpen] = useState(true); // State to manage sidebar visibility
+    const [isChatListOpen, setIsChatListOpen] = useState(false);
+    const [isWorkflowListOpen, setIsWorkflowListOpen] = useState(false);
 
     const handleSignOut = () => {
         const auth = getAuth();
@@ -33,17 +35,42 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                         <Link to="/" className="d-flex align-items-center mb-md-0 me-md-auto link-dark text-decoration-none">
                             <span className="fs-4"></span>
                         </Link>
-                        <Link to="/chat" className="text-decoration-none">
+
+                    </div>
+                    <hr />
+
+                    {/* Toggle Chat List */}
+                    <div className="d-flex align-items-center p-3" style={{ cursor: 'pointer' }} onClick={() => setIsChatListOpen(!isWorkflowListOpen)}>
+                        <Link to="/chat" className="text-decoration-none me-3">
                             <FontAwesomeIcon icon={faPlus} size="lg" />
                         </Link>
+                        <h5 className="mb-0">Chats</h5>
+                        <FontAwesomeIcon icon={isWorkflowListOpen ? faChevronDown : faChevronRight} className="ms-auto" />
                     </div>
+
+                    {isChatListOpen && (
+                        <div style={{ height: "100%", overflow: "auto", padding: "0 1rem" }}>
+                            <ChatList user={user} />
+                        </div>
+                    )}
                     <hr />
-                    <div style={{ height: "100%",
-                        overflow: "auto",
-                        padding: "0 1rem" }}>
-                        <ChatList user={user} />
+
+                    {/* Toggle Workflows List */}
+                    <div className="d-flex align-items-center p-3" style={{ cursor: 'pointer' }} onClick={() => setIsWorkflowListOpen(!isWorkflowListOpen)}>
+                        <Link to="/workflows" className="text-decoration-none me-3">
+                            <FontAwesomeIcon icon={faPlus} size="lg" />
+                        </Link>
+                        <h5 className="mb-0">Workflows</h5>
+                        <FontAwesomeIcon icon={isWorkflowListOpen ? faChevronDown : faChevronRight} className="ms-auto" />
                     </div>
+
+                    {isWorkflowListOpen && (
+                        <div style={{ height: "100%", overflow: "auto", padding: "0 1rem" }}>
+                            <WorkflowsList user={user} />
+                        </div>
+                    )}
                     <hr />
+
                     <div className="p-3">
                         <Dropdown>
                             <Dropdown.Toggle as={Nav.Link}
