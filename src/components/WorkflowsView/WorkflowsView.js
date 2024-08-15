@@ -2,15 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
-import {Container, Row, Button, Col} from 'react-bootstrap';
+import { Container, Row, Button, Col } from 'react-bootstrap';
 import WorkflowHeader from './WorkflowHeader';
 import WorkflowControls from './WorkflowControls';
 import WorkflowCanvas from './WorkflowCanvas';
 import WorkflowModals from './WorkflowModals';
 import { v4 as uuidv4 } from 'uuid';
 import './WorkflowsView.css';
-import {applyEdgeChanges, applyNodeChanges} from "react-flow-renderer";
-
+import { applyEdgeChanges, applyNodeChanges } from "react-flow-renderer";
 import { addEdge as addEdgeReactFlow } from 'react-flow-renderer';
 
 function WorkflowsView({ user }) {
@@ -22,7 +21,7 @@ function WorkflowsView({ user }) {
     const [selectedNode, setSelectedNode] = useState(null);
     const [workflowName, setWorkflowName] = useState('New Workflow');
     const [isEditingName, setIsEditingName] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); // Set loading state initially to true
+    const [isLoading, setIsLoading] = useState(true);
 
     const navigate = useNavigate();
 
@@ -35,107 +34,54 @@ function WorkflowsView({ user }) {
     };
 
     const handleNodeClick = (event, node) => {
-        // console.log("Node clicked:", node); // Log the node that was clicked
         setSelectedNode(node);
-        setShowNodeModal(true); // Show the modal for editing node details
+        setShowNodeModal(true);
     };
 
     useEffect(() => {
         if (!user) return;
-        const db = getFirestore();
-
-        const initializeWorkflow = async () => {
-            let initDoc = {
-                name: 'New Workflow',
-                createdAt: serverTimestamp(),
-                nodes: [],
-                edges: [],
-                runsList: [],
-                bots: []
-            };
-
-            if (!workflowId) {
-                console.log('Creating new workflow');
-                const newWorkflowId = uuidv4();
-                const workflowRef = doc(db, `users/${user.uid}/workflows/${newWorkflowId}`);
-                await setDoc(workflowRef, initDoc);
-                navigate(`/workflows/${newWorkflowId}`);
-            } else {
-                const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
-                const docSnap = await getDoc(workflowRef);
-
-                // Reset state on workflow change
-                setNodes([]);
-                setEdges([]);
-                setWorkflowName('New Workflow');
-                setSelectedNode(null);
-                setIsLoading(true);
-
-                if (!docSnap.exists()) {
-                    console.log('Creating new workflow');
-                    await setDoc(workflowRef, initDoc);
-                } else {
-                    const data = docSnap.data();
-                    setWorkflowName(data.name || 'New Workflow');
-                    setNodes(data.nodes || []);
-                    setEdges(data.edges || []);
-                    setIsLoading(false); // End loading
-                }
-
-                // Listening to changes on workflowRef
-                const unsubscribe = onSnapshot(workflowRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        setWorkflowName(data.name || 'New Workflow');
-                        setNodes(data.nodes || []);
-                        setEdges(data.edges || []);
-                        setIsLoading(false); // End loading
-                    }
-                });
-
-                // Cleanup the onSnapshot listener when component unmount or workflowId changes
-                return () => unsubscribe();
-            }
-        };
-
-        initializeWorkflow();
-    }, [user, workflowId, navigate]);
-
-    useEffect(() => {
-        if (!workflowId || !user) return;
 
         const db = getFirestore();
         const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
 
-        const saveWorkflowChanges = async () => {
-            try {
-                await setDoc(workflowRef, { nodes, edges }, { merge: true });
-            } catch (error) {
-                console.error("Error saving workflow changes:", error);
+        const unsubscribe = onSnapshot(workflowRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setWorkflowName(data.name || 'New Workflow');
+                setNodes(data.nodes || []);
+                setEdges(data.edges || []);
+                setIsLoading(false);
+            } else {
+                console.log('Workflow does not exist');
             }
-        };
+        });
 
-        saveWorkflowChanges();
-    }, [nodes, edges, workflowId, user]);
+        return () => unsubscribe();
+    }, [user, workflowId]);
 
-    const addNode = (type) => {
-        if (!workflowId) {
-            const newWorkflowId = uuidv4();
-            navigate(`/workflows/${newWorkflowId}`);
-            return;
-        }
+    const addNode = async (type) => {
         const newNode = {
             id: `${Date.now()}`,
             coeType: type,
             data: { label: type },
             position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
-        setNodes((nodes) => [...nodes, newNode]);
+
+        // Update local state
+        setNodes((nds) => [...nds, newNode]);
+
+        // Save to Firestore
+        if (workflowId && user) {
+            const db = getFirestore();
+            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+            await setDoc(workflowRef, {
+                nodes: [...nodes, newNode]
+            }, { merge: true });
+        }
     };
 
     const runWorkflow = async () => {
         console.log("Running workflow...");
-        // Logic for running workflow...
     };
 
     const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
