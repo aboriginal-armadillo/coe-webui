@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { InputGroup, Button, Spinner } from 'react-bootstrap';
-import { getFirestore, doc, getDoc, addDoc, collection, Timestamp, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import DynamicTextArea from "./DynamicTextArea/DynamicTextArea";
 import DropdownMenu from './DropdownMenu/DropdownMenu';
 import FileUpload from './ContextLoaders/FileUpload/FileUpload';

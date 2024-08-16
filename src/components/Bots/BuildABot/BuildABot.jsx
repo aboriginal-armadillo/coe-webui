@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getFirestore, doc, getDoc, updateDoc} from 'firebase/firestore';
 import { Form, Button, Card, Modal } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { v4 as uuidv4 } from 'uuid';
 

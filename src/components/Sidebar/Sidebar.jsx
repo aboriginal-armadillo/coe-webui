@@ -4,7 +4,7 @@ import { Nav, Dropdown, Button } from 'react-bootstrap';
 import { getAuth, signOut } from "firebase/auth";
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faChevronDown, faChevronRight, faComment, faProjectDiagram } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import ChatList from './ChatList/ChatList';
 import WorkflowsList from './WorkflowsList/WorkflowsList'; // Import WorkflowsList
 
