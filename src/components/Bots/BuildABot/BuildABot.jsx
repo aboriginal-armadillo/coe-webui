@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getFirestore, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc} from 'firebase/firestore';
 import { Form, Button, Card, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Pinecone } from '@pinecone-database/pinecone';
@@ -24,8 +24,6 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
     const [systemPrompt, setSystemPrompt] = useState(botData?.systemPrompt || '');
     const [topK, setTopK] = useState(botData?.top_k || 5);
     const modelRef = useRef(null);
-
-    const navigate = useNavigate();
 
     useEffect(() => {
         const db = getFirestore();
