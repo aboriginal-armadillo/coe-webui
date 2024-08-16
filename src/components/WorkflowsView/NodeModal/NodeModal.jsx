@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import BuildABotModal from '../../Bots/BuildABot/BuildABot';
 
 function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {

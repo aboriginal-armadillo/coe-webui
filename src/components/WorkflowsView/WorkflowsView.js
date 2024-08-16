@@ -1,13 +1,12 @@
 // src/components/WorkflowsView/WorkflowsView.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from "react-router-dom";
-import { doc, getDoc, getFirestore, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
-import { Container, Row, Button, Col } from 'react-bootstrap';
+import { useParams } from "react-router-dom";
+import { doc, getFirestore, setDoc, onSnapshot } from "firebase/firestore";
+import { Container, Row, Col } from 'react-bootstrap';
 import WorkflowHeader from './WorkflowHeader';
 import WorkflowControls from './WorkflowControls';
 import WorkflowCanvas from './WorkflowCanvas';
 import WorkflowModals from './WorkflowModals';
-import { v4 as uuidv4 } from 'uuid';
 import './WorkflowsView.css';
 import { applyEdgeChanges, applyNodeChanges } from "react-flow-renderer";
 import { addEdge as addEdgeReactFlow } from 'react-flow-renderer';
@@ -22,8 +21,6 @@ function WorkflowsView({ user }) {
     const [workflowName, setWorkflowName] = useState('New Workflow');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-
-    const navigate = useNavigate();
 
     const handleNameChange = async (e) => {
         e.preventDefault();
