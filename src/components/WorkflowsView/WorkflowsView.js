@@ -83,8 +83,19 @@ function WorkflowsView({ user }) {
 
     const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
     const onEdgesChange = (changes) => setEdges((eds) => applyEdgeChanges(changes, eds));
-    const onConnect = (params) => setEdges((eds) => addEdgeReactFlow(params, eds));
+    const onConnect = (params) => {
+        const updatedEdges = addEdgeReactFlow(params, edges);
+        setEdges(updatedEdges);
+        updateFirestore(workflowId, nodes, updatedEdges);
+    };
 
+    const updateFirestore = async (id, updatedNodes, updatedEdges) => {
+        if (workflowId && user) {
+            const db = getFirestore();
+            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+            await setDoc(workflowRef, { nodes: updatedNodes, edges: updatedEdges }, { merge: true });
+        }
+    };
     const updateNodeData = async (updatedNode) => {
         const updatedNodes = nodes.map((node) => (node.id === updatedNode.id ? updatedNode : node));
         setNodes(updatedNodes);
