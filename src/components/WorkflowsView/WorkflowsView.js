@@ -1,7 +1,15 @@
 // src/components/WorkflowsView/WorkflowsView.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
-import { doc, getFirestore, setDoc, onSnapshot } from "firebase/firestore";
+import {
+    doc,
+    getFirestore,
+    setDoc,
+    onSnapshot,
+    serverTimestamp,
+    getDoc
+} from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 import { Container, Row, Col } from 'react-bootstrap';
 import WorkflowHeader from './WorkflowHeader';
 import WorkflowControls from './WorkflowControls';
@@ -78,7 +86,37 @@ function WorkflowsView({ user }) {
     };
 
     const runWorkflow = async () => {
-        console.log("Running workflow...");
+        const runId = uuidv4();
+        const db = getFirestore();
+
+        if (workflowId && user) {
+            const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
+            const runRef = doc(workflowRef, `runs/${runId}`);
+
+            try {
+                // Create a new run document
+                await setDoc(runRef, {
+                    createdAt: serverTimestamp(),
+                    name: "New Run",
+                    nodes: nodes,
+                    edges: edges
+                });
+
+                // Retrieve the existing runsList from the workflow document
+                const workflowDoc = await getDoc(workflowRef);
+                const existingRunsList = workflowDoc.exists() ? workflowDoc.data().runsList : [];
+
+                // Update the runsList array in the workflow document
+                await setDoc(workflowRef, {
+                    runsList: [runId, ...existingRunsList]
+                }, { merge: true });
+
+                console.log("Run created successfully");
+
+            } catch (error) {
+                console.log("Error creating run: ", error);
+            }
+        }
     };
 
     const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
