@@ -15,6 +15,7 @@ import WorkflowHeader from './WorkflowHeader';
 import WorkflowControls from './WorkflowControls';
 import WorkflowCanvas from './WorkflowCanvas';
 import WorkflowModals from './WorkflowModals';
+import RunsList from './RunsList';
 import './WorkflowsView.css';
 import { applyEdgeChanges, applyNodeChanges } from "react-flow-renderer";
 import { addEdge as addEdgeReactFlow } from 'react-flow-renderer';
@@ -157,6 +158,7 @@ function WorkflowsView({ user }) {
                         handleNameChange={handleNameChange}
                     />
                     <WorkflowControls addNode={addNode} runWorkflow={runWorkflow} />
+                    <RunsList user={user} workflowId={workflowId} />
                 </Col>
             </Row>
 
