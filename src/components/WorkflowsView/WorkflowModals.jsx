@@ -28,6 +28,7 @@ const WorkflowModals = ({ showBuildBotModal,
             user={user}
             workflowId={workflowId}
             updateNodeData={updateNodeData}
+
         />
     </>
 );

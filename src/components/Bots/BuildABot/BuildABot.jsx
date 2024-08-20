@@ -157,19 +157,20 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
             const db = getFirestore();
             const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
             const workflowDoc = await getDoc(workflowRef);
-            bot.nodeId = nodeId;
             if (workflowDoc.exists()) {
                 const workflowData = workflowDoc.data();
-                let updatedBots;
-                if (botData && botData.uuid) {
-                    updatedBots = workflowData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
-                } else {
-                    updatedBots = [...workflowData.bots, bot];
-                }
-                await updateDoc(workflowRef, { bots: updatedBots });
+                const updatedNodes = workflowData.nodes.map((node) => {
+                    if (node.id === nodeId) {
+                        return { ...node, data: { ...node.data, bot } };
+                    }
+                    return node;
+                });
+                await updateDoc(workflowRef, { nodes: updatedNodes });
+                onSave(bot); // Trigger the onSave callback with the new bot data
             }
+        } else {
+            onSave(bot);
         }
-        onSave(bot); // Trigger the onSave callback with the new bot data
     };
 
     return (

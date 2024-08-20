@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from '../../Bots/BuildABot/BuildABot';
 
-function NodeModal({ show, onHide, node, workflowId, user, updateNodeData }) {
+function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
     const [botData, setBotData] = useState(node?.data?.bot || null);
