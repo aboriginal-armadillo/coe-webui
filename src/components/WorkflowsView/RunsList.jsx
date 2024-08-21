@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { onSnapshot, getFirestore, collection, query, orderBy } from 'firebase/firestore';
 import { Button, Collapse, ListGroup } from 'react-bootstrap';
+import {Link} from "react-router-dom";
 
 const RunsList = ({ user, workflowId }) => {
     const [runs, setRuns] = useState([]);
@@ -39,9 +40,11 @@ const RunsList = ({ user, workflowId }) => {
                 <div id="runs-collapse">
                     <ListGroup>
                         {runs.map((run) => (
-                            <ListGroup.Item key={run.id}>
-                                {run.name}
-                            </ListGroup.Item>
+                            <Link key={run.id} to={`/workflows/${workflowId}/runs/${run.id}`}>
+                                <ListGroup.Item>
+                                    {run.name}
+                                </ListGroup.Item>
+                            </Link>
                         ))}
                     </ListGroup>
                 </div>
