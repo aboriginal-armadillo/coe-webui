@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import { doc, getFirestore, onSnapshot, setDoc } from 'firebase/firestore';
 import { Container, Row, Col, Spinner, Form } from 'react-bootstrap';
-import ReactFlow, { applyNodeChanges, applyEdgeChanges } from 'react-flow-renderer';
+import ReactFlow from 'react-flow-renderer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faChevronLeft} from "@fortawesome/free-solid-svg-icons";
+import NodeDetailsModal from './NodeDetailsModal';
 
 const RunView = ({ user }) => {
     const { workflowId, runId } = useParams();
@@ -14,6 +15,8 @@ const RunView = ({ user }) => {
     const [edges, setEdges] = useState([]);
     const [runName, setRunName] = useState('Run');
     const [isEditingName, setIsEditingName] = useState(false);
+    const [selectedNode, setSelectedNode] = useState(null);
+    const [showNodeModal, setShowNodeModal] = useState(false);
 
     const navigate = useNavigate()
     useEffect(() => {
@@ -45,8 +48,10 @@ const RunView = ({ user }) => {
         setIsEditingName(false);
     };
 
-    const onNodesChange = (changes) => setNodes((nds) => applyNodeChanges(changes, nds));
-    const onEdgesChange = (changes) => setEdges((eds) => applyEdgeChanges(changes, eds));
+    const handleNodeClick = (event, node) => {
+        setSelectedNode(node);
+        setShowNodeModal(true);
+    };
 
     if (isLoading) {
         return (
@@ -88,12 +93,16 @@ const RunView = ({ user }) => {
                         <ReactFlow
                             nodes={nodes}
                             edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
+                            onNodeClick={handleNodeClick}
                         />
                     </div>
                 </Col>
             </Row>
+            <NodeDetailsModal
+                show={showNodeModal}
+                onHide={() => setShowNodeModal(false)}
+                node={selectedNode}
+            />
         </Container>
     );
 };
