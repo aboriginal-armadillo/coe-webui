@@ -203,131 +203,134 @@ function BuildABot({ show, onHide, user, botData, workflowId,
             <Modal.Header closeButton>
                 <Modal.Title>{botData ? 'Edit Bot' : 'Create Bot'}</Modal.Title>
             </Modal.Header>
+
             <Modal.Body>
                 <Card>
+                    <Card.Body>
 
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group>
-                            <Form.Label>Bot Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={botName}
-                                onChange={(e) => setBotName(e.target.value)}
-                                placeholder="Enter bot name"
-                            />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>Service</Form.Label>
-                            <Form.Control
-                                as="select"
-                                value={selectedService}
-                                onChange={(e) => setSelectedService(e.target.value)}
-                            >
-                                <option value="">Select a service</option>
-                                {services.map((service, index) => (
-                                    <option key={index} value={service}>
-                                        {service}
-                                    </option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>LLM Key</Form.Label>
-                            <Form.Control
-                                as="select"
-                                value={selectedKey}
-                                onChange={(e) => setSelectedKey(e.target.value)}
-                            >
-                                <option value="">Select a key</option>
-                                {keys.map((key, index) => (
-                                    <option key={index} value={key}>
-                                        {key}
-                                    </option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                        {selectedService === 'RAG: OpenAI+Pinecone' && (
-                            <>
-                                <Form.Group>
-                                    <Form.Label>Pinecone Key</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        value={selectedPineconeKey}
-                                        onChange={(e) => setSelectedPineconeKey(e.target.value)}
-                                    >
-                                        <option value="">Select a Pinecone key</option>
-                                        {pineconeKeys.map((key, index) => (
-                                            <option key={index} value={key}>
-                                                {key}
-                                            </option>
-                                        ))}
-                                    </Form.Control>
-                                </Form.Group>
-                                <Form.Group>
-                                    <Form.Label>Pinecone Index</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        value={selectedPineconeIndex}
-                                        onChange={(e) => setSelectedPineconeIndex(e.target.value)}
-                                    >
-                                        <option value="">Select an index</option>
-                                        {pineconeIndexes.map((index, i) => (
-                                            <option key={i} value={index}>
-                                                {index}
-                                            </option>
-                                        ))}
-                                    </Form.Control>
-                                </Form.Group>
-                                <Form.Group>
-                                    <Form.Label>Top K</Form.Label>
-                                    <Form.Control
-                                        type="range"
-                                        min="1"
-                                        max="10"
-                                        step="1"
-                                        value={topK}
-                                        onChange={(e) => setTopK(e.target.value)}
-                                    />
-                                    <Form.Text>{topK}</Form.Text>
-                                </Form.Group>
-                            </>
-                        )}
-                        <Form.Group>
-                            <Form.Label>Model</Form.Label>
-                            <Form.Control as="select" ref={modelRef} defaultValue={botData?.model || ''}>
-                                <option value="">Select a model</option>
-                                {models.map((model, index) => (
-                                    <option key={index} value={model.name}>
-                                        {model.name}
-                                    </option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>Temperature</Form.Label>
-                            <Form.Control
-                                type="range"
-                                min={minTemp}
-                                max={maxTemp}
-                                step="0.05"
-                                value={temperature}
-                                onChange={(e) => setTemperature(e.target.value)}
-                            />
-                            <Form.Text>{temperature}</Form.Text>
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>System Prompt</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                value={systemPrompt}
-                                onChange={(e) => setSystemPrompt(e.target.value)}
-                            />
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            Submit
-                        </Button>
-                    </Form>
+                        <Form onSubmit={handleSubmit}>
+                            <Form.Group>
+                                <Form.Label>Bot Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={botName}
+                                    onChange={(e) => setBotName(e.target.value)}
+                                    placeholder="Enter bot name"
+                                />
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label>Service</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    value={selectedService}
+                                    onChange={(e) => setSelectedService(e.target.value)}
+                                >
+                                    <option value="">Select a service</option>
+                                    {services.map((service, index) => (
+                                        <option key={index} value={service}>
+                                            {service}
+                                        </option>
+                                    ))}
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label>LLM Key</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    value={selectedKey}
+                                    onChange={(e) => setSelectedKey(e.target.value)}
+                                >
+                                    <option value="">Select a key</option>
+                                    {keys.map((key, index) => (
+                                        <option key={index} value={key}>
+                                            {key}
+                                        </option>
+                                    ))}
+                                </Form.Control>
+                            </Form.Group>
+                            {selectedService === 'RAG: OpenAI+Pinecone' && (
+                                <>
+                                    <Form.Group>
+                                        <Form.Label>Pinecone Key</Form.Label>
+                                        <Form.Control
+                                            as="select"
+                                            value={selectedPineconeKey}
+                                            onChange={(e) => setSelectedPineconeKey(e.target.value)}
+                                        >
+                                            <option value="">Select a Pinecone key</option>
+                                            {pineconeKeys.map((key, index) => (
+                                                <option key={index} value={key}>
+                                                    {key}
+                                                </option>
+                                            ))}
+                                        </Form.Control>
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Label>Pinecone Index</Form.Label>
+                                        <Form.Control
+                                            as="select"
+                                            value={selectedPineconeIndex}
+                                            onChange={(e) => setSelectedPineconeIndex(e.target.value)}
+                                        >
+                                            <option value="">Select an index</option>
+                                            {pineconeIndexes.map((index, i) => (
+                                                <option key={i} value={index}>
+                                                    {index}
+                                                </option>
+                                            ))}
+                                        </Form.Control>
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Label>Top K</Form.Label>
+                                        <Form.Control
+                                            type="range"
+                                            min="1"
+                                            max="10"
+                                            step="1"
+                                            value={topK}
+                                            onChange={(e) => setTopK(e.target.value)}
+                                        />
+                                        <Form.Text>{topK}</Form.Text>
+                                    </Form.Group>
+                                </>
+                            )}
+                            <Form.Group>
+                                <Form.Label>Model</Form.Label>
+                                <Form.Control as="select" ref={modelRef} defaultValue={botData?.model || ''}>
+                                    <option value="">Select a model</option>
+                                    {models.map((model, index) => (
+                                        <option key={index} value={model.name}>
+                                            {model.name}
+                                        </option>
+                                    ))}
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label>Temperature</Form.Label>
+                                <Form.Control
+                                    type="range"
+                                    min={minTemp}
+                                    max={maxTemp}
+                                    step="0.05"
+                                    value={temperature}
+                                    onChange={(e) => setTemperature(e.target.value)}
+                                />
+                                <Form.Text>{temperature}</Form.Text>
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label>System Prompt</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    value={systemPrompt}
+                                    onChange={(e) => setSystemPrompt(e.target.value)}
+                                />
+                            </Form.Group>
+                            <Button variant="primary" type="submit">
+                                Submit
+                            </Button>
+                        </Form>
+                    </Card.Body>
                 </Card>
             </Modal.Body>
         </Modal>
