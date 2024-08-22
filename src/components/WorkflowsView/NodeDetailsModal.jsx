@@ -5,6 +5,7 @@ import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
     const [open, setOpen] = useState(false);
     const [formInput, setFormInput] = useState({});
+    const [fieldIndexes, setFieldIndexes] = useState({}); // For storing fieldId to index mapping
 
     useEffect(() => {
         console.log('NodeDetailsModal node:', node);
@@ -25,21 +26,47 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
 
     if (!node) return null;
 
-    const handleInputChange = (fieldId, value) => {
+    const handleInputChange = (fieldId, index, value) => {
         setFormInput(prev => ({
             ...prev,
             [fieldId]: value
         }));
+        setFieldIndexes(prev => ({
+            ...prev,
+            [fieldId]: index
+        }));
     };
 
     const handleSave = async () => {
-        console.log('Saving form input:', formInput)
+        console.log('Saving form input:', formInput);
         console.log('Selected node:', node);
-        // Save form input values to Firestore
+
+        // Fetch current nodes
         const db = getFirestore();
         const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
-        console.log('writing now');
-        await setDoc(runRef, { formInput }, { merge: true });
+        const runDoc = await getDoc(runRef);
+
+        if (runDoc.exists()) {
+            const currentData = runDoc.data();
+            const currentNodes = currentData.nodes || [];
+
+            // Update form field values
+            if (currentNodes[node.i] && currentNodes[node.i].data.formFields) {
+                console.log(formInput);
+                const updatedFields = currentNodes[node.i].data.formFields.map((field, index) => {
+                    if (field.id in formInput) {
+                        console.log('Updating field:', field.id, formInput[field.id]);
+                        return { ...field, value: formInput[field.id] };
+                    }
+                    return field;
+                });
+                console.log('Updated fields:', updatedFields);
+                currentNodes[node.i].data.formFields = updatedFields;
+
+                // Save updated nodes back to Firestore
+                await setDoc(runRef, { nodes: currentNodes }, { merge: true });
+            }
+        }
         onHide();
     };
 
@@ -67,7 +94,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                             onClick={() => setOpen(!open)}
                             aria-controls="bot-details-collapse"
                             aria-expanded={open}
-                            style={{ cursor: 'pointer', color: 'blue' }}>
+                            style={{ cursor : 'pointer', color: 'blue' }}>
                             {node.data.bot.name}
                         </div>
                         <Collapse in={open}>
@@ -93,7 +120,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                                 <Form.Control
                                     type={field.type}
                                     value={formInput[field.id] || ''}
-                                    onChange={(e) => handleInputChange(field.id, e.target.value)}
+                                    onChange={(e) => handleInputChange(field.id, index, e.target.value)}
                                 />
                             </Form.Group>
                         ))}
