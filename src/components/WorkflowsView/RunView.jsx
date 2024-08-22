@@ -104,6 +104,7 @@ const RunView = ({ user }) => {
                 node={selectedNode}
                 user={user}
                 runId={runId}
+                workflowId={workflowId}
             />
         </Container>
     );

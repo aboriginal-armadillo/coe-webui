@@ -68,6 +68,7 @@ function WorkflowsView({ user }) {
     const addNode = async (type) => {
         const newNode = {
             id: `${Date.now()}`,
+            i: nodes.length,
             coeType: type,
             data: { label: type },
             position: { x: Math.random() * 400, y: Math.random() * 400 }
