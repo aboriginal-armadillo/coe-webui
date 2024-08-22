@@ -5,7 +5,7 @@ import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
     const [open, setOpen] = useState(false);
     const [formInput, setFormInput] = useState({});
-    const [fieldIndexes, setFieldIndexes] = useState({}); // For storing fieldId to index mapping
+
 
     useEffect(() => {
         console.log('NodeDetailsModal node:', node);
@@ -22,6 +22,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
             };
             fetchFormInput();
         }
+        // eslint-disable-next-line
     }, [node, user, workflowId]);
 
     if (!node) return null;
@@ -31,10 +32,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
             ...prev,
             [fieldId]: value
         }));
-        setFieldIndexes(prev => ({
-            ...prev,
-            [fieldId]: index
-        }));
+
     };
 
     const handleSave = async () => {
@@ -119,7 +117,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                                 <Form.Label>{field.label}</Form.Label>
                                 <Form.Control
                                     type={field.type}
-                                    value={formInput[field.id] || ''}
+                                    defaultValue={field.value || formInput[field.id]}
                                     onChange={(e) => handleInputChange(field.id, index, e.target.value)}
                                 />
                             </Form.Group>

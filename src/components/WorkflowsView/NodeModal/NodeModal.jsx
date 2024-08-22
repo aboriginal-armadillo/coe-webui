@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, InputGroup, Row, Col } from 'react-bootstrap';
+import { Modal, Button, Form, InputGroup } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
