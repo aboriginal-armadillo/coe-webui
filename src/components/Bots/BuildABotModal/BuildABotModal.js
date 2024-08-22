@@ -4,15 +4,17 @@ import BuildABot from '../BuildABot/BuildABot';
 
 function BuildABotModal({ show, onHide, botData, user,
                             isWorkflowBot = false,
-                            workflowId = null,
-                        nodeId}) {
+                            workflowId ,
+                        nodeId }) {
+    console.log('BuildABotModal botData:', botData);
     return (
         <Modal show={show} onHide={onHide} size="lg">
             <Modal.Header closeButton>
                 <Modal.Title>{botData ? "Edit Bot" : "Create Bot"}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <BuildABot user={user} botData={botData}
+                <BuildABot user={user}
+                           botData={botData}
                            isWorkflowBot={isWorkflowBot}
                            workflowId={workflowId}
                            nodeId={nodeId}/>

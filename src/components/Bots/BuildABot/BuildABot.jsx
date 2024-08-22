@@ -3,9 +3,13 @@ import { getFirestore, doc, getDoc, updateDoc} from 'firebase/firestore';
 import { Form, Button, Card, Modal } from 'react-bootstrap';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { v4 as uuidv4 } from 'uuid';
+import {useNavigate} from "react-router-dom";
 
-function BuildABotModal({ show, onHide, user, botData, workflowId,
+function BuildABot({ show, onHide, user, botData, workflowId,
                             onSave, isWorkflowBot, nodeId }) {
+
+    const navigate = useNavigate();
+
     const [services, setServices] = useState([]);
     const [selectedService, setSelectedService] = useState(botData?.service || '');
     const [keys, setKeys] = useState([]);
@@ -44,6 +48,7 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
             }
 
             if (configDoc.exists()) {
+
                 const configData = configDoc.data();
                 const processedModels = Object.fromEntries(Object.entries(configData).map(([serviceName, models]) => {
                     if (models.length > 0 && typeof models[0] === 'object') {
@@ -153,8 +158,9 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
             bot.top_k = topK;
         }
 
+        const db = getFirestore();
         if (isWorkflowBot && workflowId) {
-            const db = getFirestore();
+
             const workflowRef = doc(db, `users/${user.uid}/workflows/${workflowId}`);
             const workflowDoc = await getDoc(workflowRef);
             if (workflowDoc.exists()) {
@@ -166,10 +172,29 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
                     return node;
                 });
                 await updateDoc(workflowRef, { nodes: updatedNodes });
-                onSave(bot); // Trigger the onSave callback with the new bot data
+                // onSave(bot); // Trigger the onSave callback with the new bot data
             }
         } else {
-            onSave(bot);
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                let updatedBots;
+                console.log('adding bot:', bot);
+                if (botData) {
+                    console.log('editing existing bot')
+                    // Edit existing bot
+                    updatedBots = userData.bots.map(b => (b.uuid === botData.uuid ? bot : b));
+                } else {
+                    console.log('adding new bot');
+                    // Add new bot
+                    updatedBots = [...userData.bots, bot];
+                }
+                console.log('Updated bots:', updatedBots);
+                await updateDoc(userRef, { bots: updatedBots });
+                alert('Bot configuration saved successfully!');
+                navigate('/bots');
+            }
         }
     };
 
@@ -180,6 +205,7 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
             </Modal.Header>
             <Modal.Body>
                 <Card>
+
                     <Form onSubmit={handleSubmit}>
                         <Form.Group>
                             <Form.Label>Bot Name</Form.Label>
@@ -308,4 +334,4 @@ function BuildABotModal({ show, onHide, user, botData, workflowId,
     );
 }
 
-export default BuildABotModal;
+export default BuildABot;
