@@ -37,9 +37,9 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
         console.log('Selected node:', node);
         // Save form input values to Firestore
         const db = getFirestore();
-        const formInputRef = doc(db, `users/${user.uid}/workflows/${workflowId}/nodes/${node.id}`);
+        const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
         console.log('writing now');
-        await setDoc(formInputRef, { formInput }, { merge: true });
+        await setDoc(runRef, { formInput }, { merge: true });
         onHide();
     };
 
