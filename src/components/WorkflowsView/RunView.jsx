@@ -102,6 +102,8 @@ const RunView = ({ user }) => {
                 show={showNodeModal}
                 onHide={() => setShowNodeModal(false)}
                 node={selectedNode}
+                user={user}
+                runId={runId}
             />
         </Container>
     );
