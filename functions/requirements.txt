@@ -1,4 +1,6 @@
 firebase_functions~=0.2.0
+google-cloud-firestore
+firebase-admin
 git+https://github.com/rawkintrevo/council-of-elders.git
 pinecone-client==3.2.2
 llama-index-core==0.10.49
