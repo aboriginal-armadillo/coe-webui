@@ -30,6 +30,8 @@ from utils.rag import pubMedLoader, \
 
 from libraryLoader import libraryLoader
 
+from workflows import on_run_create, on_run_update
+
 initialize_app()
 db = firestore.client()
 
