@@ -95,7 +95,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                         )}
                         {node?.coeType === 'LLM Node' && (
                             <Form.Group>
-                                <Form.Label>Bot</Form.Label>
+
                                 <Button
                                     variant="outline-primary"
                                     onClick={() => setShowBuildBotModal(true)}

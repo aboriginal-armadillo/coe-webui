@@ -18,7 +18,9 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                 const formInputDoc = await getDoc(formInputRef);
                 if (formInputDoc.exists()) {
                     setFormInput(formInputDoc.data().formInput || {});
+                    console.log('Loaded form input:', formInputDoc.data());
                 }
+
             };
             fetchFormInput();
         }
@@ -59,7 +61,11 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                     return field;
                 });
                 console.log('Updated fields:', updatedFields);
-                currentNodes[node.i].data.formFields = updatedFields;
+                currentNodes[node.i].data = {
+                    ...currentNodes[node.i].data,
+                    formFields: updatedFields,
+                    status: 'completed'
+                };
 
                 // Save updated nodes back to Firestore
                 await setDoc(runRef, { nodes: currentNodes }, { merge: true });
