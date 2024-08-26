@@ -21,6 +21,11 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         run_data['doc_logs'] = ['Run Created']
         run_data['status'] = 'running'
 
+        if 'nodes' in run_data:
+            for node in run_data['nodes']:
+                if 'data' in node:
+                    node['data']['status'] = 'queued'
+
         # Get the document reference
         doc_ref = event.data.reference
 
