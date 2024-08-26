@@ -9,7 +9,7 @@ from typing import Any
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
 from councilofelders.anthropic import AnthropicAgent
-from councilofelders.replicate import ReplicateLlamaAgent
+from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
 from councilofelders.vertex import GemeniAgent
 
 import ebooklib
@@ -175,11 +175,18 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                    api_key=api_key)
         elif service == "Replicate":
             logger.log("Replicate service selected")
-            agent = ReplicateLlamaAgent(model=req.data['model'],
-                                        system_prompt=req.data['system_prompt'],
-                                        temperature=req.data['temperature'],
-                                        name=req.data['name'],
-                                        api_key=api_key)
+            if 'llama' in req.data['model']:
+                agent = ReplicateLlamaAgent(model=req.data['model'],
+                                            system_prompt=req.data['system_prompt'],
+                                            temperature=req.data['temperature'],
+                                            name=req.data['name'],
+                                            api_key=api_key)
+            elif 'granite' in req.data['model']:
+                agent = ReplicateGraniteAgent(model=req.data['model'],
+                                            system_prompt=req.data['system_prompt'],
+                                            temperature=req.data['temperature'],
+                                            name=req.data['name'],
+                                            api_key=api_key)
         elif service == "Vertex":
             logger.log("Vertex service selected")
             agent = GemeniAgent(model=req.data['model'],
