@@ -44,9 +44,6 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
     try:
         # Get the old and new document data
         event.data.after.reference.update({"doc_logs": firestore.ArrayUnion([f"Run Updated"])})
-
-        logger.log(f"Run updated")
-
     except Exception as e:
         logger.error(f"Error in on_run_update function: {str(e)}")
         raise e
