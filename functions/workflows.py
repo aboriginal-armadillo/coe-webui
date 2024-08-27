@@ -39,16 +39,44 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         raise e
 
 @firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
-                                  memory=options.MemoryOption.MB_512)
+                                  memory=options.MemoryOption.GB_1)
 def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> None:
     """
     Function that triggers on document updates in Firestore.
     It will log the updated document data.
     """
-
+    logger.log("Run Updating")
     try:
+        update_required = False
         # Get the old and new document data
-        event.data.after.reference.update({"doc_logs": firestore.ArrayUnion([f"Run Updated"])})
+        run_data = event.data.after.to_dict()
+        # event.data.after.reference.update({"doc_logs": firestore.ArrayUnion([f"Run Updating"])})
+        # run_data['doc_logs'].append("Run Updating")
+        logger.log("run_data.keys()", run_data.keys())
+        # Iterate through the list of nodes
+        for node in run_data['nodes']:
+            if 'data' in node and node['data']['status'] == "just completed":
+                update_required = True
+                logger.log(f"Node {node['id']} just completed")
+                node['data']['status'] = "complete"
+
+                run_data_id = node['data']['formFields'][0]['value']
+                run_id = run_data['id']
+
+                logger.log("checking edges")
+                # Iterate the list of edges
+                for edge in run_data['edges']:
+                    if edge['source'] == run_id:
+                        logger.log(f"Edge found: {edge}")
+                        target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
+                        target_node['data']['status'] = "preparing to run"
+                        target_node['data']['input'] = run_data_id
+
+                        # Update the document data with the new statuses
+        if update_required:
+            event.data.after.reference.update(run_data)
+
+
     except Exception as e:
-        logger.error(f"Error in on_run_update function: {str(e)}")
+        logger.log(f"Error in on_run_update function: {str(e)}")
         raise e
