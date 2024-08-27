@@ -64,7 +64,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                 currentNodes[node.i].data = {
                     ...currentNodes[node.i].data,
                     formFields: updatedFields,
-                    status: 'completed'
+                    status: 'just completed'
                 };
 
                 // Save updated nodes back to Firestore
