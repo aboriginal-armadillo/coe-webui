@@ -52,7 +52,7 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         run_data = event.data.after.to_dict()
         # event.data.after.reference.update({"doc_logs": firestore.ArrayUnion([f"Run Updating"])})
         # run_data['doc_logs'].append("Run Updating")
-        logger.log("run_data.keys()", run_data.keys())
+
         # Iterate through the list of nodes
         for node in run_data['nodes']:
             if 'data' in node and node['data']['status'] == "just completed":
@@ -60,17 +60,17 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 logger.log(f"Node {node['id']} just completed")
                 node['data']['status'] = "complete"
 
-                run_data_id = node['data']['formFields'][0]['value']
-                run_id = run_data['id']
+                just_completed_node_value = node['data']['formFields'][0]['value']
+                just_completed_node_id = node['id']
 
                 logger.log("checking edges")
                 # Iterate the list of edges
                 for edge in run_data['edges']:
-                    if edge['source'] == run_id:
+                    if edge['source'] == just_completed_node_id:
                         logger.log(f"Edge found: {edge}")
                         target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
                         target_node['data']['status'] = "preparing to run"
-                        target_node['data']['input'] = run_data_id
+                        target_node['data']['input'] = just_completed_node_value
 
                         # Update the document data with the new statuses
         if update_required:
