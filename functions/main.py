@@ -127,7 +127,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     """
 
     try:
-        logger.log("Request data: ", req.data)
+        # logger.log("Request data: ", req.data)
         service = req.data['service']
         chat_doc_ref = db.collection('users').document(req.data['userid']).collection('chats').document(req.data['chatid'])
         doc = chat_doc_ref.get()
