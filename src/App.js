@@ -10,7 +10,7 @@ import MessagesView from './components/MessagesView/MessagesView';
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";
-import BuildABot from "./components/Bots/BuildABot/BuildABot";
+
 import './App.css';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
@@ -18,6 +18,9 @@ import BotZoo from "./components/Bots/BotZoo/BotZoo";
 import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 import BrowseLibraryView from "./components/BrowseLibrary/BrowseLibraryView/BrowseLibraryView";
+import BuildABotPage from "./components/Bots/BuildABotPage/BuildABotPage";
+import WorkflowsView from "./components/WorkflowsView/WorkflowsView";
+import RunView from "./components/WorkflowsView/RunView";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -84,7 +87,7 @@ function App() {
                             <Routes>
                                 <Route path="/account" element={<AccountPage />} />
                                 <Route path="/apikeys" element={<ApiKeyMgmt user={user} />} />
-                                <Route path="/buildabot" element={<BuildABot user={user} />} />
+                                <Route path="/buildabot" element={<BuildABotPage user={user} />} />
                                 <Route path="/chat/:chatId" element={<MessagesView user={user} isNew={false} isShare={false} />} />
                                 <Route path="/chat" element={<MessagesView user={user} isNew={true} isShare={false} />} />
                                 <Route path="/bots" element={<BotZoo user={user} />} />
@@ -92,6 +95,9 @@ function App() {
                                 <Route path="/browse-my-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Personal Library'}/>} />
                                 <Route path="/browse-public-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Public Library'} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
+                                <Route path="/workflows" element={<WorkflowsView user={user} isNew={false} />} />
+                                <Route path="/workflows/:workflowId" element={<WorkflowsView user={user} isNew={false} />} />
+                                <Route path="/workflows/:workflowId/runs/:runId" element={<RunView user={user} />} />
                             </Routes>
                         </div>
                     </>
