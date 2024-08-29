@@ -30,6 +30,8 @@ from utils.rag import pubMedLoader, \
 
 from libraryLoader import libraryLoader
 
+from workflows import on_run_create, on_run_update
+
 initialize_app()
 db = firestore.client()
 #ks
@@ -124,7 +126,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
     """
 
     try:
-        logger.log("Request data: ", req.data)
+        # logger.log("Request data: ", req.data)
         service = req.data['service']
         chat_doc_ref = db.collection('users').document(req.data['userid']).collection('chats').document(req.data['chatid'])
         doc = chat_doc_ref.get()
@@ -178,12 +180,13 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                             temperature=req.data['temperature'],
                                             name=req.data['name'],
                                             api_key=api_key)
-            else:
+
+            elif 'granite' in req.data['model']:
                 agent = ReplicateGraniteAgent(model=req.data['model'],
-                                              system_prompt=req.data['system_prompt'],
-                                              temperature=req.data['temperature'],
-                                              name=req.data['name'],
-                                              api_key=api_key)
+                                            system_prompt=req.data['system_prompt'],
+                                            temperature=req.data['temperature'],
+                                            name=req.data['name'],
+                                            api_key=api_key)
         elif service == "Vertex":
             logger.log("Vertex service selected")
             agent = GemeniAgent(model=req.data['model'],

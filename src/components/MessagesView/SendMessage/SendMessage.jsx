@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { InputGroup, Button, Spinner } from 'react-bootstrap';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import DynamicTextArea from "./DynamicTextArea/DynamicTextArea";
 import DropdownMenu from './DropdownMenu/DropdownMenu';
 import FileUpload from './ContextLoaders/FileUpload/FileUpload';
@@ -53,17 +53,34 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
     }, [chatId, user.uid]);
 
     const handleSendMessage = async (action) => {
-        await sendMessage({
-            action,
-            user,
-            chatId,
-            newMessage,
-            messages,
-            botsAvail,
-            navigate,
-            setLoading
-        });
-        setNewMessage("");
+        const db = getFirestore();
+        if (isNew) {
+            const newChatRef = await addDoc(collection(db, `users/${user.uid}/chats`), {
+                createdAt: Timestamp.now(),
+                name: "New Chat",
+                root: {
+                    text: newMessage || "Start your conversation here...",
+                    sender: user.displayName || "CurrentUser",
+                    timestamp: Timestamp.now(),
+                    children: [],
+                    selectedChild: null,
+                    id: "root"
+                }
+            });
+            navigate(`/chat/${newChatRef.id}`);
+        } else {
+            await sendMessage({
+                action,
+                user,
+                chatId,
+                newMessage,
+                messages,
+                botsAvail,
+                navigate,
+                setLoading
+            });
+            setNewMessage("");
+        }
     };
 
     return (
@@ -72,7 +89,7 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
                         justifyContent: "center",
                         marginTop: "1rem",
                         marginBottom: "1rem",
-                     }}>
+                    }}>
             {selectedAction === "Me" ? (
                 <>
                     <DynamicTextArea
@@ -113,6 +130,5 @@ function SendMessage({ user, chatId, messages, navigate, isNew }) {
         </InputGroup>
     );
 }
-
 
 export default SendMessage;
