@@ -34,8 +34,7 @@ from workflows import on_run_create, on_run_update
 
 initialize_app()
 db = firestore.client()
-
-
+#ks
 def extract_messages(data, current_key):
     # This list will hold all the message dictionaries
     messages = []
@@ -181,6 +180,7 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                             temperature=req.data['temperature'],
                                             name=req.data['name'],
                                             api_key=api_key)
+
             elif 'granite' in req.data['model']:
                 agent = ReplicateGraniteAgent(model=req.data['model'],
                                             system_prompt=req.data['system_prompt'],
