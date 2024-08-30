@@ -108,7 +108,7 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
                                 <Dropdown.Item as={Link} to="/apikeys">API Keys</Dropdown.Item>
-                                <Dropdown.Item as={Link} to="/buildabot">Create a bot</Dropdown.Item>
+                                <Dropdown.Item as={Link} to="/buildabot">Create a Bot</Dropdown.Item>
                                 <Dropdown.Item as={Link} to="/bots">The Bot Zoo</Dropdown.Item>
                                 <Dropdown.Item as={Link} to="/account">Profile</Dropdown.Item>
                                 <Dropdown.Divider />
