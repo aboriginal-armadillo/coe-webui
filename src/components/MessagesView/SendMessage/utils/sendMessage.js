@@ -44,6 +44,8 @@ const sendMessage = async ({ action, user, chatId, newMessage, messages, botsAva
             console.log("chatData", chatData, "lastMessageId", lastMessageId);
             if (lastMessageId) {
                 chatData[lastMessageId].children.push(newMsgId);
+            } else {
+                chatData.root.children.push(newMsgId);
             }
             chatData[newMsgId] = messageData;
 
