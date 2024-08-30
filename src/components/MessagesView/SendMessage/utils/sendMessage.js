@@ -96,6 +96,8 @@ const sendMessage = async ({ action, user, chatId, newMessage, messages, botsAva
 
                 if (lastMessageId) {
                     chatData[lastMessageId].children.push(newMsgId);
+                } else {
+                    chatData.root.children.push(newMsgId);
                 }
 
                 await setDoc(chatRef, chatData);
