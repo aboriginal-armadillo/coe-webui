@@ -61,6 +61,7 @@ const GithubToString = ({ user, navigate, chatId, messages, onClose }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
         setLoading(true); // Set loading to true when submit is clicked
         try {
             const repository = gitUrl.split('github.com/')[1];
@@ -92,7 +93,7 @@ const GithubToString = ({ user, navigate, chatId, messages, onClose }) => {
                 selectedChild: null,
                 id: newMsgId
             };
-
+            console.log(chatId)
             if (!chatId) {
                 const newChatData = {
                     createdAt: Timestamp.now(),
@@ -106,13 +107,16 @@ const GithubToString = ({ user, navigate, chatId, messages, onClose }) => {
                 const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
                 const chatSnap = await getDoc(chatRef);
                 const chatData = chatSnap.data() || {};
-                const lastMessageId = messages && messages[messages.length - 1]?.id;
+                let lastMessageId = messages && messages[messages.length - 1]?.id;
 
-                if (lastMessageId) {
+                if (!lastMessageId) {
+                    console.log('no lastMsgId')
+                    lastMessageId = 'root';
+                }
                     chatData[lastMessageId] = chatData[lastMessageId] || {};
                     chatData[lastMessageId].children = chatData[lastMessageId].children || [];
                     chatData[lastMessageId].children.push(newMsgId);
-                }
+
                 chatData[newMsgId] = messageData;
                 await setDoc(chatRef, chatData);
                 handleFileUploadComplete();
