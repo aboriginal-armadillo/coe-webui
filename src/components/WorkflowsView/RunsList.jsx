@@ -1,8 +1,9 @@
-// src/components/WorkflowsView/RunsList.jsx
 import React, { useEffect, useState } from 'react';
-import { onSnapshot, getFirestore, collection, query, orderBy } from 'firebase/firestore';
+import { onSnapshot, getFirestore, collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Button, Collapse, ListGroup } from 'react-bootstrap';
-import {Link} from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 const RunsList = ({ user, workflowId }) => {
     const [runs, setRuns] = useState([]);
@@ -26,8 +27,22 @@ const RunsList = ({ user, workflowId }) => {
         return () => unsubscribe();
     }, [user, workflowId]);
 
+    const handleDelete = async (runId) => {
+        if (!user || !workflowId || !runId) return;
+
+        const db = getFirestore();
+        const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
+
+        try {
+            await deleteDoc(runRef);
+            console.log(`Run ${runId} deleted successfully`);
+        } catch (error) {
+            console.error("Error deleting run: ", error);
+        }
+    };
+
     return (
-        <div >
+        <div>
             <Button
                 onClick={() => setOpen(!open)}
                 aria-controls="runs-collapse"
@@ -40,11 +55,14 @@ const RunsList = ({ user, workflowId }) => {
                 <div id="runs-collapse">
                     <ListGroup>
                         {runs.map((run) => (
-                            <Link key={run.id} to={`/workflows/${workflowId}/runs/${run.id}`}>
-                                <ListGroup.Item>
+                            <ListGroup.Item key={run.id} className="d-flex justify-content-between align-items-center">
+                                <Link to={`/workflows/${workflowId}/runs/${run.id}`} className="text-decoration-none flex-grow-1">
                                     {run.name}
-                                </ListGroup.Item>
-                            </Link>
+                                </Link>
+                                <Button variant="outline-danger" size="sm" onClick={() => handleDelete(run.id)}>
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </Button>
+                            </ListGroup.Item>
                         ))}
                     </ListGroup>
                 </div>
