@@ -1,21 +1,28 @@
+// src/components/WorkflowsView/NodeModal/NodeModal.jsx
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, InputGroup } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
+import UserInputForm from './UserInputForm'; // Import the new UserInputForm component
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
     const [botData, setBotData] = useState(node?.data?.bot || null);
-    const [formFields, setFormFields] = useState(node?.data?.formFields || []);
+
+    // Ensure formField is never undefined
+    const initialFormField = node?.data?.formFields?.[0] || { label: '', type: 'text', id: Date.now() };
+    const [formField, setFormField] = useState(initialFormField);
 
     useEffect(() => {
         setNodeName(node?.data?.label || `Unnamed ${node?.coeType}`);
         setBotData(node?.data?.bot || null);
-        setFormFields(node?.data?.formFields || []);
+
+        const updatedFormField = node?.data?.formFields?.[0] || { label: '', type: 'text', id: Date.now() };
+        setFormField(updatedFormField);
     }, [node]);
 
     const handleSave = () => {
-        const updatedNode = { ...node, data: { ...node.data, label: nodeName, bot: botData, formFields }};
+        const updatedNode = { ...node, data: { ...node.data, label: nodeName, bot: botData, formFields: [formField] }};
         updateNodeData(updatedNode);
         onHide();
     };
@@ -25,22 +32,8 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
         setShowBuildBotModal(false);
     };
 
-    const handleFieldChange = (index, key, value) => {
-        const updatedFields = formFields.map((field, i) => {
-            if (i === index) {
-                return { ...field, [key]: value };
-            }
-            return field;
-        });
-        setFormFields(updatedFields);
-    };
-
-    const addField = () => {
-        setFormFields([...formFields, { label: '', type: 'text', id: Date.now() }]);
-    };
-
-    const removeField = (index) => {
-        setFormFields(formFields.filter((_, i) => i !== index));
+    const handleFieldChange = (value) => {
+        setFormField({ ...formField, label: value });
     };
 
     return (
@@ -64,38 +57,13 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                             <Form.Control type="text" value={node?.coeType} readOnly />
                         </Form.Group>
                         {node?.coeType === 'User Input' && (
-                            <>
-                                <Form.Label>Form Fields</Form.Label>
-                                {formFields.map((field, index) => (
-                                    <InputGroup className="mb-2" key={field.id}>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Field Label"
-                                            value={field.label}
-                                            onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
-                                        />
-                                        <Form.Control
-                                            as="select"
-                                            value={field.type}
-                                            onChange={(e) => handleFieldChange(index, 'type', e.target.value)}
-                                        >
-                                            <option value="text">Text</option>
-                                            <option value="number">Number</option>
-                                            <option value="email">Email</option>
-                                            <option value="password">Password</option>
-                                            {/* Add more field types as needed */}
-                                        </Form.Control>
-                                        <Button variant="outline-danger" onClick={() => removeField(index)}>
-                                            Remove
-                                        </Button>
-                                    </InputGroup>
-                                ))}
-                                <Button variant="outline-success" onClick={addField}>Add Field</Button>
-                            </>
+                            <UserInputForm
+                                formField={formField}
+                                handleFieldChange={handleFieldChange}
+                            />
                         )}
                         {node?.coeType === 'LLM Node' && (
                             <Form.Group>
-
                                 <Button
                                     variant="outline-primary"
                                     onClick={() => setShowBuildBotModal(true)}
@@ -125,7 +93,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                 />
             )}
         </>
-    );
+);
 }
 
 export default NodeModal;
