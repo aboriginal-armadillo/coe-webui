@@ -1,4 +1,4 @@
-// src/components/MessagesView/MessagesView.jsx  
+// src/components/MessagesView/MessagesView.jsx
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -131,7 +131,7 @@ function MessagesView({ user, isNew, isShare }) {
 
     return (
         <Container className="full-height-container d-flex flex-column">
-            <HeaderBar title={chatTitle} userUid={user.uid} chatId={chatId} />
+            <HeaderBar title={chatTitle} userUid={user.uid} chatId={chatId} messages={messages}/>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
                     <Message key={msg.id}
@@ -155,4 +155,4 @@ function MessagesView({ user, isNew, isShare }) {
     );
 }
 
-export default MessagesView;  
+export default MessagesView;

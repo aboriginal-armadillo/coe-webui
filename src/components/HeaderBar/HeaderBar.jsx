@@ -9,7 +9,7 @@ import BrowseLibrary from '../BrowseLibrary/BrowseLibrary';
 import { shareChat, deleteChat } from '../../utils/chatUtils';
 import './HeaderBar.css';
 
-const HeaderBar = ({ title, userUid, chatId }) => {
+const HeaderBar = ({ title, userUid, chatId, messages }) => {
     const [showLibraryModal, setShowLibraryModal] = useState(false); // State for library modal
     const [libraryOption, setLibraryOption] = useState(''); // State for the selected library option
 
@@ -45,10 +45,14 @@ const HeaderBar = ({ title, userUid, chatId }) => {
         const chatRef = doc(db, `users/${uid}/chats/${chatId}`);
         const chatSnap = await getDoc(chatRef);
         const chatData = chatSnap.data();
-        const lastMessageId = chatData.root ? "root" : chatData[Object.keys(chatData).pop()].id; // If root exists, it's the first message. Otherwise, get the last message id.
 
+        const lastMessageId = messages && messages[messages.length - 1]?.id;
+
+        console.log('lastMessageId', lastMessageId, 'chatData', chatData);
         if (lastMessageId) {
             chatData[lastMessageId].children.push(newMsgId);
+        } else {
+            chatData.root.children.push(newMsgId);
         }
         chatData[newMsgId] = messageData;
 
