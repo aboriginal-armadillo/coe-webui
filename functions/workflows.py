@@ -66,7 +66,7 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
 
                 node['data']['status'] = "complete"
 
-                just_completed_node_value = node['data']['formFields'][0]['value']
+                just_completed_node_value = node['data']['output']['text']
                 just_completed_node_id = node['id']
 
                 # Iterate the list of edges

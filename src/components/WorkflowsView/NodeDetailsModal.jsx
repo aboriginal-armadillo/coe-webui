@@ -1,15 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Modal, Button, ListGroup } from 'react-bootstrap';
 import coeTypeComponents from './NodeDetailsModal/coeTypeComponents';
 
 const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
     const [open, setOpen] = useState(false);
-
-    useEffect(() => {
-        if (node && node.data.formFields) {
-            // ... Fetching logic stays here if needed ...
-        }
-    }, [node, user, workflowId, runId]);
 
     if (!node) return null;
 
@@ -34,6 +28,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                 </ListGroup>
 
                 {CoeTypeComponent && (
+
                     <CoeTypeComponent
                         node={node}
                         open={open}
@@ -48,7 +43,7 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId }) => {
                 <h5 className="mt-3">Output</h5>
                 {node.data.output && (
                     <ListGroup variant="flush">
-                        <ListGroup.Item>{node.data.output}</ListGroup.Item>
+                        <ListGroup.Item>{node.data.output.text}</ListGroup.Item>
                     </ListGroup>
                 )}
             </Modal.Body>
