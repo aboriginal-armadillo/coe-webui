@@ -6,7 +6,7 @@ import { getFirestore, Timestamp, doc, setDoc, addDoc, getDoc, collection } from
 const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
-    const [useBeautifulSoup, setUseBeautifulSoup] = useState(false); // New state for the checkbox  
+    const [useBeautifulSoup, setUseBeautifulSoup] = useState(false); // New state for the checkbox
 
     const handleFetchContent = async () => {
         setLoading(true);
@@ -51,6 +51,8 @@ const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
                     chatData[lastMessageId] = chatData[lastMessageId] || {};
                     chatData[lastMessageId].children = chatData[lastMessageId].children || [];
                     chatData[lastMessageId].children.push(newMsgId);
+                } else {
+                    chatData.root.children.push(newMsgId);
                 }
                 chatData[newMsgId] = messageData;
                 await setDoc(chatRef, chatData);
@@ -100,4 +102,4 @@ const SimpleWebpage = ({ user, chatId, messages, navigate, onClose }) => {
     );
 };
 
-export default SimpleWebpage;  
+export default SimpleWebpage;

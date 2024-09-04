@@ -109,6 +109,8 @@ const FileUpload = ({ user, chatId, messages, navigate, onClose }) => {
                             chatData[lastMessageId] = chatData[lastMessageId] || {};
                             chatData[lastMessageId].children = chatData[lastMessageId].children || [];
                             chatData[lastMessageId].children.push(newMsgId);
+                        } else {
+                            chatData.root.children.push(newMsgId);
                         }
                         chatData[newMsgId] = messageData;
                         await setDoc(chatRef, chatData);
