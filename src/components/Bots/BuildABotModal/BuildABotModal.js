@@ -7,8 +7,6 @@ function BuildABotModal({ show, onHide, botData, user,
                             workflowId ,
                         nodeId }) {
 
-    console.log('BuildABotModal botData:', botData);  // This should print bot data
-
     if (isWorkflowBot) {
         return (
             <Modal show={show} onHide={onHide} size="lg">
