@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Form} from 'react-bootstrap';
+import { Form, Button, ListGroup } from 'react-bootstrap';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
@@ -41,9 +41,13 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
                     return field;
                 });
 
+                // Extract value for `text`
+                const textValue = formInput[currentNodes[node.i].data.formFields[0]?.id] || '';
+
                 currentNodes[node.i].data = {
                     ...currentNodes[node.i].data,
                     formFields: updatedFields,
+                    output: { text: textValue },
                     status: 'just completed'
                 };
 
@@ -55,20 +59,29 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
 
     return (
         <>
-            <Form>
-                {node.data.formFields.map((field, index) => (
-                    <Form.Group key={field.id} controlId={`formInput-${field.id}`}>
-                        <Form.Label>{field.label}</Form.Label>
-                        <Form.Control
-                            type={field.type}
-                            defaultValue={field.value || formInput[field.id]}
-                            onChange={(e) => handleInputChange(field.id, index, e.target.value)}
-                        />
-                    </Form.Group>
-                ))}
-            </Form>
-
-            <Button variant="primary" onClick={handleSave}>Next Step</Button>
+            {node.data.output ? (
+                <ListGroup variant="flush">
+                    <ListGroup.Item>
+                        <strong>Output:</strong> {node.data.output.text}
+                    </ListGroup.Item>
+                </ListGroup>
+            ) : (
+                <>
+                    <Form>
+                        {node.data.formFields.map((field, index) => (
+                            <Form.Group key={field.id} controlId={`formInput-${field.id}`}>
+                                <Form.Label>{field.label}</Form.Label>
+                                <Form.Control
+                                    type={field.type}
+                                    defaultValue={field.value || formInput[field.id]}
+                                    onChange={(e) => handleInputChange(field.id, index, e.target.value)}
+                                />
+                            </Form.Group>
+                        ))}
+                    </Form>
+                    <Button variant="primary" onClick={handleSave}>Save changes</Button>
+                </>
+            )}
         </>
     );
 };
