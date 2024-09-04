@@ -63,13 +63,12 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         for node in run_data['nodes']:
             if 'data' in node and node['data']['status'] == "just completed":
                 update_required = True
-                logger.log(f"Node {node['id']} just completed")
+
                 node['data']['status'] = "complete"
 
                 just_completed_node_value = node['data']['formFields'][0]['value']
                 just_completed_node_id = node['id']
 
-                logger.log("checking edges")
                 # Iterate the list of edges
                 for edge in run_data['edges']:
                     if edge['source'] == just_completed_node_id:
@@ -156,7 +155,7 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 logger.log("Message generated")
 
                 node['data']['output'] = msg
-
+                node['data']['status'] = "complete"
                 if service=="RAG: OpenAI+Pinecone":
                     logger.log("Adding sources to the response")
                     node['data']["sources"] = elders.agents[0].sources
