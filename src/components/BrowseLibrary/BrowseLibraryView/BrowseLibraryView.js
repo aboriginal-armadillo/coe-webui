@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import { Card, CardHeader, Modal, Button, Form } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import BrowseLibrary from "../BrowseLibrary";
 import {doc, getDoc, getFirestore} from "firebase/firestore";
+import {useLocation} from "react-router-dom";
 
 const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
     const [showModal, setShowModal] = useState(false);
@@ -11,6 +13,9 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
     const [availableBots, setAvailableBots] = useState([]); // This should be fetched from user's data
     // Modal State
     const [selectedBot, setSelectedBot] = useState('');
+
+    const location = useLocation();
+    const library = location.pathname.includes('browse-my-library') ? 'personal' : 'public';
 
     useEffect(() => {
 
@@ -39,10 +44,28 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
         setSelectedBot(''); // Clear the selection if modal is closed
     };
 
-    const handleSummarize = () => {
-        // Implement the summarize action with the selectedBot and selectedDocument
-        console.log('Summarize document:', selectedDocument, 'with bot:', selectedBot);
-        setShowModal(false);
+    const handleSummarize = async () => {
+        // setLoading(true);
+
+        const functions = getFunctions();
+        const summarizeFunction = httpsCallable(functions, 'summarize_document');
+
+        try {
+            console.log('Summarizing document:', selectedDocument.id);
+            const result = await summarizeFunction({
+                library: library,
+                documentId: selectedDocument.id,
+                botName: selectedBot,
+                uid: uid,
+            });
+            console.log('Summarization result:', result.data);
+            // You can handle the result as needed, e.g., display it in the UI
+        } catch (error) {
+            console.error('Error summarizing document:', error);
+        } finally {
+            // setLoading(false);
+            console.log('all done');
+        }
     };
 
     return (

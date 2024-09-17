@@ -67,10 +67,12 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     useEffect(() => {
         fetchTotalItems();
         fetchLibraryItems(currentPageRef.current);
+        // eslint-disable-next-line
     }, [libraryOption, uid]);
 
     useEffect(() => {
         fetchLibraryItems(currentPageRef.current);
+        // eslint-disable-next-line
     }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
