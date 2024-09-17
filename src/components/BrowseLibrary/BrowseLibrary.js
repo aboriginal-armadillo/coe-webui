@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button } from 'react-bootstrap';
-import { getFirestore, collection, query, orderBy, limit, getDocs, startAfter } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 
@@ -14,7 +14,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     const currentPageRef = useRef(currentPage);
 
-    const fetchTotalItems = async () => {
+    const fetchTotalItems = () => {
         setLoading(true);
         try {
             const db = getFirestore();
@@ -22,8 +22,11 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                 libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
             const q = query(libraryCollection);
-            const querySnapshot = await getDocs(q);
-            setTotalItems(querySnapshot.size);
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                setTotalItems(querySnapshot.size);
+            });
+
+            return unsubscribe;
         } catch (err) {
             console.error('Error fetching total items: ', err);
         } finally {
@@ -31,7 +34,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         }
     };
 
-    const fetchLibraryItems = async (page) => {
+    const fetchLibraryItems = (page) => {
         setLoading(true);
         try {
             const db = getFirestore();
@@ -45,13 +48,16 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                 q = query(libraryCollection, orderBy('title'), startAfter(lastDoc), limit(itemsPerPage));
             }
 
-            const querySnapshot = await getDocs(q);
-            const parsedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setItems(parsedItems);
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const parsedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setItems(parsedItems);
 
-            if (querySnapshot.docs.length > 0) {
-                setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-            }
+                if (querySnapshot.docs.length > 0) {
+                    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                }
+            });
+
+            return unsubscribe;
         } catch (err) {
             console.error('Error fetching library items: ', err);
         } finally {
@@ -65,13 +71,20 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     };
 
     useEffect(() => {
-        fetchTotalItems();
-        fetchLibraryItems(currentPageRef.current);
+        const totalItemsUnsubscribe = fetchTotalItems();
+        // Check if unsubscribe function is returned and is a function
+        if (typeof totalItemsUnsubscribe === "function") {
+            return () => totalItemsUnsubscribe();
+        }
         // eslint-disable-next-line
     }, [libraryOption, uid]);
 
     useEffect(() => {
-        fetchLibraryItems(currentPageRef.current);
+        const libraryItemsUnsubscribe = fetchLibraryItems(currentPageRef.current);
+        // Check if unsubscribe function is returned and is a function
+        if (typeof libraryItemsUnsubscribe === "function") {
+            return () => libraryItemsUnsubscribe();
+        }
         // eslint-disable-next-line
     }, [currentPage]);
 
@@ -98,7 +111,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                             <td>{item.title}</td>
                             <td>{item.author}</td>
                             <td>{item.tokenCount}</td>
-                            <td>{item.description ? item.description.substring(0, 100) : ''}</td>
+                            <td>{item.description ? item.description.substring(0, 400) : ''}</td>
                             <td>
                                 {onClick ? (
                                     <Button onClick={() => onClick(item)}>
