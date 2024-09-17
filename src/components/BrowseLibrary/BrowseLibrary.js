@@ -1,9 +1,8 @@
-// src/components/BrowseLibrary/BrowseLibrary.js  
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button } from 'react-bootstrap';
-import { getFirestore, collection, query, orderBy, limit, getDocs, startAfter } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 
 const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [items, setItems] = useState([]);
@@ -15,16 +14,19 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     const currentPageRef = useRef(currentPage);
 
-    // Fetch the total count of documents in the collection  
-    const fetchTotalItems = async () => {
+    const fetchTotalItems = () => {
         setLoading(true);
         try {
             const db = getFirestore();
-            const libraryCollection = libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
+            const libraryCollection =
+                libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
             const q = query(libraryCollection);
-            const querySnapshot = await getDocs(q);
-            setTotalItems(querySnapshot.size);
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                setTotalItems(querySnapshot.size);
+            });
+
+            return unsubscribe;
         } catch (err) {
             console.error('Error fetching total items: ', err);
         } finally {
@@ -32,12 +34,12 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         }
     };
 
-    // Fetch the library items with pagination  
-    const fetchLibraryItems = async (page) => {
+    const fetchLibraryItems = (page) => {
         setLoading(true);
         try {
             const db = getFirestore();
-            const libraryCollection = libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
+            const libraryCollection =
+                libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
             let q;
             if (page === 1 || !lastDoc) {
@@ -46,13 +48,16 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                 q = query(libraryCollection, orderBy('title'), startAfter(lastDoc), limit(itemsPerPage));
             }
 
-            const querySnapshot = await getDocs(q);
-            const parsedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setItems(parsedItems);
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const parsedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setItems(parsedItems);
 
-            if (querySnapshot.docs.length > 0) {
-                setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-            }
+                if (querySnapshot.docs.length > 0) {
+                    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                }
+            });
+
+            return unsubscribe;
         } catch (err) {
             console.error('Error fetching library items: ', err);
         } finally {
@@ -65,17 +70,22 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         currentPageRef.current = page;
     };
 
-    // Initial load to get total items and first page of data  
     useEffect(() => {
-        fetchTotalItems();
-        fetchLibraryItems(currentPageRef.current);
-        // eslint-disable-next-line  
+        const totalItemsUnsubscribe = fetchTotalItems();
+        // Check if unsubscribe function is returned and is a function
+        if (typeof totalItemsUnsubscribe === "function") {
+            return () => totalItemsUnsubscribe();
+        }
+        // eslint-disable-next-line
     }, [libraryOption, uid]);
 
-    // Fetch data when currentPage changes  
     useEffect(() => {
-        fetchLibraryItems(currentPageRef.current);
-        // eslint-disable-next-line  
+        const libraryItemsUnsubscribe = fetchLibraryItems(currentPageRef.current);
+        // Check if unsubscribe function is returned and is a function
+        if (typeof libraryItemsUnsubscribe === "function") {
+            return () => libraryItemsUnsubscribe();
+        }
+        // eslint-disable-next-line
     }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -91,19 +101,23 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                         <th>Title</th>
                         <th>Author</th>
                         <th>Token Count</th>
+                        <th>Description</th>
                         <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {items.map(item => (
+                    {items.map((item) => (
                         <tr key={item.id}>
                             <td>{item.title}</td>
                             <td>{item.author}</td>
                             <td>{item.tokenCount}</td>
+                            <td>{item.description ? item.description.substring(0, 400) : ''}</td>
                             <td>
                                 {onClick ? (
                                     <Button onClick={() => onClick(item)}>
-                                        <FontAwesomeIcon icon={buttonIcon} />
+                                        <FontAwesomeIcon
+                                            icon={buttonIcon || faWandMagicSparkles}
+                                        />
                                     </Button>
                                 ) : null}
                             </td>
@@ -128,4 +142,4 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     );
 };
 
-export default BrowseLibrary;  
+export default BrowseLibrary;
