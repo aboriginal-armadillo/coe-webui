@@ -16,6 +16,7 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
 
     const location = useLocation();
     const library = location.pathname.includes('browse-my-library') ? 'personal' : 'public';
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchBotsAvail = async () => {
@@ -43,7 +44,8 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
     };
 
     const handleSummarize = async () => {
-        setLoadingSummarize(true); // Set loading state to true
+        setLoadingSummarize(true);  // Set loading state to true
+        setError('');  // Clear previous error
 
         const functions = getFunctions();
         const summarizeFunction = httpsCallable(functions, 'summarize_document');
@@ -57,11 +59,12 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
                 uid: uid,
             });
             console.log('Summarize result:', result.data);
-            handleModalClose(); // Close modal on success
+            handleModalClose();  // Close modal on success
         } catch (error) {
-            console.error('Error summarizing document:', error);
+            console.log('Error summarizing document:', error);
+            setError(error.message || 'An error occurred while summarizing the document.');  // Set error state
         } finally {
-            setLoadingSummarize(false); // Reset loading state to false
+            setLoadingSummarize(false);  // Reset loading state to false
         }
     };
 
@@ -99,6 +102,7 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
                                 ))}
                             </Form.Control>
                         </Form.Group>
+                        {error && <p style={{ color: "red" }}>{error}</p>} {/* Add this line to display errors */}
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -106,7 +110,7 @@ const BrowseLibraryView = ({ uid, libraryOption, onClick }) => {
                     <Button
                         variant="primary"
                         onClick={handleSummarize}
-                        disabled={!selectedBot || loadingSummarize} // Disable button if no bot selected or during loading
+                        disabled={!selectedBot || loadingSummarize}  // Disable button if no bot selected or during loading
                     >
                         {loadingSummarize ? (
                             <Spinner
