@@ -373,10 +373,10 @@ def summarize_document(request: https_fn.CallableRequest) -> dict:
         if not bot:
             raise https_fn.HttpsError('not-found', 'Bot not found.')
 
-        service = bot['service'];
-        model = bot['model'];
-        system_prompt = bot['systemPrompt'];
-        temperature = bot['temperature'];
+        service = bot['service']
+        model = bot['model']
+        system_prompt = bot['systemPrompt']
+        temperature = bot['temperature']
         if service == "OpenAI":
             logger.log("OpenAI service selected")
             agent = OpenAIAgent(model=model,
@@ -467,6 +467,9 @@ def summarize_document(request: https_fn.CallableRequest) -> dict:
         library_ref.update(update_data)
 
 
+    except RequestException as e:
+        logger.error(f"RequestException: {str(e)}")
+        raise https_fn.HttpsError('invalid-argument', 'Failed to fetch the document content. ' + str(e), details=str(e))
     except Exception as e:
         logger.error(f"Error summarizing document: {str(e)}")
-        raise https_fn.HttpsError('internal', 'Failed to summarize the document.', details=str(e))
+        raise https_fn.HttpsError('internal', 'Failed to summarize the document. ' + str(e), details=str(e))
