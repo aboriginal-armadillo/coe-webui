@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button } from 'react-bootstrap';
-import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter, getDocs } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
+import Pagination from './Pagination';
 
 const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [items, setItems] = useState([]);
@@ -34,18 +35,27 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
         }
     };
 
-    const fetchLibraryItems = (page) => {
+    const fetchLibraryItems = async (page) => {
         setLoading(true);
         try {
             const db = getFirestore();
             const libraryCollection =
                 libraryOption === 'Public Library' ? collection(db, 'publicLibrary') : collection(db, `users/${uid}/library`);
 
-            let q;
-            if (page === 1 || !lastDoc) {
-                q = query(libraryCollection, orderBy('title'), limit(itemsPerPage));
-            } else {
-                q = query(libraryCollection, orderBy('title'), startAfter(lastDoc), limit(itemsPerPage));
+            let q = query(libraryCollection, orderBy('title'), limit(itemsPerPage));
+
+            if (page > 1) {
+                const previousDocs = [];
+                q = query(libraryCollection, orderBy('title'), limit((page - 1) * itemsPerPage));
+                const snapshot = await getDocs(q);
+
+                snapshot.docs.forEach(doc => {
+                    previousDocs.push(doc);
+                });
+
+                if (previousDocs.length > 0) {
+                    q = query(libraryCollection, orderBy('title'), startAfter(previousDocs[previousDocs.length - 1]), limit(itemsPerPage));
+                }
             }
 
             const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -72,20 +82,16 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     useEffect(() => {
         const totalItemsUnsubscribe = fetchTotalItems();
-        // Check if unsubscribe function is returned and is a function
         if (typeof totalItemsUnsubscribe === "function") {
             return () => totalItemsUnsubscribe();
         }
-        // eslint-disable-next-line
     }, [libraryOption, uid]);
 
     useEffect(() => {
         const libraryItemsUnsubscribe = fetchLibraryItems(currentPageRef.current);
-        // Check if unsubscribe function is returned and is a function
         if (typeof libraryItemsUnsubscribe === "function") {
             return () => libraryItemsUnsubscribe();
         }
-        // eslint-disable-next-line
     }, [currentPage]);
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -127,17 +133,11 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                 </Table>
             )}
 
-            <div className="pagination">
-                {Array.from({ length: totalPages }, (_, index) => (
-                    <Button
-                        key={index + 1}
-                        onClick={() => handlePageChange(index + 1)}
-                        disabled={currentPage === index + 1}
-                    >
-                        {index + 1}
-                    </Button>
-                ))}
-            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+            />
         </div>
     );
 };
