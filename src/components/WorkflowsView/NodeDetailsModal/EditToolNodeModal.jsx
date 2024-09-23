@@ -6,16 +6,13 @@ import 'codemirror/theme/material.css';
 import 'codemirror/mode/python/python.js';
 
 const EditToolNodeModal = ({ show, onHide, node, onSave }) => {
-    const [nodeName, setNodeName] = useState(node?.data?.label || '');
-    const [code, setCode] = useState(node?.data?.code || '');
+    const [nodeName, setNodeName] = useState('');
+    const [code, setCode] = useState('');
 
     useEffect(() => {
         if (node) {
             setNodeName(node.data.label || '');
             setCode(node.data?.code || '');
-            console.log("Code found: ", node.data?.code);
-        } else {
-            console.log("No node found");
         }
     }, [node]);
 

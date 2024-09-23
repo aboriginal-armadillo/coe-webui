@@ -1,29 +1,24 @@
-// src/components/WorkflowsView/NodeModal/NodeModal.jsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
-import UserInputForm from './UserInputForm';
-import {Controlled as CodeMirror} from "react-codemirror2"; // Import the new UserInputForm component
+import { Controlled as CodeMirror } from "react-codemirror2";
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
-    const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
+    const [nodeName, setNodeName] = useState('');
+    const [code, setCode] = useState('');
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
-    const [botData, setBotData] = useState(node?.data?.bot || null);
-
-    // Ensure formField is never undefined
-    const initialFormField = node?.data?.formFields?.[0] || { label: '', type: 'text', id: Date.now() };
-    const [formField, setFormField] = useState(initialFormField);
+    const [botData, setBotData] = useState(null);
 
     useEffect(() => {
-        setNodeName(node?.data?.label || `Unnamed ${node?.coeType}`);
-        setBotData(node?.data?.bot || null);
-
-        const updatedFormField = node?.data?.formFields?.[0] || { label: '', type: 'text', id: Date.now() };
-        setFormField(updatedFormField);
+        if (node) {
+            setNodeName(node?.data?.label || `Unnamed ${node?.coeType}`);
+            setBotData(node?.data?.bot || null);
+            setCode(node?.data?.code || '');
+        }
     }, [node]);
 
     const handleSave = () => {
-        const updatedNode = { ...node, data: { ...node.data, label: nodeName, bot: botData, formFields: [formField] }};
+        const updatedNode = { ...node, data: { ...node.data, label: nodeName, bot: botData, code } };
         updateNodeData(updatedNode);
         onHide();
     };
@@ -31,10 +26,6 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const handleBotSave = (newBotData) => {
         setBotData(newBotData);
         setShowBuildBotModal(false);
-    };
-
-    const handleFieldChange = (value) => {
-        setFormField({ ...formField, label: value });
     };
 
     return (
@@ -57,18 +48,9 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                             <Form.Label>Type</Form.Label>
                             <Form.Control type="text" value={node?.coeType} readOnly />
                         </Form.Group>
-                        {node?.coeType === 'User Input' && (
-                            <UserInputForm
-                                formField={formField}
-                                handleFieldChange={handleFieldChange}
-                            />
-                        )}
                         {node?.coeType === 'LLM Node' && (
                             <Form.Group>
-                                <Button
-                                    variant="outline-primary"
-                                    onClick={() => setShowBuildBotModal(true)}
-                                >
+                                <Button variant="outline-primary" onClick={() => setShowBuildBotModal(true)}>
                                     {botData ? 'Edit Bot' : 'Create Bot'}
                                 </Button>
                             </Form.Group>
@@ -77,14 +59,18 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                             <Form.Group>
                                 <Form.Label>Python Code</Form.Label>
                                 <CodeMirror
-                                    value={node?.data?.code || ''}
+                                    value={code}
+                                    intialState={code}
                                     options={{
                                         mode: 'python',
                                         theme: 'material',
                                         lineNumbers: true,
+                                        lineWrapping: true,
+                                        lint: true,
                                     }}
-                                    onBeforeChange={(editor, data, value) => {
-                                        updateNodeData({ ...node, data: { ...node.data, code: value } });
+
+                                    onBeforeChange={(editor, code, value) => {
+                                        setCode(value);
                                     }}
                                 />
                             </Form.Group>
@@ -110,7 +96,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                 />
             )}
         </>
-);
+    );
 }
 
 export default NodeModal;

@@ -9,7 +9,10 @@ const ToolNodeModal = ({ show, onHide, onSave }) => {
     const [nodeName, setNodeName] = useState('');
     const [code, setCode] = useState('');
 
+
+
     const handleSave = () => {
+        console.log('updated code: ', code);
         onSave({ name: nodeName, code });
         onHide();
     };
