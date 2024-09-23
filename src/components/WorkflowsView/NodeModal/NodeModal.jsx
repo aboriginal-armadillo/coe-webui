@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
-import UserInputForm from './UserInputForm'; // Import the new UserInputForm component
+import UserInputForm from './UserInputForm';
+import {Controlled as CodeMirror} from "react-codemirror2"; // Import the new UserInputForm component
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [nodeName, setNodeName] = useState(node?.data?.label || `Unnamed ${node?.coeType}`);
@@ -70,6 +71,22 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                                 >
                                     {botData ? 'Edit Bot' : 'Create Bot'}
                                 </Button>
+                            </Form.Group>
+                        )}
+                        {node?.coeType === 'Tool' && (
+                            <Form.Group>
+                                <Form.Label>Python Code</Form.Label>
+                                <CodeMirror
+                                    value={node?.data?.code || ''}
+                                    options={{
+                                        mode: 'python',
+                                        theme: 'material',
+                                        lineNumbers: true,
+                                    }}
+                                    onBeforeChange={(editor, data, value) => {
+                                        updateNodeData({ ...node, data: { ...node.data, code: value } });
+                                    }}
+                                />
                             </Form.Group>
                         )}
                     </Form>
