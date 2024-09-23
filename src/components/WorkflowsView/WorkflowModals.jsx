@@ -1,16 +1,9 @@
-// src/components/WorkflowsView/WorkflowModals.jsx
 import React from 'react';
 import BuildABotModal from '../Bots/BuildABotModal/BuildABotModal';
 import NodeModal from './NodeModal/NodeModal';
+import ToolNodeModal from './ToolNodeModal'; // Import the ToolNodeModal
 
-const WorkflowModals = ({ showBuildBotModal,
-                            setShowBuildBotModal,
-                            selectedNode,
-                            showNodeModal,
-                            setShowNodeModal,
-                            updateNodeData,
-                        user,
-                        workflowId}) => (
+const WorkflowModals = ({ showBuildBotModal, setShowBuildBotModal, selectedNode, showNodeModal, setShowNodeModal, updateNodeData, user, workflowId, showToolNodeModal, setShowToolNodeModal, addToolNode }) => (
     <>
         <BuildABotModal
             show={showBuildBotModal}
@@ -28,7 +21,12 @@ const WorkflowModals = ({ showBuildBotModal,
             user={user}
             workflowId={workflowId}
             updateNodeData={updateNodeData}
+        />
 
+        <ToolNodeModal
+            show={showToolNodeModal}
+            onHide={() => setShowToolNodeModal(false)}
+            onSave={addToolNode}
         />
     </>
 );
