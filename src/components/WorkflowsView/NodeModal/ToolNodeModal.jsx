@@ -34,7 +34,7 @@ const ToolNodeModal = ({ show, onHide, onSave }) => {
                         />
                     </Form.Group>
                     <Form.Group controlId="toolNodeCode" className="mt-3">
-                        <Form.Label>Python Code</Form.Label>
+                        <Form.Label>Tool Node Python Code</Form.Label>
                         <CodeMirror
                             value={code}
                             options={{
