@@ -57,10 +57,9 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                         )}
                         {node?.coeType === 'Tool' && (
                             <Form.Group>
-                                <Form.Label>Python Code</Form.Label>
+                                <Form.Label>Node Modal Python Code</Form.Label>
                                 <CodeMirror
                                     value={code}
-                                    intialState={code}
                                     options={{
                                         mode: 'python',
                                         theme: 'material',
@@ -68,8 +67,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                                         lineWrapping: true,
                                         lint: true,
                                     }}
-
-                                    onBeforeChange={(editor, code, value) => {
+                                    onBeforeChange={(editor, data, value) => {
                                         setCode(value);
                                     }}
                                 />
