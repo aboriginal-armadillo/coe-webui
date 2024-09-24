@@ -35,6 +35,10 @@ def get_github_repo_contents(repo_url, github_token, directory_path):
             elif language == 'js':
                 language = 'javascript'
             result.append(f"{item['path']}\n```{language}\n{file_content}\n```")
+        elif item['type'] == 'dir':
+            # Recursively go through subdirectories
+            subdirectory_contents = get_github_repo_contents(repo_url, github_token, item['path'])
+            result.append(subdirectory_contents)
 
     return "\n\n".join(result)
 
