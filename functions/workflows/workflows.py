@@ -1,13 +1,10 @@
-from councilofelders.anthropic import AnthropicAgent
-from councilofelders.cohort import Cohort
-from councilofelders.llamaindex import LlamaIndexOpenAIAgent
-from councilofelders.openai import OpenAIAgent
-from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
-from councilofelders.vertex import GemeniAgent
+
 from firebase_functions import firestore_fn, logger, options
 from google.cloud import firestore
 from firebase_admin import initialize_app
 
+from .bot import run_bot_node
+from .tool import execute_python_code
 
 db = firestore.Client()
 
@@ -60,110 +57,47 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         # run_data['doc_logs'].append("Run Updating")
 
         # Iterate through the list of nodes
-        for node in run_data['nodes']:
-            if 'data' in node and node['data']['status'] == "just completed":
-                update_required = True
-
-                node['data']['status'] = "complete"
-
-                just_completed_node_value = node['data']['output']['text']
-                just_completed_node_id = node['id']
-
-                # Iterate the list of edges
-                for edge in run_data['edges']:
-                    if edge['source'] == just_completed_node_id:
-                        logger.log(f"Edge found: {edge}")
-                        target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
-                        target_node['data']['status'] = "preparing to run"
-                        target_node['data']['input'] = just_completed_node_value
-
-                        # Update the document data with the new statuses
-            elif 'data' in node and node['data']['status'] == "preparing to run":
-                update_required = True
-                logger.log(f"Node {node['id']} preparing to run")
-                node['data']['status'] = "running"
-                event.data.after.reference.update(run_data)
-
-                service = node['data']['bot']['service']
-                model = node['data']['bot']['model']
-                system_prompt = node['data']['bot']['systemPrompt']
-                temperature = node['data']['bot']['temperature']
-                name = node['data']['bot']['name']
-                user_id = event.params['user_id']
-                user_doc = db.collection('users').document(user_id).get().to_dict()
-                user_keys = user_doc['apiKeys']
-                api_key = next((key for key in user_keys if key['name'] == node['data']['bot']['key']), None)['apikey']
-
-                if service == "OpenAI":
-                    logger.log("OpenAI service selected")
-                    agent = OpenAIAgent(model=model,
-                                        system_prompt=system_prompt,
-                                        temperature=temperature,
-                                        name=name,
-                                        api_key=api_key)
-                    logger.log("Agent created")
-                elif service == "Anthropic":
-                    logger.log("Anthropic service selected")
-                    agent = AnthropicAgent(model=model,
-                                           system_prompt=system_prompt,
-                                           temperature=temperature,
-                                           name=name,
-                                           api_key=api_key)
-                elif service == "Replicate":
-                    logger.log("Replicate service selected")
-                    if 'llama' in model:
-                        agent = ReplicateLlamaAgent(model=model,
-                                                    system_prompt=system_prompt,
-                                                    temperature=temperature,
-                                                    name=name,
-                                                    api_key=api_key)
-                    elif 'granite' in model:
-                        agent = ReplicateGraniteAgent(model=model,
-                                                      system_prompt=system_prompt,
-                                                      temperature=temperature,
-                                                      name=name,
-                                                      api_key=api_key)
-                elif service == "Vertex":
-                    logger.log("Vertex service selected")
-                    agent = GemeniAgent(model=model,
-                                        system_prompt=system_prompt,
-                                        temperature=temperature,
-                                        name=name,
-                                        api_key=api_key)
-                elif service == "RAG: OpenAI+Pinecone":
-                    logger.log("RAG: OpenAI+Pinecone service selected")
-                    pinecone_index = node['data']['bot']['pineconeIndex']
-                    pinecone_key = node['data']['bot']['pineconeKey']
-                    top_k = int(node['data']['bot']['top_k'])
-                    pinecone_api_key = next((key for key in user_keys if key['name'] == pinecone_key), None)['apikey']
-                    agent = LlamaIndexOpenAIAgent(model=model,
-                                                  system_prompt=system_prompt,
-                                                  temperature=temperature,
-                                                  name=name,
-                                                  openai_api_key=api_key,
-                                                  pinecone_index_name=pinecone_index,
-                                                  pinecone_api_key=pinecone_api_key,
-                                                  top_k=top_k)
-                hx = [{
-                    "name": 'user',
-                    "response": node['data']['input']
-                }]
-
-                elders = Cohort(agents=[agent], history=hx)
-                logger.log("History updated")
-                msg = elders.agents[0].generate_next_message()
-                logger.log("Message generated")
-
-                node['data']['output'] = msg
-                node['data']['status'] = "complete"
-                if service=="RAG: OpenAI+Pinecone":
-                    logger.log("Adding sources to the response")
-                    node['data']["sources"] = elders.agents[0].sources
-
-                update_required = True
-
-        if update_required:
-            event.data.after.reference.update(run_data)
+        # # for node in run_data['nodes']:
+        # #     if 'data' in node and node['data']['status'] == "just completed":
+        # #         update_required = True
+        # #
+        # #         node['data']['status'] = "complete"
+        # #
+        # #         just_completed_node_value = node['data']['output']['text']
+        # #         just_completed_node_id = node['id']
+        # #
+        # #         # Iterate the list of edges
+        # #         for edge in run_data['edges']:
+        # #             if edge['source'] == just_completed_node_id:
+        # #                 logger.log(f"Edge found: {edge}")
+        # #                 target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
+        # #                 target_node['data']['status'] = "preparing to run"
+        # #                 target_node['data']['input'] = just_completed_node_value
+        # #
+        # #                 # Update the document data with the new statuses
+        # #     elif 'data' in node and node['data']['status'] == "preparing to run":
+        # #
+        # #         logger.log(f"Node {node['id']} preparing to run")
+        # #         node['data']['status'] = "running"
+        # #         event.data.after.reference.update(node)
+        # #         if node['coeType'] == 'bot':
+        # #             node = run_bot_node(node, event, db, logger)
+        # #         elif node['coeType'] == 'Tool':
+        # #             logger.log('executing python code')
+        # #             result = execute_python_code(node)
+        # #             logger.log(f"Result: {result}")
+        # #             if result['status'] == 'success':
+        # #                 node['data']['output'] = result['output_variable']
+        # #                 node['data']['execution_output'] = result['execution_output']
+        # #                 node['data']['error'] = result['error']
+        # #                 node['data']['status'] = 'just completed'
+        # #                 update_required = True
+        # #             elif result['status'] == 'error':
+        # #                 node['data']['status'] = 'failed'
+        # #                 node['data']['error'] = result['error']
+        # #                 update_required = False
+        # if update_required:
+        #     event.data.after.reference.update(node)
 
 
     except Exception as e:
