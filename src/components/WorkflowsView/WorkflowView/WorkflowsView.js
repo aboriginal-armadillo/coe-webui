@@ -16,7 +16,7 @@ import WorkflowHeader from './WorkflowHeader';
 import WorkflowControls from './WorkflowControls';
 import WorkflowCanvas from './WorkflowCanvas';
 import WorkflowModals from './WorkflowModals';
-import RunsList from './RunsList';
+import RunsList from '../Runs/RunsList';
 import './WorkflowsView.css';
 import { applyEdgeChanges, applyNodeChanges } from "react-flow-renderer";
 import { addEdge as addEdgeReactFlow } from 'react-flow-renderer';

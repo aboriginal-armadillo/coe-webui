@@ -19,8 +19,8 @@ import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 import BrowseLibraryView from "./components/BrowseLibrary/BrowseLibraryView/BrowseLibraryView";
 import BuildABotPage from "./components/Bots/BuildABotPage/BuildABotPage";
-import WorkflowsView from "./components/WorkflowsView/WorkflowsView";
-import RunView from "./components/WorkflowsView/RunView";
+import WorkflowsView from "./components/WorkflowsView/WorkflowView/WorkflowsView";
+import RunView from "./components/WorkflowsView/Runs/RunView";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries

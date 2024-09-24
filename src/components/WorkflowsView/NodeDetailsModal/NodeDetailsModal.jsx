@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, ListGroup } from 'react-bootstrap';
-import coeTypeComponents from './NodeDetailsModal/coeTypeComponents';
-import EditToolNodeModal from './NodeDetailsModal/EditToolNodeModal'; // Import the new modal
+import coeTypeComponents from './coeTypeComponents';
+import EditToolNodeModal from './EditToolNodeModal'; // Import the new modal
 
 const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId, updateNodeData }) => {
     const [open, setOpen] = useState(false);
