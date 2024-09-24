@@ -6,7 +6,7 @@ import { Container, Row, Col, Spinner, Form } from 'react-bootstrap';
 import ReactFlow from 'react-flow-renderer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faChevronLeft} from "@fortawesome/free-solid-svg-icons";
-import NodeDetailsModal from './NodeDetailsModal';
+import NodeDetailsModal from '../NodeDetailsModal/NodeDetailsModal';
 
 const RunView = ({ user }) => {
     const { workflowId, runId } = useParams();
