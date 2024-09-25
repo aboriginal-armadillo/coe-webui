@@ -22,17 +22,9 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId, updateN
                     <Modal.Title>Node Details</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <h5>Properties</h5>
-                    <ListGroup variant="flush">
-                        {Object.entries(node.data).map(([key, value]) => {
-                            if (key === 'bot' || key === 'formFields' || key === 'output') return null;
-                            return (
-                                <ListGroup.Item key={key}>
-                                    <strong>{key}:</strong> {value.toString()}
-                                </ListGroup.Item>
-                            );
-                        })}
-                    </ListGroup>
+                    <h5>Label: {node.data.label}</h5>
+                    <h5>Status: {node.data.status}</h5>
+
 
                     {CoeTypeComponent && (
 
