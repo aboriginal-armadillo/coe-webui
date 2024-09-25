@@ -13,7 +13,7 @@ from RestrictedPython.PrintCollector import PrintCollector
 
 
 
-from RestrictedPython.Guards import safe_builtins
+from RestrictedPython.Guards import safe_builtins, guarded_iter_unpack_sequence
 from RestrictedPython.Eval import default_guarded_getitem
 from RestrictedPython.Eval import default_guarded_getiter
 from RestrictedPython.Guards import full_write_guard
@@ -47,6 +47,8 @@ def execute_python_code(node: dict, event) -> dict:
             '_iter_': default_guarded_getiter,
             '_print_': PrintCollector,
             '_write_' : full_write_guard,
+            '_getiter_': default_guarded_getiter,
+            "_iter_unpack_sequence_" : guarded_iter_unpack_sequence,
         }
 
         # Execute the compiled code
