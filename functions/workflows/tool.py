@@ -16,14 +16,21 @@ from RestrictedPython.PrintCollector import PrintCollector
 from RestrictedPython.Guards import safe_builtins
 from RestrictedPython.Eval import default_guarded_getitem
 from RestrictedPython.Eval import default_guarded_getiter
+from RestrictedPython.Guards import full_write_guard
+
+
 from typing import Any
 import json
 
 def execute_python_code(node: dict) -> dict:
     code = node['data']['code']
     _print_ = PrintCollector
-    preload_vars = {}
+
+
     try:
+        preload_vars = {'output': {}}
+        if 'input' in node['data']:
+            preload_vars['node_input'] = node['data']['input']
         # Preload variables
         preload_code = "\n".join(f"{key} = {json.dumps(value)}" for key, value in preload_vars.items())
 
@@ -34,9 +41,10 @@ def execute_python_code(node: dict) -> dict:
         env = {
             '__builtins__': __builtins__,
             '_getattr_': getattr,
-            # '_getitem_': default_guarded_getitem,
-            # '_iter_': default_guarded_getiter,
+            '_getitem_': default_guarded_getitem,
+            '_iter_': default_guarded_getiter,
             '_print_': PrintCollector,
+            '_write_' : full_write_guard,
         }
 
         # Execute the compiled code
@@ -46,7 +54,6 @@ def execute_python_code(node: dict) -> dict:
         output_data = env.get('output', {'error': 'No output variable defined'})
 
         std_out = env['_print']()
-        output_data['std_out'] = std_out
 
         return {'status': 'success', 'output_variable': output_data, 'stdout': std_out}
 
