@@ -50,7 +50,11 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId, updateN
                     <h5 className="mt-3">Output</h5>
                     {node.data.output && (
                         <ListGroup variant="flush">
-                            <ListGroup.Item>{node.data.output.text}</ListGroup.Item>
+                            {Object.entries(node.data.output).map(([key, value]) => (
+                                <ListGroup.Item key={key}>
+                                    <strong>{key}:</strong> {JSON.stringify(value)}
+                                </ListGroup.Item>
+                            ))}
                         </ListGroup>
                     )}
                 </Modal.Body>
