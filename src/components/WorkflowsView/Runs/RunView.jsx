@@ -1,11 +1,11 @@
 // src/components/WorkflowsView/RunView.jsx
 import React, { useState, useEffect } from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getFirestore, onSnapshot, setDoc } from 'firebase/firestore';
 import { Container, Row, Col, Spinner, Form } from 'react-bootstrap';
 import ReactFlow from 'react-flow-renderer';
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faChevronLeft} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import NodeDetailsModal from '../NodeDetailsModal/NodeDetailsModal';
 
 const RunView = ({ user }) => {
@@ -18,7 +18,8 @@ const RunView = ({ user }) => {
     const [selectedNode, setSelectedNode] = useState(null);
     const [showNodeModal, setShowNodeModal] = useState(false);
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+
     useEffect(() => {
         if (!user || !workflowId || !runId) return;
 
@@ -40,12 +41,28 @@ const RunView = ({ user }) => {
         return () => unsubscribe();
     }, [user, workflowId, runId]);
 
+    // Ensure selectedNode is updated whenever nodes array changes
+    useEffect(() => {
+        if (selectedNode) {
+            const updatedNode = nodes.find(node => node.id === selectedNode.id);
+            if (updatedNode) {
+                setSelectedNode(updatedNode);
+            } else {
+                setSelectedNode(null);
+            }
+        }
+    }, [nodes, selectedNode]);
+
     const handleNameChange = async (e) => {
         e.preventDefault();
-        const db = getFirestore();
-        const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
-        await setDoc(runRef, { name: runName }, { merge: true });
-        setIsEditingName(false);
+        try {
+            const db = getFirestore();
+            const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
+            await setDoc(runRef, { name: runName }, { merge: true });
+            setIsEditingName(false);
+        } catch (error) {
+            console.error('Error updating run name:', error);
+        }
     };
 
     const handleNodeClick = (event, node) => {
@@ -72,7 +89,7 @@ const RunView = ({ user }) => {
                         style={{ cursor: 'pointer', marginRight: '10px' }}
                     />
                     {isEditingName ? (
-                        <Form onSubmit={handleNameChange} inline>
+                        <Form onSubmit={handleNameChange}>
                             <Form.Control
                                 type="text"
                                 value={runName}
