@@ -29,6 +29,9 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 if 'data' in node:
                     node['data']['status'] = 'queued'
 
+        # cheap hack to set init node
+        run_data['nodes'][0]['data']['status'] = 'preparing to run'
+
         # Get the document reference
         doc_ref = event.data.reference
 
@@ -57,47 +60,46 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         # run_data['doc_logs'].append("Run Updating")
 
         # Iterate through the list of nodes
-        # # for node in run_data['nodes']:
-        # #     if 'data' in node and node['data']['status'] == "just completed":
-        # #         update_required = True
-        # #
-        # #         node['data']['status'] = "complete"
-        # #
-        # #         just_completed_node_value = node['data']['output']['text']
-        # #         just_completed_node_id = node['id']
-        # #
-        # #         # Iterate the list of edges
-        # #         for edge in run_data['edges']:
-        # #             if edge['source'] == just_completed_node_id:
-        # #                 logger.log(f"Edge found: {edge}")
-        # #                 target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
-        # #                 target_node['data']['status'] = "preparing to run"
-        # #                 target_node['data']['input'] = just_completed_node_value
-        # #
-        # #                 # Update the document data with the new statuses
-        # #     elif 'data' in node and node['data']['status'] == "preparing to run":
-        # #
-        # #         logger.log(f"Node {node['id']} preparing to run")
-        # #         node['data']['status'] = "running"
-        # #         event.data.after.reference.update(node)
-        # #         if node['coeType'] == 'bot':
-        # #             node = run_bot_node(node, event, db, logger)
-        # #         elif node['coeType'] == 'Tool':
-        # #             logger.log('executing python code')
-        # #             result = execute_python_code(node)
-        # #             logger.log(f"Result: {result}")
-        # #             if result['status'] == 'success':
-        # #                 node['data']['output'] = result['output_variable']
-        # #                 node['data']['execution_output'] = result['execution_output']
-        # #                 node['data']['error'] = result['error']
-        # #                 node['data']['status'] = 'just completed'
-        # #                 update_required = True
-        # #             elif result['status'] == 'error':
-        # #                 node['data']['status'] = 'failed'
-        # #                 node['data']['error'] = result['error']
-        # #                 update_required = False
-        # if update_required:
-        #     event.data.after.reference.update(node)
+        for node in run_data['nodes']:
+            if 'data' in node and node['data']['status'] == "just completed":
+                update_required = True
+
+                node['data']['status'] = "complete"
+
+                just_completed_node_value = node['data']['output']
+                just_completed_node_id = node['id']
+
+                # Iterate the list of edges
+                for edge in run_data['edges']:
+                    if edge['source'] == just_completed_node_id:
+                        logger.log(f"Edge found: {edge}")
+                        target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
+                        target_node['data']['status'] = "preparing to run"
+                        target_node['data']['input'] = just_completed_node_value
+
+                        # Update the document data with the new statuses
+            elif 'data' in node and node['data']['status'] == "preparing to run":
+                logger.log(f"Node {node['id']} preparing to run")
+                node['data']['status'] = "running"
+                event.data.after.reference.update(run_data)
+                if node['coeType'] == 'bot':
+                    node = run_bot_node(node, event, db, logger)
+                elif node['coeType'] == 'Tool':
+                    logger.log('executing python code')
+                    result = execute_python_code(node)
+                    logger.log(f"Result: {result}")
+                    if result['status'] == 'success':
+                        node['data']['output'] = result['output_variable']
+                        node['data']['stdout'] = result['stdout']
+                        node['data']['status'] = 'just completed'
+                        update_required = True
+                    elif result['status'] == 'error':
+                        node['data']['status'] = 'failed'
+                        node['data']['output'] = {'error': result['error']}
+                        node['data']['output']['stack_trace'] = result['stack_trace']
+                        update_required = True
+        if update_required:
+            event.data.after.reference.update(run_data)
 
 
     except Exception as e:

@@ -1,6 +1,7 @@
 import json
 import sys
 from io import StringIO
+import traceback
 
 from firebase_functions import https_fn, logger, options
 from typing import Any
@@ -42,11 +43,13 @@ def execute_python_code(node: dict) -> dict:
         exec(compiled_code, env, env)
 
         # Retrieve the output variable if it exists
-        output_data = env.get('output', 'No output variable defined')
+        output_data = env.get('output', {'error': 'No output variable defined'})
 
         std_out = env['_print']()
+        output_data['std_out'] = std_out
 
-        return {'status': 'success', 'output_variable': output_data, 'execution_output': std_out, 'error': ''}
+        return {'status': 'success', 'output_variable': output_data, 'stdout': std_out}
 
     except Exception as e:
-        return {'status': 'error', 'error': str(e)}
+        stack_trace = traceback.format_exc()
+        return {'status': 'error', 'error': str(e), 'stack_trace': stack_trace}
