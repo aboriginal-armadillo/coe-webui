@@ -86,7 +86,7 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                     node = run_bot_node(node, event, db, logger)
                 elif node['coeType'] == 'Tool':
                     logger.log('executing python code')
-                    result = execute_python_code(node)
+                    result = execute_python_code(node, event)
                     logger.log(f"Result: {result}")
                     if result['status'] == 'success':
                         node['data']['output'] = result['output_variable']

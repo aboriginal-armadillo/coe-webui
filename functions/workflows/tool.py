@@ -22,13 +22,15 @@ from RestrictedPython.Guards import full_write_guard
 from typing import Any
 import json
 
-def execute_python_code(node: dict) -> dict:
+
+def execute_python_code(node: dict, event) -> dict:
     code = node['data']['code']
     _print_ = PrintCollector
 
 
     try:
-        preload_vars = {'output': {}}
+        preload_vars = {'output': {},
+                        'user_id': event.params['user_id']}
         if 'input' in node['data']:
             preload_vars['node_input'] = node['data']['input']
         # Preload variables
@@ -53,7 +55,10 @@ def execute_python_code(node: dict) -> dict:
         # Retrieve the output variable if it exists
         output_data = env.get('output', {'error': 'No output variable defined'})
 
-        std_out = env['_print']()
+        if '_print' in env:
+            std_out = env['_print']()
+        else:
+            std_out = "No data in stdout."
 
         return {'status': 'success', 'output_variable': output_data, 'stdout': std_out}
 
