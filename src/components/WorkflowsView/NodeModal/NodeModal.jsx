@@ -2,23 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
 import { Controlled as CodeMirror } from "react-codemirror2";
+import UserInputForm from "./UserInputForm";
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [nodeName, setNodeName] = useState('');
     const [code, setCode] = useState('');
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
     const [botData, setBotData] = useState(null);
+    const [formFields, setFormFields] = useState(node?.data?.formFields || []);
+
 
     useEffect(() => {
         if (node) {
             setNodeName(node?.data?.label || `Unnamed ${node?.coeType}`);
             setBotData(node?.data?.bot || null);
+            setFormFields(node?.data?.formFields || []);
             setCode(node?.data?.code || '');
         }
     }, [node]);
 
     const handleSave = () => {
-        const updatedNode = { ...node, data: { ...node.data, label: nodeName, bot: botData, code } };
+        const updatedNode = { ...node,
+            data: { ...node.data,
+                label: nodeName,
+                bot: botData,
+                formFields,
+                code }};
+
         updateNodeData(updatedNode);
         onHide();
     };
@@ -48,6 +58,12 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                             <Form.Label>Type</Form.Label>
                             <Form.Control type="text" value={node?.coeType} readOnly />
                         </Form.Group>
+                        {node?.coeType === 'User Input' && (
+                            <UserInputForm
+                                formFields={formFields}
+                                setFormFields={setFormFields}
+                            />
+                        )}
                         {node?.coeType === 'LLM Node' && (
                             <Form.Group>
                                 <Button variant="outline-primary" onClick={() => setShowBuildBotModal(true)}>
