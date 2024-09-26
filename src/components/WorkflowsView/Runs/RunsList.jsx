@@ -19,25 +19,39 @@ const RunsList = ({ user, workflowId }) => {
         const unsubscribe = onSnapshot(runsQuery, (querySnapshot) => {
             const runsList = [];
             querySnapshot.forEach((doc) => {
-                runsList.push({ id: doc.id, ...doc.data() });
+                const runData = { id: doc.id, ...doc.data() };
+                runsList.push(runData);
+
+                // Debug: Print out fetching data
+                // console.log('Fetched Run:', runData);
             });
-            setRuns(runsList);
+
+            // Check for unique IDs
+            const uniqueRunsList = Array.from(new Set(runsList.map(run => run.id)))
+                .map(id => runsList.find(run => run.id === id));
+
+            setRuns(uniqueRunsList);
         });
 
         return () => unsubscribe();
     }, [user, workflowId]);
 
     const handleDelete = async (runId) => {
-        if (!user || !workflowId || !runId) return;
+        if (!user || !workflowId || !runId) {
+            console.log('Missing required parameters for deletion.');
+            return;
+        }
 
         const db = getFirestore();
         const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
 
         try {
             await deleteDoc(runRef);
-            console.log(`Run ${runId} deleted successfully`);
+            // console.log(`Run ${runId} deleted successfully`);
+            // Update the UI by removing the run from the state
+            setRuns((prevRuns) => prevRuns.filter(run => run.id !== runId));
         } catch (error) {
-            console.error("Error deleting run: ", error);
+            console.log("Error deleting run: ", error);
         }
     };
 
