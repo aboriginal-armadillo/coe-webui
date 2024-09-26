@@ -172,7 +172,7 @@ function BuildABot({ show, onHide, user, botData, workflowId,
                     return node;
                 });
                 await updateDoc(workflowRef, { nodes: updatedNodes });
-                console.log('updating nodes:', updatedNodes);
+
                 // onHide();
                 // onSave(bot); // Trigger the onSave callback with the new bot data
             }

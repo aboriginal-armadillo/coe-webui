@@ -68,11 +68,17 @@ function WorkflowsView({ user }) {
     }, [user, workflowId]);
 
     const addNode = async (type) => {
+        const prependEmoji = type === "LLM Node"
+            ? "🤖 "
+            : type === "Tool"
+                ? "🐍 "
+                : type === "User Input"
+                    ? "✏️ " : "";
         const newNode = {
             id: `${Date.now()}`,
             i: nodes.length,
             coeType: type,
-            data: { label: type },
+            data: { label: prependEmoji + type },
             position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
 
@@ -94,7 +100,7 @@ function WorkflowsView({ user }) {
             id: `${Date.now()}`,
             i: nodes.length,
             coeType: 'Tool',
-            data: { label: name, code },
+            data: { label: "🐍 " + name, code },
             position: { x: Math.random() * 400, y: Math.random() * 400 }
         };
 
