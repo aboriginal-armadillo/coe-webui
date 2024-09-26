@@ -52,7 +52,7 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
                     output: outputObject,
                     status: 'just completed'
                 };
-
+                console.log('setting doc', currentNodes)
                 await setDoc(runRef, { nodes: currentNodes }, { merge: true });
             }
         }
