@@ -82,8 +82,10 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 logger.log(f"Node {node['id']} preparing to run")
                 node['data']['status'] = "running"
                 event.data.after.reference.update(run_data)
-                if node['coeType'] == 'bot':
+                if node['coeType'] == 'LLM Node':
+                    logger.log('running bot node')
                     node = run_bot_node(node, event, db, logger)
+                    logger.log("Bot node executed")
                 elif node['coeType'] == 'Tool':
                     logger.log('executing python code')
                     result = execute_python_code(node, event)

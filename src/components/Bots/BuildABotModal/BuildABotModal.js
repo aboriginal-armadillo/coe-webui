@@ -16,7 +16,7 @@ function BuildABotModal({ show, onHide, botData, user,
                 <Modal.Body>
 
                     <BuildABot user={user}
-
+                               onHide={onHide}
                                botData={botData}
                                isWorkflowBot={isWorkflowBot}
                                workflowId={workflowId}

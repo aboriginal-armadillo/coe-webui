@@ -36,6 +36,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const handleBotSave = (newBotData) => {
         setBotData(newBotData);
         setShowBuildBotModal(false);
+        console.log("should close now...")
     };
 
     return (
