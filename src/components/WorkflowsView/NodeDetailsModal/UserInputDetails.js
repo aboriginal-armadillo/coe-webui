@@ -29,6 +29,7 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
         const runRef = doc(db, `users/${user.uid}/workflows/${workflowId}/runs/${runId}`);
         const runDoc = await getDoc(runRef);
 
+
         if (runDoc.exists()) {
             const currentData = runDoc.data();
             const currentNodes = currentData.nodes || [];
@@ -41,13 +42,14 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
                     return field;
                 });
 
-                // Extract value for `text`
-                const textValue = formInput[currentNodes[node.i].data.formFields[0]?.id] || '';
-
+                const outputObject = updatedFields.reduce((acc, item) => {
+                    acc[item.label] = item.value; // Set the label as the key and the value as the value
+                    return acc; // Return the accumulated object
+                }, {});
                 currentNodes[node.i].data = {
                     ...currentNodes[node.i].data,
                     formFields: updatedFields,
-                    output: { text: textValue },
+                    output: outputObject,
                     status: 'just completed'
                 };
 
