@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, Button, ListGroup } from 'react-bootstrap';
 import coeTypeComponents from './coeTypeComponents';
-import EditToolNodeModal from './EditToolNodeModal'; // Import the new modal
+import EditToolNodeModal from './EditToolNodeModal';
+import ReactMarkdown from "react-markdown"; // Import the new modal
 
 const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId, updateNodeData }) => {
     const [open, setOpen] = useState(false);
@@ -44,7 +45,12 @@ const NodeDetailsModal = ({ show, onHide, node, user, workflowId, runId, updateN
                         <ListGroup variant="flush">
                             {Object.entries(node.data.output).map(([key, value]) => (
                                 <ListGroup.Item key={key}>
-                                    <strong>{key}:</strong> {JSON.stringify(value)}
+                                    <strong>{key}:</strong>
+                                    {typeof value === 'string' ? (
+                                        <ReactMarkdown>{value}</ReactMarkdown>
+                                    ) : (
+                                        JSON.stringify(value)
+                                    )}
                                 </ListGroup.Item>
                             ))}
                         </ListGroup>
