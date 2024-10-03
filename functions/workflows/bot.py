@@ -70,7 +70,7 @@ def run_bot_node(node, event, db, logger):
                                       pinecone_index_name=pinecone_index,
                                       pinecone_api_key=pinecone_api_key,
                                       top_k=top_k)
-    logger.log(f"prompt: {node['data']['input']['prompt']}")
+
     hx = [{
         "name": 'user',
         "response": node['data']['input']['prompt']
@@ -81,6 +81,7 @@ def run_bot_node(node, event, db, logger):
     msg = elders.agents[0].generate_next_message()
     logger.log("Message generated")
     node['data']['output'] = node['data']['input']
+    del(node['data']['output']['prompt'])
     node['data']['output'][name] = msg
     node['data']['status'] = "complete"
 

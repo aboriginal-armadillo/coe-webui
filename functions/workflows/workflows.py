@@ -68,7 +68,7 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
 
                 just_completed_node_value = node['data']['output']
                 just_completed_node_id = node['id']
-
+                logger.log(f"Node {just_completed_node_id} just completed.")
                 # Iterate the list of edges
                 for edge in run_data['edges']:
                     if edge['source'] == just_completed_node_id:
@@ -76,8 +76,8 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                         target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
                         target_node['data']['status'] = "preparing to run"
                         target_node['data']['input'] = just_completed_node_value
-
                         # Update the document data with the new statuses
+
             elif 'data' in node and node['data']['status'] == "preparing to run":
                 logger.log(f"Node {node['id']} preparing to run")
                 node['data']['status'] = "running"

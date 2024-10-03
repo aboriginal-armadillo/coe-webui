@@ -41,17 +41,21 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
                     }
                     return field;
                 });
+                console.log(formInput)
 
                 const outputObject = updatedFields.reduce((acc, item) => {
+                    console.log('item', item);
                     acc[item.label] = item.value; // Set the label as the key and the value as the value
                     return acc; // Return the accumulated object
                 }, {});
-                currentNodes[node.i].data = {
+                const update =  {
                     ...currentNodes[node.i].data,
                     formFields: updatedFields,
                     output: outputObject,
                     status: 'just completed'
                 };
+                console.log("update", update);
+                currentNodes[node.i].data = update
                 console.log('setting doc', currentNodes)
                 await setDoc(runRef, { nodes: currentNodes }, { merge: true });
             }

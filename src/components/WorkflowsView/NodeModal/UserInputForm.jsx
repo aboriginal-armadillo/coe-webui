@@ -1,7 +1,7 @@
 // src/components/WorkflowsView/NodeModal/UserInputForm.jsx
 import React from 'react';
 import {Button, Form, InputGroup} from 'react-bootstrap';
-
+import {v4 as uuidv4} from 'uuid';
 const UserInputForm = ({ formFields, setFormFields }) => {
 
     const handleFieldChange = (index, key, value) => {
@@ -15,7 +15,7 @@ const UserInputForm = ({ formFields, setFormFields }) => {
     };
 
     const addField = () => {
-        setFormFields([...formFields, { label: '', type: 'text', id: Date.now() }]);
+        setFormFields([...formFields, { label: '', type: 'text', id: uuidv4.toString() }]);
     };
 
     const removeField = (index) => {
