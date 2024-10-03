@@ -15,7 +15,7 @@ const UserInputForm = ({ formFields, setFormFields }) => {
     };
 
     const addField = () => {
-        setFormFields([...formFields, { label: '', type: 'text', id: uuidv4.toString() }]);
+        setFormFields([...formFields, { label: '', type: 'text', id: uuidv4() }]);
     };
 
     const removeField = (index) => {
