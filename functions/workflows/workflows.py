@@ -86,6 +86,8 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                     logger.log('running bot node')
                     node = run_bot_node(node, event, db, logger)
                     logger.log("Bot node executed")
+                    node['data']['status'] = 'just completed'
+                    update_required = True
                 elif node['coeType'] == 'Tool':
                     logger.log('executing python code')
                     result = execute_python_code(node, event)
@@ -100,8 +102,9 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                         node['data']['output'] = {'error': result['error']}
                         node['data']['output']['stack_trace'] = result['stack_trace']
                         update_required = True
-        if update_required:
-            event.data.after.reference.update(run_data)
+
+                if update_required:
+                    event.data.after.reference.update(run_data)
 
 
     except Exception as e:
