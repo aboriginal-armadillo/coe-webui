@@ -44,6 +44,7 @@ function WorkflowsView({ user }) {
                 setWorkflowName(data.name || 'New Workflow');
                 setNodes(data.nodes || []);
                 setEdges(data.edges || []);
+                console.log('nodes: ', data.nodes);
                 setIsLoading(false);
             } else {
                 console.log('Workflow does not exist');
@@ -74,7 +75,7 @@ function WorkflowsView({ user }) {
                 : type === "User Input"
                     ? "✏️ " : "";
         const newNode = {
-            id: uuidv4.toString(),
+            id: uuidv4(),
             i: nodes.length,
             coeType: type,
             data: { label: prependEmoji + type },
@@ -96,7 +97,7 @@ function WorkflowsView({ user }) {
 
     const addToolNode = async ({ name, code }) => {
         const newNode = {
-            id: uuidv4.toString(),
+            id: uuidv4(),
             i: nodes.length,
             coeType: 'Tool',
             data: { label: "🐍 " + name, code },
