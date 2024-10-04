@@ -1,3 +1,5 @@
+import copy
+
 from councilofelders.anthropic import AnthropicAgent
 from councilofelders.cohort import Cohort
 from councilofelders.llamaindex import LlamaIndexOpenAIAgent
@@ -80,7 +82,7 @@ def run_bot_node(node, event, db, logger):
     logger.log("History updated")
     msg = elders.agents[0].generate_next_message()
     logger.log("Message generated")
-    node['data']['output'] = node['data']['input']
+    node['data']['output'] = copy.deepcopy(node['data']['input'])
     node['data']['output'][name+'_prompt'] = node['data']['input']['prompt']
     del(node['data']['output']['prompt'])
     node['data']['output'][name] = msg

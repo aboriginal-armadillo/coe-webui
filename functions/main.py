@@ -112,7 +112,8 @@ def extract_messages(data, current_key):
 
     return messages
 
-@https_fn.on_call(memory=options.MemoryOption.GB_1)
+@https_fn.on_call(memory=options.MemoryOption.GB_1,
+                  timeout_sec=360)
 def call_next_msg(req: https_fn.CallableRequest) -> Any:
     """Params:
     - service: str
