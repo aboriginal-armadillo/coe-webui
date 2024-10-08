@@ -1,17 +1,25 @@
-// src/components/HeaderBar/HeaderBar.jsx
-
-import React, { useState } from 'react';
-import { Button, Container, Row, Col, Modal, DropdownButton, Dropdown } from 'react-bootstrap';
+import React, {useEffect, useState} from 'react';
+import { Button, Container, Row, Col, Modal, DropdownButton, Dropdown, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCog, faShareAlt, faTrash, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import {getFirestore, doc, updateDoc, setDoc, getDoc} from 'firebase/firestore';
 import BrowseLibrary from '../BrowseLibrary/BrowseLibrary';
 import { shareChat, deleteChat } from '../../utils/chatUtils';
 import './HeaderBar.css';
 
-const HeaderBar = ({ title, userUid, chatId, messages }) => {
+const HeaderBar = ({ initialTitle, userUid, chatId, messages }) => {
     const [showLibraryModal, setShowLibraryModal] = useState(false); // State for library modal
     const [libraryOption, setLibraryOption] = useState(''); // State for the selected library option
+
+    // New states for handling chat title
+    const [chatTitle, setChatTitle] = useState(initialTitle);
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+    // Synchronize chatTitle with initialTitle prop
+    useEffect(() => {
+        setChatTitle(initialTitle);
+        console.log("HeaderBar chatTitle updated to:", initialTitle);
+    }, [initialTitle]);
 
     const handleLibraryModalClose = () => setShowLibraryModal(false);
     const handleLibraryModalOpen = (option) => {
@@ -59,12 +67,40 @@ const HeaderBar = ({ title, userUid, chatId, messages }) => {
         await setDoc(chatRef, chatData);
     };
 
+    const updateChatTitle = async () => {
+        if (userUid && chatId) {
+            const db = getFirestore();
+            const chatRef = doc(db, `users/${userUid}/chats/${chatId}`);
+            try {
+                await updateDoc(chatRef, { name: chatTitle });
+                console.log("Chat title updated successfully.");
+            } catch (error) {
+                console.error("Error updating chat title:", error);
+            }
+        }
+    };
+
     return (
         <div className="header-bar">
             <Container>
                 <Row className="align-items-center">
                     <Col xs={6}>
-                        <h1 className="header-title">{title}</h1>
+                        {isEditingTitle ? (
+                            <Form.Control
+                                type="text"
+                                value={chatTitle}
+                                onChange={(e) => setChatTitle(e.target.value)}
+                                onBlur={async () => {
+                                    setIsEditingTitle(false);
+                                    await updateChatTitle();
+                                }}
+                                autoFocus
+                            />
+                        ) : (
+                            <h1 className="header-title" onClick={() => setIsEditingTitle(true)}>
+                                {chatTitle}
+                            </h1>
+                        )}
                     </Col>
                     <Col xs={6} className="text-end d-flex align-items-center justify-content-end">
                         <Button variant="outline-secondary" className="me-2">
