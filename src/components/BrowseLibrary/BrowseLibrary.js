@@ -4,6 +4,8 @@ import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWandMagicSparkles, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import Pagination from './Pagination';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [items, setItems] = useState([]);
@@ -17,6 +19,20 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
 
     const currentPageRef = useRef(currentPage);
 
+    const handleDelete = async (itemId) => {
+        try {
+            const db = getFirestore();
+            const docRef = libraryOption === 'Public Library'
+                ? doc(db, 'publicLibrary', itemId)
+                : doc(db, `users/${uid}/library`, itemId);
+
+            await deleteDoc(docRef);
+            // Optionally, update the UI state as needed
+            setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+        } catch (error) {
+            console.error('Error deleting item: ', error);
+        }
+    };
     const fetchTotalItems = () => {
         setLoading(true);
         try {
@@ -147,12 +163,15 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                                 <td>{item.description ? item.description.substring(0, 400) : ''}</td>
                                 <td>
                                     {onClick ? (
-                                        <Button onClick={() => onClick(item)}>
+                                        <Button className="me-2 mb-2" onClick={() => onClick(item)}>
                                             <FontAwesomeIcon
                                                 icon={buttonIcon || faWandMagicSparkles}
                                             />
                                         </Button>
                                     ) : null}
+                                    <Button variant="danger" className="me-2 mb-2" onClick={() => handleDelete(item.id)}>
+                                        <FontAwesomeIcon icon={faTrash} />
+                                    </Button>
                                 </td>
                             </tr>
                         ))}
