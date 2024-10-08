@@ -131,7 +131,7 @@ function MessagesView({ user, isNew, isShare }) {
 
     return (
         <Container className="full-height-container d-flex flex-column">
-            <HeaderBar title={chatTitle} userUid={user.uid} chatId={chatId} messages={messages}/>
+            <HeaderBar initialTitle={chatTitle} userUid={user.uid} chatId={chatId} messages={messages}/>
             <ListGroup className="messages-container flex-grow-1 overflow-auto">
                 {messages.map(msg => (
                     <Message key={msg.id}
