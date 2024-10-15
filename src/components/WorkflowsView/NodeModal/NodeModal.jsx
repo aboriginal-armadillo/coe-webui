@@ -3,6 +3,7 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import BuildABotModal from "../../Bots/BuildABot/BuildABot";
 import { Controlled as CodeMirror } from "react-codemirror2";
 import UserInputForm from "./UserInputForm";
+import FilterNodeModal from "./FilterNodeModal";
 
 function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [nodeName, setNodeName] = useState('');
@@ -10,7 +11,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
     const [botData, setBotData] = useState(null);
     const [formFields, setFormFields] = useState(node?.data?.formFields || []);
-
+    const [showFilterNodeModal, setShowFilterNodeModal] = useState(false);
 
     useEffect(() => {
         if (node) {
@@ -31,6 +32,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                 code }};
 
         updateNodeData(updatedNode);
+        setShowFilterNodeModal(false);
         onHide();
     };
 
@@ -91,6 +93,11 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                                 />
                             </Form.Group>
                         )}
+                        {node?.coeType === 'Filter' && (
+                            <Button onClick={() => setShowFilterNodeModal(true)}>
+                                Configure Filter Node
+                            </Button>
+                        )}
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -109,6 +116,14 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                     onSave={handleBotSave}
                     isWorkflowBot={true}
                     nodeId={node.id}
+                />
+            )}
+            {node?.coeType === 'Filter' && (
+                <FilterNodeModal
+                    show={showFilterNodeModal}
+                    onHide={() => setShowFilterNodeModal(false)}
+                    node={node}
+                    onSave={handleSave}
                 />
             )}
         </>

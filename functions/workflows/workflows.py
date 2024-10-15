@@ -5,6 +5,7 @@ from firebase_admin import initialize_app
 
 from .bot import run_bot_node
 from .tool import execute_python_code
+from .filter import run_filter_node
 
 db = firestore.Client()
 
@@ -103,6 +104,11 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                         node['data']['output'] = {'error': result['error']}
                         node['data']['output']['stack_trace'] = result['stack_trace']
                         update_required = True
+                elif node['coeType'] == 'Filter':
+                    logger.log('running filter node')
+                    node = run_filter_node(node, event, logger)
+                    logger.log("Filter node executed")
+                    update_required = True
 
                 if update_required:
                     event.data.after.reference.update(run_data)
