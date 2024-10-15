@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button } from 'react-bootstrap';
+import {Table, Button, Spinner} from 'react-bootstrap';
 import { getFirestore, collection, query, orderBy, limit, onSnapshot, startAfter, getDocs } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWandMagicSparkles, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import Pagination from './Pagination';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { doc, deleteDoc } from 'firebase/firestore';
+import {getFunctions, httpsCallable} from "firebase/functions";
 
 const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingTags, setLoadingTags] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [lastDoc, setLastDoc] = useState(null);
     const [totalItems, setTotalItems] = useState(0);
@@ -18,6 +20,27 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
     const itemsPerPage = 10;
 
     const currentPageRef = useRef(currentPage);
+
+    const handleAddTags = async (itemId) => {
+        setLoadingTags((prev) => ({ ...prev, [itemId]: true }));
+        try {
+            const functions = getFunctions();
+            const addTagsFunction = httpsCallable(functions, 'add_tags');
+
+            // eslint-disable-next-line
+            const result = await addTagsFunction({
+                library: libraryOption === 'Public Library' ? 'public' : 'personal',
+                documentId: itemId,
+                uid: uid,
+            });
+
+
+        } catch (error) {
+            console.error('Error adding tags: ', error);
+        } finally {
+            setLoadingTags((prev) => ({ ...prev, [itemId]: false }));
+        }
+    };
 
     const handleDelete = async (itemId) => {
         try {
@@ -151,6 +174,7 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                             <th onClick={() => handleSortChange('description')}>
                                 Description <FontAwesomeIcon icon={getSortIcon('description')} />
                             </th>
+                            <th>Tags</th>
                             <th>Action</th>
                         </tr>
                         </thead>
@@ -161,6 +185,16 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                                 <td>{item.author}</td>
                                 <td>{item.tokenCount}</td>
                                 <td>{item.description ? item.description.substring(0, 400) : ''}</td>
+                                <td>
+                                    {item.tags ? item.tags.join(', ') : (
+                                        <Button
+                                            onClick={() => handleAddTags(item.id)}
+                                            disabled={loadingTags[item.id]}
+                                        >
+                                            {loadingTags[item.id] ? <Spinner animation="border" size="sm" /> : <FontAwesomeIcon icon={faWandMagicSparkles} />}
+                                        </Button>
+                                    )}
+                                </td>
                                 <td>
                                     {onClick ? (
                                         <Button className="me-2 mb-2" onClick={() => onClick(item)}>

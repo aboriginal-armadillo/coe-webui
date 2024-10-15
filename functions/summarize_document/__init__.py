@@ -1,5 +1,7 @@
 from councilofelders.llamaindex import LlamaIndexOpenAIAgent
 from firebase_functions import logger, https_fn
+from firebase_admin import firestore
+
 
 from requests import get, RequestException
 from ebooklib import epub
@@ -8,6 +10,7 @@ from bs4 import BeautifulSoup
 import fitz
 
 import tiktoken
+from openai import OpenAI
 
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
@@ -157,3 +160,91 @@ def summarize_document_local(request, db):
     except Exception as e:
         logger.error(f"Error summarizing document: {str(e)}")
         raise https_fn.HttpsError('internal', 'Failed to summarize the document. ' + str(e), details=str(e))
+
+def add_tags_to_document_local(request, db):
+    try:
+        document_id = request.data['documentId']
+        library = request.data['library']
+        uid = request.data['uid']
+
+        # Lazy hack- just grab the first openai key you find
+        user_doc = db.collection('users').document(uid).get().to_dict()
+        api_keys = user_doc['apiKeys']
+        openai_api_key = next((key for key in api_keys if key['svc'] == 'OpenAI'), None)['apikey']
+
+
+        # Retrieve the document
+        if library == 'public':
+            document_ref = db.collection('public_library').document(document_id)
+        else:
+            user_ref = db.collection('users').document(uid)
+            document_ref = user_ref.collection('library').document(document_id)
+
+        doc = document_ref.get()
+        if not doc.exists:
+            raise https_fn.HttpsError('not-found', 'Document not found.')
+
+        document_data = doc.to_dict()
+
+        # Fetch document content
+        response = get(document_data["downloadUrl"])
+        content = response.content
+
+        # Decode and extract text
+        if document_data['filePath'].endswith('.epub'):
+            with open('./temp.epub', 'wb') as f:
+                f.write(content)
+            book = epub.read_epub('./temp.epub')
+            text = []
+            for item in book.get_items():
+                if item.get_type() == ebooklib.ITEM_DOCUMENT:
+                    soup = BeautifulSoup(item.get_body_content(), 'html.parser')
+                    text.append(soup.get_text())
+            decoded_content = '\n'.join(text)
+        elif document_data['filePath'].endswith('.pdf'):
+            pdf_document = fitz.open("pdf", content)
+            text = ""
+            for page_num in range(len(pdf_document)):
+                page = pdf_document.load_page(page_num)
+                text += page.get_text()
+            decoded_content = text
+        else:
+            decoded_content = content.decode('utf-8')
+
+            # Token handling
+        encoding = tiktoken.get_encoding("cl100k_base")
+        tokens = encoding.encode(decoded_content)
+        shortened_content = encoding.decode(tokens[:12000])  # Use first 12,000 tokens
+
+
+        # OpenAI API call to generate tags
+        prompt = (f"{shortened_content}\n\n"
+                  "The proceeding text is the first 12,000 tokens of a larger document. "
+                  "Please analyze and generate a brief, comma-separated list of potential tags (approximately 20) "
+                  "that capture the main topics or themes of this text, bearing in mind that there may be more content beyond this excerpt. "
+                  "Your answer should only be a comma seperated list of tags, no preamble or other text.\n\n"
+                  )
+
+        client = OpenAI(api_key=openai_api_key)
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+
+        tags_to_add = [tag.strip().lower() for tag in completion.choices[0].message.content.split(',') if tag.strip()]
+
+        # Update Firestore document with new tags
+        document_ref.update({'tags': firestore.ArrayUnion(tags_to_add)})
+
+        return {"tags": tags_to_add}
+
+    except Exception as e:
+        logger.error(f"Error adding tags: {str(e)}")
+        raise https_fn.HttpsError('internal', 'Failed to add tags to the document. ' + str(e), details=str(e))

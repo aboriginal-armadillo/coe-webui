@@ -29,7 +29,7 @@ from utils.rag import pubMedLoader, \
     fileLoader
 
 from libraryLoader import libraryLoader
-from summarize_document import summarize_document_local
+from summarize_document import summarize_document_local, add_tags_to_document_local
 
 from workflows.workflows import on_run_create, on_run_update
 
@@ -346,3 +346,13 @@ def summarize_document(request: https_fn.CallableRequest) -> dict:
     logger.log("Summarizing document")
     summarize_document_local(request, db)
     return {"status": "success"}
+
+@https_fn.on_call(memory=options.MemoryOption.GB_1)
+def add_tags(request: https_fn.CallableRequest) -> dict:
+    """
+    :param request:
+    :return:
+    """
+    logger.log("add_tags called")
+    tags = add_tags_to_document_local(request, db)
+    return {"status": "success", 'tags': tags}
