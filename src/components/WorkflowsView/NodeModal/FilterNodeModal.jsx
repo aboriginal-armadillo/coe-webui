@@ -1,25 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, ListGroup } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Modal, Button, Form } from 'react-bootstrap';
 
 const FilterNodeModal = ({ show, onHide, node, onSave }) => {
     const [inputVar, setInputVar] = useState(node?.data?.inputVar || '');
     const [outputVar, setOutputVar] = useState(node?.data?.outputVar || '');
-    const [items, setItems] = useState([]);
-
-    useEffect(() => {
-        if (node?.data?.input && inputVar) {
-            setItems(node.data.input[inputVar] || []);
-        }
-    }, [node, inputVar]);
 
     const handleSave = () => {
+
+        const newData = {
+            ...node.data,
+            inputVar,
+            outputVar,
+        }
+        console.log('handleSave', newData);
         onSave({
             ...node,
-            data: {
-                ...node.data,
-                inputVar,
-                outputVar,
-            }
+            data: newData
         });
         onHide();
     };

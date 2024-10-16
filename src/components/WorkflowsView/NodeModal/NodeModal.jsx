@@ -22,10 +22,11 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
         }
     }, [node]);
 
-    const handleSave = () => {
+    const handleSave = (updatedNodeData) => {
 
         const updatedNode = { ...node,
             data: { ...node.data,
+                ...updatedNodeData.data,
                 label: nodeName,
                 bot: botData,
                 formFields,
