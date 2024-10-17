@@ -200,6 +200,20 @@ function WorkflowsView({ user }) {
         }
     };
 
+    const handleDeleteNode = async (nodeToDelete) => {
+        const updatedNodes = nodes.filter((node) => node.id !== nodeToDelete.id);
+        setNodes(updatedNodes);
+
+        // Optionally remove associated edges
+        const updatedEdges = edges.filter(
+            (edge) => edge.source !== nodeToDelete.id && edge.target !== nodeToDelete.id
+        );
+        setEdges(updatedEdges);
+
+        await updateFirestore(workflowId, updatedNodes, updatedEdges);
+
+        setShowNodeModal(false); // Close the modal after deletion
+    };
     return (
         <Container>
             <Row className="mb-3">
@@ -235,9 +249,10 @@ function WorkflowsView({ user }) {
                 updateNodeData={updateNodeData}
                 user={user}
                 workflowId={workflowId}
-                showToolNodeModal={showToolNodeModal} // Prop for showing ToolNodeModal
-                setShowToolNodeModal={setShowToolNodeModal} // Prop for ToolNodeModal visibility control
-                addToolNode={addToolNode} // Prop for adding Tool Node
+                showToolNodeModal={showToolNodeModal}
+                setShowToolNodeModal={setShowToolNodeModal}
+                addToolNode={addToolNode}
+                handleDeleteNode={handleDeleteNode}
             />
 
             <div>

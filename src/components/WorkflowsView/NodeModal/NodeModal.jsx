@@ -5,7 +5,7 @@ import { Controlled as CodeMirror } from "react-codemirror2";
 import UserInputForm from "./UserInputForm";
 import FilterNodeModal from "./FilterNodeModal";
 
-function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
+function NodeModal({ show, onHide, node, workflowId, updateNodeData, user, handleDeleteNode }) {
     const [nodeName, setNodeName] = useState('');
     const [code, setCode] = useState('');
     const [showBuildBotModal, setShowBuildBotModal] = useState(false);
@@ -42,6 +42,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
         setShowBuildBotModal(false);
 
     };
+
 
     return (
         <>
@@ -102,6 +103,7 @@ function NodeModal({ show, onHide, node, workflowId, updateNodeData, user }) {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
+                    <Button variant="danger" onClick={() => handleDeleteNode(node)}>Delete Node</Button>
                     <Button variant="secondary" onClick={onHide}>Close</Button>
                     <Button variant="primary" onClick={handleSave}>Save changes</Button>
                 </Modal.Footer>
