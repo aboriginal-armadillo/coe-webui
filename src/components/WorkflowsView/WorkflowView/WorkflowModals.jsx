@@ -3,7 +3,11 @@ import BuildABotModal from '../../Bots/BuildABotModal/BuildABotModal';
 import NodeModal from '../NodeModal/NodeModal';
 import ToolNodeModal from '../NodeModal/ToolNodeModal'; // Import the ToolNodeModal
 
-const WorkflowModals = ({ showBuildBotModal, setShowBuildBotModal, selectedNode, showNodeModal, setShowNodeModal, updateNodeData, user, workflowId, showToolNodeModal, setShowToolNodeModal, addToolNode }) => (
+const WorkflowModals = ({ showBuildBotModal, setShowBuildBotModal, selectedNode,
+                                showNodeModal, setShowNodeModal, updateNodeData,
+                                user, workflowId, showToolNodeModal,
+                                setShowToolNodeModal, addToolNode,
+                        handleDeleteNode}) => (
     <>
         <BuildABotModal
             show={showBuildBotModal}
@@ -21,6 +25,7 @@ const WorkflowModals = ({ showBuildBotModal, setShowBuildBotModal, selectedNode,
             user={user}
             workflowId={workflowId}
             updateNodeData={updateNodeData}
+            handleDeleteNode={handleDeleteNode}
         />
 
         <ToolNodeModal
