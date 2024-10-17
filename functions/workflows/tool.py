@@ -33,6 +33,7 @@ def execute_python_code(node: dict, event) -> dict:
                         'user_id': event.params['user_id']}
         if 'input' in node['data']:
             preload_vars['node_input'] = node['data']['input']
+            preload_vars['output'] = node['data']['input']
         # Preload variables
         preload_code = "\n".join(f"{key} = {json.dumps(value)}" for key, value in preload_vars.items())
 

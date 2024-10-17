@@ -1,3 +1,5 @@
+import traceback
+
 def run_filter_node(node, event, logger):
     """
     Process a Filter Node
@@ -17,8 +19,11 @@ def run_filter_node(node, event, logger):
 
             # For the example here, we simulate the selection of all items
             selected_items = items
-
-            node['data']['output'] = {node['data']['outputVar']: selected_items}
+            logger.log(f"Input: {node['data']['input'].keys()}")
+            node['data']['output'] = node['data']['input']
+            logger.log(f"Output: {node['data']['output'].keys()}")
+            node['data']['output']['outputVar'] = selected_items
+            logger.log(f"Output: {node['data']['output'].keys()}")
             node['data']['status'] = "complete"
 
         else:
@@ -27,9 +32,10 @@ def run_filter_node(node, event, logger):
             node['data']['output'] = {"error": "Input variable does not exist."}
 
     except Exception as e:
-        logger.error(f"Error processing filter node: {str(e)}")
+        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
+        logger.error(f"Error processing filter node: {error_message}")
         node['data']['status'] = "error"
-        node['data']['output'] = {"error": str(e)}
+        node['data']['output'] = {"error": error_message}
 
     return node
 

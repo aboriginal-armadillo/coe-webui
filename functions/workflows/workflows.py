@@ -1,3 +1,4 @@
+import copy
 
 from firebase_functions import firestore_fn, logger, options
 from google.cloud import firestore
@@ -8,6 +9,17 @@ from .tool import execute_python_code
 from .filter import run_filter_node
 
 db = firestore.Client()
+
+def set_initial_nodes(run_data):
+    # Get all node IDs that are targets of any edges
+    target_node_ids = {edge['target'] for edge in run_data['edges']}
+
+    # Iterate over all nodes and set the status to 'preparing to run'
+    # if the node is not a target of any edge
+    for node in run_data['nodes']:
+        if node['id'] not in target_node_ids:
+            node['data']['status'] = 'preparing to run'
+    return run_data
 
 @firestore_fn.on_document_created(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.MB_512)
@@ -30,8 +42,8 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 if 'data' in node:
                     node['data']['status'] = 'queued'
 
-        # cheap hack to set init node
-        run_data['nodes'][0]['data']['status'] = 'preparing to run'
+        # Set initial nodes to 'preparing to run' status based on the edge list
+        run_data = set_initial_nodes(run_data)
 
         # Get the document reference
         doc_ref = event.data.reference
@@ -58,8 +70,6 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         update_required = False
         # Get the old and new document data
         run_data = event.data.after.to_dict()
-        # event.data.after.reference.update({"doc_logs": firestore.ArrayUnion([f"Run Updating"])})
-        # run_data['doc_logs'].append("Run Updating")
 
         # Iterate through the list of nodes
         for node in run_data['nodes']:
@@ -71,19 +81,25 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                 just_completed_node_value = node['data']['output']
                 just_completed_node_id = node['id']
                 logger.log(f"Node {just_completed_node_id} just completed.")
-                # Iterate the list of edges
+
+                # Update subsequent nodes
                 for edge in run_data['edges']:
                     if edge['source'] == just_completed_node_id:
-                        logger.log(f"Edge found: {edge}")
-                        target_node = next(item for item in run_data['nodes'] if item['id'] == edge['target'])
-                        target_node['data']['status'] = "preparing to run"
-                        target_node['data']['input'] = just_completed_node_value
-                        # Update the document data with the new statuses
+                        target_node_id = edge['target']
+                        logger.log(f"Setting status of Node {target_node_id} to 'preparing to run'")
+                        # Find the target node in run_data['nodes']
+                        target_nodes = [item for item in run_data['nodes'] if item['id'] == target_node_id]
+                        logger.log(f"Found {len(target_nodes)} target nodes.")
+                        for target_node in target_nodes:
+                            target_node['data']['status'] = "preparing to run"
+                            target_node['data']['input'] = just_completed_node_value
+                            update_required = True
 
             elif 'data' in node and node['data']['status'] == "preparing to run":
                 logger.log(f"Node {node['id']} preparing to run")
                 node['data']['status'] = "running"
                 event.data.after.reference.update(run_data)
+                node['data']['output'] = copy.deepcopy(node['data']['input'])
                 if node['coeType'] == 'LLM Node':
                     logger.log('running bot node')
                     node = run_bot_node(node, event, db, logger)
@@ -110,8 +126,8 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
                     logger.log("Filter node executed")
                     update_required = True
 
-                if update_required:
-                    event.data.after.reference.update(run_data)
+            if update_required:
+                event.data.after.reference.update(run_data)
 
 
     except Exception as e:

@@ -53,6 +53,7 @@ const FilterNodeDetails = ({ node, open, setOpen, workflowId, runId, user }) => 
             data: {
                 ...node.data,
                 output: {
+                    ...node.data.output,
                     [node.data.outputVar]: selectedItems
                 },
                 status: 'just completed'
