@@ -74,17 +74,20 @@ const UserInputDetails = ({ node, user, workflowId, runId, onHide }) => {
             ) : (
                 <>
                     <Form>
-                        {node.data.formFields.map((field, index) => (
-                            <Form.Group key={field.id} controlId={`formInput-${field.id}`}>
-                                <Form.Label>{field.label}</Form.Label>
-                                <Form.Control
-                                    type={field.type}
-                                    defaultValue={field.value || formInput[field.id]}
-                                    onChange={(e) => handleInputChange(field.id, index, e.target.value)}
-                                />
-                            </Form.Group>
-                        ))}
+                        {node.data.formFields &&
+                            node.data.formFields.map((field, index) => (
+                                <Form.Group key={field.id} controlId={`formInput-${field.id}`}>
+                                    <Form.Label>{field.label}</Form.Label>
+                                    <Form.Control
+                                        type={field.type}
+                                        defaultValue={field.value || formInput[field.id]}
+                                        onChange={(e) => handleInputChange(field.id, index, e.target.value)}
+                                    />
+                                </Form.Group>
+                            ))
+                        }
                     </Form>
+
                     <Button variant="primary" onClick={handleSave}>Save changes</Button>
                 </>
             )}
