@@ -7,6 +7,7 @@ from firebase_admin import initialize_app
 from .bot import run_bot_node
 from .tool import execute_python_code
 from .filter import run_filter_node
+from .v2 import get_node_processor
 
 db = firestore.Client()
 
@@ -129,6 +130,56 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
             if update_required:
                 event.data.after.reference.update(run_data)
 
+
+    except Exception as e:
+        logger.log(f"Error in on_run_update function: {str(e)}")
+        raise e
+
+@firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
+                                  memory=options.MemoryOption.GB_2,
+                                  timeout_sec=600)
+def on_run_update_v2(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) \
+        -> None:
+    logger.log("Run Updating")
+    try:
+        update_required = False
+        run_data = event.data.after.to_dict()
+
+        for node in run_data['nodes']:
+            if 'data' in node and node['data']['status'] == "just completed":
+                update_required = True
+
+                node['data']['status'] = "complete"
+
+                just_completed_node_value = node['data']['output']
+                just_completed_node_id = node['id']
+                logger.log(f"Node {just_completed_node_id} just completed.")
+
+                # Update subsequent nodes
+                for edge in run_data['edges']:
+                    if edge['source'] == just_completed_node_id:
+                        target_node_id = edge['target']
+                        logger.log(f"Setting status of Node {target_node_id} to 'preparing to run'")
+                        # Find the target node in run_data['nodes']
+                        target_nodes = [item for item in run_data['nodes'] if item['id'] == target_node_id]
+                        logger.log(f"Found {len(target_nodes)} target nodes.")
+                        for target_node in target_nodes:
+                            target_node['data']['status'] = "preparing to run"
+                            target_node['data']['input'] = just_completed_node_value
+                            update_required = True
+
+            elif 'data' in node and node['data']['status'] == "preparing to run":
+                logger.log(f"Node {node['id']} preparing to run")
+                node['data']['status'] = "running"
+                event.data.after.reference.update(run_data)
+                node['data']['output'] = copy.deepcopy(node['data']['input'])
+                processor = get_node_processor(node, event, db, logger)
+                node = processor.process_node()
+                node['data']['status'] = 'just completed'
+                update_required = True
+
+        if update_required:
+            event.data.after.reference.update(run_data)
 
     except Exception as e:
         logger.log(f"Error in on_run_update function: {str(e)}")
