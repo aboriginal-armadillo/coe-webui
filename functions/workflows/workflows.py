@@ -59,7 +59,7 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
 
 @firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.GB_2,
-                                  timeout_sec=600)
+                                  timeout_sec=539)
 def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> None:
     """
     Function that triggers on document updates in Firestore.
