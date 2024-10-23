@@ -7,13 +7,15 @@ from councilofelders.openai import OpenAIAgent
 from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
 from councilofelders.vertex import GemeniAgent
 
-def run_bot_node(node, event, db, logger):
+from.v2 import LLMNode
+
+def run_bot_node(node: LLMNode, event, db, logger):
     """
 
     :return:
     """
-    service = node['data']['bot']['service']
-    model = node['data']['bot']['model']
+    service = node.data['bot']['service']
+    model = node.model
     system_prompt = node['data']['bot']['systemPrompt']
     temperature = node['data']['bot']['temperature']
     name = node['data']['bot']['name']
@@ -85,11 +87,13 @@ def run_bot_node(node, event, db, logger):
     node['data']['output'] = copy.deepcopy(node['data']['input'])
     node['data']['output'][name+'_prompt'] = node['data']['input']['prompt']
     del(node['data']['output']['prompt'])
-    node['data']['output'][name] = msg
-    node['data']['status'] = "complete"
+
 
     if service=="RAG: OpenAI+Pinecone":
         logger.log("Adding sources to the response")
         node['data']["sources"] = elders.agents[0].sources
+
+    node.status = "just completed"
+    node.output = {"result": msg}  # Assuming msg is the result to output
 
     return node
