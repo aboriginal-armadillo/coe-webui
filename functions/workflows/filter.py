@@ -1,9 +1,13 @@
 import traceback
+from.v2 import FilterNode
 
-def run_filter_node(node, event, logger):
+def run_filter_node(node: FilterNode, event, logger):
+
     """
     Process a Filter Node
     """
+    input_var = node.inputVar
+    output_var = node.outputVar
 
     try:
         if 'inputVar' not in node['data'] or 'outputVar' not in node['data']:
@@ -20,16 +24,16 @@ def run_filter_node(node, event, logger):
             # For the example here, we simulate the selection of all items
             selected_items = items
             logger.log(f"Input: {node['data']['input'].keys()}")
-            node['data']['output'] = node['data']['input']
+            node.output = node['data']['input']
             logger.log(f"Output: {node['data']['output'].keys()}")
-            node['data']['output']['outputVar'] = selected_items
+            node.output['outputVar'] = selected_items
             logger.log(f"Output: {node['data']['output'].keys()}")
-            node['data']['status'] = "complete"
+            node.status = "complete"
 
         else:
             logger.error("Input variable does not exist in node input.")
-            node['data']['status'] = "error"
-            node['data']['output'] = {"error": "Input variable does not exist."}
+            node.status = "error"
+            node.output = {"error": "Input variable does not exist."}
 
     except Exception as e:
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))

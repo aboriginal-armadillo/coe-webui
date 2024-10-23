@@ -19,12 +19,15 @@ from RestrictedPython.Eval import default_guarded_getiter
 from RestrictedPython.Guards import full_write_guard
 
 
+
+from.v2 import ToolNode
+
 from typing import Any
 import json
 
 
-def execute_python_code(node: dict, event) -> dict:
-    code = node['data']['code']
+def execute_python_code(node: ToolNode, event) -> dict:
+    code = node.code
     _print_ = PrintCollector
 
 
@@ -63,6 +66,8 @@ def execute_python_code(node: dict, event) -> dict:
         else:
             std_out = "No data in stdout."
 
+        node.status = "success"
+        node.output = {"result": output_data}  # Assuming result is the output to set
         return {'status': 'success', 'output_variable': output_data, 'stdout': std_out}
 
     except Exception as e:
