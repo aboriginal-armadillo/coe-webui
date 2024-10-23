@@ -29,6 +29,7 @@ function ApiKeyMgmt({ user }) {
                 return;
             }
         }
+        console.log("newUserApiKey", newUserApiKey);
         const updatedApiKeys = [...userData.apiKeys, newUserApiKey];
         const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
@@ -95,6 +96,7 @@ function ApiKeyMgmt({ user }) {
                         <Dropdown.Item eventKey="Pinecone">Pinecone</Dropdown.Item>
                         <Dropdown.Item eventKey="Github">Github</Dropdown.Item>
                         <Dropdown.Item eventKey="Google">Google</Dropdown.Item>
+                        <Dropdown.Item eventKey="deepinfra">deepinfra</Dropdown.Item>
                     </DropdownButton>
                 </Col>
                 <Col xs={4}>

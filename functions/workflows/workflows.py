@@ -1,5 +1,8 @@
 import copy
 
+from .v2 import Node, LLMNode, ToolNode, FilterNode, FilterNodeProcessor, \
+    ToolNodeProcessor, BotNodeProcessor
+
 from firebase_functions import firestore_fn, logger, options
 from google.cloud import firestore
 from firebase_admin import initialize_app
@@ -60,7 +63,7 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
 
 @firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.GB_2,
-                                  timeout_sec=600)
+                                  timeout_sec=539)
 def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> None:
     """
     Function that triggers on document updates in Firestore.
@@ -146,6 +149,7 @@ def on_run_update_v2(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) \
         run_data = event.data.after.to_dict()
 
         for node in run_data['nodes']:
+
             if 'data' in node and node['data']['status'] == "just completed":
                 update_required = True
 
@@ -177,7 +181,17 @@ def on_run_update_v2(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) \
                 node = processor.process_node()
                 node['data']['status'] = 'just completed'
                 update_required = True
-
+            elif isinstance(node, Node):
+                if node.status == "preparing to run":
+                    if isinstance(node, LLMNode):
+                        processor = BotNodeProcessor(node, event, db, logger)
+                    elif isinstance(node, ToolNode):
+                        processor = ToolNodeProcessor(node, event, db, logger)
+                    elif isinstance(node, FilterNode):
+                        processor = FilterNodeProcessor(node, event, db, logger)
+                    node = processor.process_node()
+                    node.status = "just completed"
+                    update_required = True
         if update_required:
             event.data.after.reference.update(run_data)
 

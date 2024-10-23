@@ -8,6 +8,7 @@ from typing import Any
 
 from councilofelders.cohort import Cohort
 from councilofelders.openai import OpenAIAgent
+from councilofelders.deepinfra import DeepInfraAgent
 from councilofelders.anthropic import AnthropicAgent
 from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
 from councilofelders.vertex import GemeniAgent
@@ -167,6 +168,13 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                 name=req.data['name'],
                                 api_key=api_key)
             logger.log("Agent created")
+        elif service == "deepinfra":
+            logger.log("deepinfra service selected")
+            agent = DeepInfraAgent(model=req.data['model'],
+                                system_prompt=req.data['system_prompt'],
+                                temperature=req.data['temperature'],
+                                name=req.data['name'],
+                                api_key=api_key)
         elif service == "Anthropic":
             logger.log("Anthropic service selected")
             agent = AnthropicAgent(model=req.data['model'],
