@@ -42,7 +42,7 @@ const GithubToString = ({ user, navigate, chatId, messages, onClose }) => {
                 Authorization: `token ${apiKey}`
             }
         });
-
+        console.log('Response: ', response.data);
         const files = response.data;
 
         for (const file of files) {
