@@ -4,6 +4,7 @@ from firebase_functions import logger
 from..bot import run_bot_node
 from..tool import execute_python_code
 from..filter import run_filter_node
+from. import utils, mixins
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
@@ -51,7 +52,8 @@ class FilterNode(Node):
     inputVar: str = ""  # Input variable to filter
     outputVar: str = ""  # Output variable after filtering
 
-class NodeProcessor(ABC):
+
+class NodeProcessor(ABC, mixins.NodeProcessorMixin):
     def __init__(self, node, event, db, local_logger: logger):
         self.node = node
         self.event = event
@@ -65,26 +67,34 @@ class NodeProcessor(ABC):
 
 class BotNodeProcessor(NodeProcessor):
     def process_node(self):
-        return run_bot_node(self.node, self.event, self.db, self.logger)
+        node = self._run_node(self.node, self.event, self.db, self.logger)
+        node = run_bot_node(node, self.event, self.db, self.logger)
+        utils.update_node_status(node, 'just completed', self.logger)
+        self.event.data.after.reference.update(self._update_subsequent_nodes(self.event.data.after.to_dict(), node, self.logger))
+        return node
 
 
 class ToolNodeProcessor(NodeProcessor):
     def process_node(self):
-        result = execute_python_code(self.node, self.event)
+        node = self._run_node(self.node, self.event, self.db, self.logger)
+        result = execute_python_code(node, self.event)
         if result['status'] == 'success':
-            self.node['data']['output'] = result['output_variable']
-            self.node['data']['stdout'] = result['stdout']
-            self.node['data']['status'] = 'just completed'
+            utils.update_node_output(node, result['output_variable'], self.logger)
+            utils.update_node_status(node, 'just completed', self.logger)
         elif result['status'] == 'error':
-            self.node['data']['status'] = 'failed'
-            self.node['data']['output'] = {'error': result['error']}
-            self.node['data']['output']['stack_trace'] = result['stack_trace']
-        return self.node
+            utils.update_node_output(node, {'error': result['error']}, self.logger)
+            utils.update_node_status(node, 'failed', self.logger)
+        self.event.data.after.reference.update(self._update_subsequent_nodes(self.event.data.after.to_dict(), node, self.logger))
+        return node
 
 
 class FilterNodeProcessor(NodeProcessor):
     def process_node(self):
-        return run_filter_node(self.node, self.event, self.logger)
+        node = self._run_node(self.node, self.event, self.db, self.logger)
+        node = run_filter_node(node, self.event, self.logger)
+        utils.update_node_status(node, 'just completed', self.logger)
+        self.event.data.after.reference.update(self._update_subsequent_nodes(self.event.data.after.to_dict(), node, self.logger))
+        return node
 
 
 def get_node_processor(node: Node, event, db, local_logger):

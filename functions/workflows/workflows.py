@@ -1,7 +1,7 @@
 import copy
 
 from .v2 import Node, LLMNode, ToolNode, FilterNode, FilterNodeProcessor, \
-    ToolNodeProcessor, BotNodeProcessor
+    ToolNodeProcessor, BotNodeProcessor, utils, mixins
 
 from firebase_functions import firestore_fn, logger, options
 from google.cloud import firestore
@@ -174,12 +174,10 @@ def on_run_update_v2(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) \
 
             elif 'data' in node and node['data']['status'] == "preparing to run":
                 logger.log(f"Node {node['id']} preparing to run")
-                node['data']['status'] = "running"
-                event.data.after.reference.update(run_data)
-                node['data']['output'] = copy.deepcopy(node['data']['input'])
                 processor = get_node_processor(node, event, db, logger)
+                node = processor._run_node(node, event, db, logger)
                 node = processor.process_node()
-                node['data']['status'] = 'just completed'
+                utils.update_node_status(node, 'just completed', logger)
                 update_required = True
             elif isinstance(node, Node):
                 if node.status == "preparing to run":
@@ -193,7 +191,7 @@ def on_run_update_v2(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) \
                     node.status = "just completed"
                     update_required = True
         if update_required:
-            event.data.after.reference.update(run_data)
+            event.data.after.reference.update(utils._update_subsequent_nodes(run_data, node, logger))
 
     except Exception as e:
         logger.log(f"Error in on_run_update function: {str(e)}")
