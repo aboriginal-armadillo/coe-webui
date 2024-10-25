@@ -1,3 +1,4 @@
+import traceback
 from abc import ABC, abstractmethod
 from firebase_functions import logger
 
@@ -53,6 +54,19 @@ class FilterNode(Node):
     outputVar: str = ""  # Output variable after filtering
 
 
+def handle_exceptions(logger):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
+                logger.error(f"Error processing node: {error_message}")
+                # Optionally, you can also return a default error response
+                # return {'status': 'error', 'error': str(e)}
+        return wrapper
+    return decorator
+
 class NodeProcessor(ABC, mixins.NodeProcessorMixin):
     def __init__(self, node, event, db, local_logger: logger):
         self.node = node
@@ -60,6 +74,7 @@ class NodeProcessor(ABC, mixins.NodeProcessorMixin):
         self.db = db
         self.logger = local_logger
 
+    @handle_exceptions(logger)
     @abstractmethod
     def process_node(self):
         pass

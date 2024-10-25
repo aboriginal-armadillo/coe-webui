@@ -7,8 +7,10 @@ from councilofelders.openai import OpenAIAgent
 from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
 from councilofelders.vertex import GemeniAgent
 
-from.v2 import LLMNode
+from.v2 import LLMNode, handle_exceptions
 
+
+@handle_exceptions
 def run_bot_node(node: LLMNode, event, db, logger):
     """
 

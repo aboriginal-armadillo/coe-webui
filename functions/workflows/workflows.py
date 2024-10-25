@@ -10,7 +10,7 @@ from firebase_admin import initialize_app
 from .bot import run_bot_node
 from .tool import execute_python_code
 from .filter import run_filter_node
-from .v2 import get_node_processor
+from .v2 import get_node_processor, handle_exceptions
 
 db = firestore.Client()
 
@@ -25,6 +25,8 @@ def set_initial_nodes(run_data):
             node['data']['status'] = 'preparing to run'
     return run_data
 
+
+@handle_exceptions
 @firestore_fn.on_document_created(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.MB_512)
 def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> None:
@@ -61,6 +63,8 @@ def on_run_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         logger.error(f"Error in on_run_create function: {str(e)}")
         raise e
 
+
+@handle_exceptions
 @firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.GB_2,
                                   timeout_sec=539)
@@ -138,6 +142,8 @@ def on_run_update(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> N
         logger.log(f"Error in on_run_update function: {str(e)}")
         raise e
 
+
+@handle_exceptions
 @firestore_fn.on_document_updated(document= '/users/{user_id}/workflows/{workflow_id}/runs/{run_id}',
                                   memory=options.MemoryOption.GB_2,
                                   timeout_sec=600)

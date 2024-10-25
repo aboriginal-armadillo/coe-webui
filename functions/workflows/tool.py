@@ -19,13 +19,14 @@ from RestrictedPython.Eval import default_guarded_getiter
 from RestrictedPython.Guards import full_write_guard
 
 
-
+from .v2.__init__ import handle_exceptions
 from.v2 import ToolNode
 
 from typing import Any
 import json
 
 
+@handle_exceptions
 def execute_python_code(node: ToolNode, event) -> dict:
     code = node.code
     _print_ = PrintCollector

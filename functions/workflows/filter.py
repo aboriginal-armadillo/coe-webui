@@ -1,6 +1,8 @@
 import traceback
-from.v2 import FilterNode
+from.v2 import FilterNode, handle_exceptions
 
+
+@handle_exceptions
 def run_filter_node(node: FilterNode, event, logger):
 
     """
