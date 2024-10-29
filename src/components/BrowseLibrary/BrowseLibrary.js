@@ -198,9 +198,9 @@ const BrowseLibrary = ({ uid, libraryOption, onClick, buttonIcon }) => {
                                 <td>
                                     {onClick ? (
                                         <Button className="me-2 mb-2" onClick={() => onClick(item)}>
-                                            <FontAwesomeIcon
-                                                icon={buttonIcon || faWandMagicSparkles}
-                                            />
+                                            {buttonIcon || <FontAwesomeIcon
+                                                icon={faWandMagicSparkles}
+                                            /> }
                                         </Button>
                                     ) : null}
                                     <Button variant="danger" className="me-2 mb-2" onClick={() => handleDelete(item.id)}>
