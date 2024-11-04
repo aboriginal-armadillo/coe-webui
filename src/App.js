@@ -19,25 +19,10 @@ import ManagePinecone from "./components/rag/ManagePinecone/ManagePinecone";
 import ShareMessagesView from "./components/MessagesView/ShareMessagesView/ShareMessagesView";
 import BrowseLibraryView from "./components/BrowseLibrary/BrowseLibraryView/BrowseLibraryView";
 import BuildABotPage from "./components/Bots/BuildABotPage/BuildABotPage";
-import WorkflowsView from "./components/WorkflowsView/WorkflowView/WorkflowsView";
-import RunView from "./components/WorkflowsView/Runs/RunView";
+import WorkflowBuilder from "./components/Workflows/WorkflowBuilder/WorkflowBuilder";
+import RunViewer from "./components/Workflows/RunViewer/RunViewer";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyA1pru2boBx0-N3NhfWpPXoy_bDGebMUSM",
-    authDomain: "council-of-elders-web-ui.firebaseapp.com",
-    projectId: "council-of-elders-web-ui",
-    storageBucket: "council-of-elders-web-ui.appspot.com",
-    messagingSenderId: "274516107404",
-    appId: "1:274516107404:web:96933f3fb2f86fd9addba9"
-};
-
-// Initialize Firebase
-// eslint-disable-next-line
-const app = initializeApp(firebaseConfig);
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -95,9 +80,9 @@ function App() {
                                 <Route path="/browse-my-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Personal Library'}/>} />
                                 <Route path="/browse-public-library" element={<BrowseLibraryView uid={user.uid} libraryOption={'Public Library'} />} />
                                 {/*<Route path="*" element={<Navigate to="/chat" />} />*/}
-                                <Route path="/workflows" element={<WorkflowsView user={user} isNew={false} />} />
-                                <Route path="/workflows/:workflowId" element={<WorkflowsView user={user} isNew={false} />} />
-                                <Route path="/workflows/:workflowId/runs/:runId" element={<RunView user={user} />} />
+                                <Route path="/workflows" element={<WorkflowBuilder user={user} isNew={false} />} />
+                                <Route path="/workflows/:workflowId" element={<WorkflowBuilder user={user} isNew={false} />} />
+                                <Route path="/workflows/:workflowId/runs/:runId" element={<RunViewer user={user} />} />
                             </Routes>
                         </div>
                     </>
