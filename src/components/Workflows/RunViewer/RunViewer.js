@@ -38,7 +38,7 @@ const RunViewer = ({ user }) => {
         setRunName(data.runName || `Run ${runId}`);
       }
     });
-  }, [runId, workflowId]);
+  }, [runId, workflowId, user.uid]);
 
     const handleRunNameChange = (event) => {
     setRunName(event.target.value);
@@ -106,7 +106,6 @@ const RunViewer = ({ user }) => {
         }))
       );
     });
-    console.log('nodes: ', nodes);
     return () => {
       unsubscribeRun();
         unsubscribeNodes();

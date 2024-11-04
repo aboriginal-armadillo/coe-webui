@@ -6,7 +6,8 @@ import AccountPage from './components/AccountPage/AccountPage';
 import MessagesView from './components/MessagesView/MessagesView';
 // import Header from './components/Header/Header';
 // import Footer from './components/Footer/Footer';
-// Import the functions you need from the SDKs you need
+
+// eslint-disable-next-line
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import ApiKeyMgmt from "./components/ApiKeyMgmt/ApiKeyMgmt";

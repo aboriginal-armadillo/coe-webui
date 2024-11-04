@@ -6,12 +6,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import {Button} from "react-bootstrap";
 
-const RunsList = ({ workflowId }) => {
+const RunsList = ({ workflowId, user }) => {
   const [runs, setRuns] = useState([]);
 
   useEffect(() => {
     const db = getFirestore(app);
-    const workflowRef = doc(db, 'workflows', workflowId);
+    const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
     const runsCollection = collection(workflowRef, 'runs');
 
     const unsubscribe = onSnapshot(runsCollection, (snapshot) => {
@@ -23,12 +23,12 @@ const RunsList = ({ workflowId }) => {
     });
 
     return () => unsubscribe();
-  }, [workflowId]);
+  }, [workflowId, user.uid]);
 
   const deleteRun = async (runId) => {
     try {
       const db = getFirestore(app);
-      const runRef = doc(db, 'workflows', workflowId, 'runs', runId);
+      const runRef = doc(db,'users', user.uid, 'workflows', workflowId, 'runs', runId);
       await deleteDoc(runRef);
       alert(`Run ${runId} deleted.`);
     } catch (error) {
@@ -42,7 +42,7 @@ const RunsList = ({ workflowId }) => {
       <ul>
         {runs.map((run) => (
           <li key={run.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link to={`/workflow/${workflowId}/runs/${run.id}`}>{run.runName || `Run ${run.id}`}</Link>
+            <Link to={`/workflows/${workflowId}/runs/${run.id}`}>{run.runName || `Run ${run.id}`}</Link>
             <Button onClick={() => deleteRun(run.id)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
               <FontAwesomeIcon icon={faTrash} style={{ color: 'red' }} />
             </Button>

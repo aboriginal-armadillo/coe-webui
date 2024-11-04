@@ -42,7 +42,7 @@ const WorkflowBuilder = ({user}) => {
     });
 
     return () => unsubscribe();
-  }, [workflowId]);
+  }, [workflowId, user.uid]);
 
   // Save the graph whenever nodes or edges change, and ensure the data is loaded
   useEffect(() => {
@@ -52,7 +52,7 @@ const WorkflowBuilder = ({user}) => {
     const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
     const graphData = { nodes, edges };
     setDoc(workflowRef, { graph: graphData }, { merge: true });
-  }, [nodes, edges, workflowId]);
+  }, [nodes, edges, workflowId, user.uid]);
 
   const handleNodeClick = (event, node) => {
     setModalNode(node);
@@ -113,10 +113,7 @@ const WorkflowBuilder = ({user}) => {
 
       // Call the cloud function with workflow_id and run_id
       const result = await createRunFunction({ workflow_id: workflowId, run_id });
-      console.log('Cloud Function result:', result.data);
-
-      alert('Workflow saved and run started!');
-      navigate(`/workflow/${workflowId}/runs`);
+      navigate(`/workflows/${workflowId}/runs/${result.data.run_id}`);
     } catch (error) {
       console.error('Error calling cloud function:', error);
       alert('Error starting run.');
@@ -158,7 +155,7 @@ const WorkflowBuilder = ({user}) => {
           />
         )}
       </div>
-      <RunsList workflowId={workflowId} />
+      <RunsList workflowId={workflowId} user={user}/>
     </div>
   );
 };

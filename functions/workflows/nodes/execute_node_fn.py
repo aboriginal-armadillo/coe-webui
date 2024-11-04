@@ -13,10 +13,10 @@ from RestrictedPython.Guards import safe_builtins, guarded_iter_unpack_sequence
 from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
 from RestrictedPython.Guards import full_write_guard
 
-def execute_node_fn(workflow_id, run_id, node_id, node_data, uid):
-    log_to_run(uid, workflow_id, run_id, f"Executing node function for node {node_id}")
+def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
+    log_to_run(user_id, workflow_id, run_id, f"Executing node function for node {node_id}")
     # Update node status to 'Running'
-    update_node_status(uid, workflow_id, run_id, node_id, 'running')
+    update_node_status(user_id, workflow_id, run_id, node_id, 'running')
 
     try:
         # Fetch the code from node_data
@@ -64,16 +64,14 @@ def execute_node_fn(workflow_id, run_id, node_id, node_data, uid):
             std_out = ""
 
         # Store the output and update status to 'Completed'
-        store_node_output(uid, workflow_id, run_id, node_id, output_data, std_out)
-        update_node_status(uid, workflow_id, run_id, node_id, 'completed')
-
-
+        store_node_output(user_id, workflow_id, run_id, node_id, output_data, std_out)
+        update_node_status(user_id, workflow_id, run_id, node_id, 'completed')
 
     except Exception as e:
         stack_trace = traceback.format_exc()
-        update_node_status(uid, workflow_id, run_id, node_id, 'failed')
+        update_node_status(user_id, workflow_id, run_id, node_id, 'failed')
         error_message = f"Node {node_id} failed with error: {e}"
         print(error_message)
         # Log the error message and stack trace
-        log_to_run(uid, workflow_id, run_id, error_message)
-        log_to_run(uid, workflow_id, run_id, stack_trace)
+        log_to_run(user_id, workflow_id, run_id, error_message)
+        log_to_run(user_id, workflow_id, run_id, stack_trace)
