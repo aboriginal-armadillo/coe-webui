@@ -8,51 +8,77 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import app from '../../../firebase';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { v4 as uuidv4 } from 'uuid';
-import WorkflowBuilderModal from "../WorkflowBuilderModal/WorkflowBuilderModal";
-import RunsList from "../RunsList/RunsList";
+import WorkflowBuilderModal from '../WorkflowBuilderModal/WorkflowBuilderModal';
+import RunsList from '../RunsList/RunsList';
 
-const WorkflowBuilder = ({user}) => {
+const WorkflowBuilder = ({ user }) => {
   const { workflowId } = useParams();
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [modalNode, setModalNode] = useState(null);
+  const db = getFirestore(app);
 
-  const dataLoadedRef = useRef(false);
+  const updateRef = useRef(false); // Ref to control when saving should occur
 
   useEffect(() => {
-    const db = getFirestore(app);
-    const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+    const fetchWorkflowData = async () => {
+      try {
+        const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+        const docSnap = await getDoc(workflowRef);
 
-    // Fetch the graph
-    const unsubscribe = onSnapshot(workflowRef, (docSnap) => {
-      const data = docSnap.data();
-      const graph = data?.graph;
-      if (graph) {
-        setNodes(graph.nodes || []);
-        setEdges(graph.edges || []);
-        dataLoadedRef.current = true; // Set dataLoaded to true after data loads
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const graph = data?.graph;
+
+          if (graph) {
+            setNodes(graph.nodes || []);
+            setEdges(graph.edges || []);
+            console.log('Loaded workflow nodes and edges:', graph);
+          }
+          updateRef.current = false; // Reset update flag after loading
+        } else {
+          console.log('Workflow not found');
+          setError('Workflow not found.');
+        }
+      } catch (e) {
+        console.log('Error fetching the workflow:', e);
+        setError('An error occurred while fetching the workflow.');
+      } finally {
+        setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [workflowId, user.uid]);
+    fetchWorkflowData();
+    // Cleanup event listener to avoid updates when not necessary
+    return () => {
+      updateRef.current = false;
+    };
+  }, [workflowId, user.uid, db]);
 
-  // Save the graph whenever nodes or edges change, and ensure the data is loaded
+  const saveGraph = () => {
+    if (updateRef.current) {
+      const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+      const graphData = { nodes, edges };
+      setDoc(workflowRef, { graph: graphData }, { merge: true });
+      updateRef.current = false; // Reset the update flag after saving
+      console.log('Graph saved:', graphData);
+    }
+  };
+
   useEffect(() => {
-    if (!dataLoadedRef.current) return; // Only updates after initial load
-
-    const db = getFirestore(app);
-    const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
-    const graphData = { nodes, edges };
-    setDoc(workflowRef, { graph: graphData }, { merge: true });
-  }, [nodes, edges, workflowId, user.uid]);
+    // Only save if the updateRef is true which means there have been modifications
+    saveGraph();
+     // eslint-disable-next-line
+  }, [nodes, edges]); // Dependency on nodes and edges changes only
 
   const handleNodeClick = (event, node) => {
     setModalNode(node);
@@ -60,11 +86,11 @@ const WorkflowBuilder = ({user}) => {
 
   const handleSaveNode = (updatedNode) => {
     setNodes((nds) =>
-      nds.map((node) =>
-        node.id === updatedNode.id ? updatedNode : node
-      )
+      nds.map((node) => (node.id === updatedNode.id ? updatedNode : node))
     );
     setModalNode(null);
+    updateRef.current = true; // Set update flag true as nodes have changed
+    console.log('Node updated:', updatedNode);
   };
 
   const onAddNode = useCallback(() => {
@@ -76,49 +102,66 @@ const WorkflowBuilder = ({user}) => {
         position: { x: Math.random() * 250, y: Math.random() * 250 },
       })
     );
+    updateRef.current = true; // Setting flag true as a new node is added
+    console.log('Node added');
   }, []);
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params) => {
+      setEdges((eds) => addEdge(params, eds));
+      updateRef.current = true; // Setting flag when an edge is connected
+      console.log('Connected nodes with params:', params);
+    },
     []
   );
 
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+      updateRef.current = true; // Nodes have changed
+      console.log('Nodes changed:', changes);
+    },
     []
   );
 
   const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    (changes) => {
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+      updateRef.current = true; // Edges have changed
+      console.log('Edges changed:', changes);
+    },
     []
   );
 
   const onRun = async () => {
     try {
-      const db = getFirestore(app);
+      console.log('Starting workflow run');
       const functions = getFunctions(app);
       const createRunFunction = httpsCallable(functions, 'create_run');
 
-      // Save the updated workflow definition
-      const graphData = { nodes, edges };
-      const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
-      await setDoc(workflowRef, { graph: graphData }, { merge: true });
+      saveGraph(); // Save current graph data before running
 
-      // Generate run_id
       const run_id = uuidv4();
 
-      // Create run document
-      const runRef = doc(workflowRef, 'runs', run_id);
+      const runRef = doc(db, 'users', user.uid, 'workflows', workflowId, 'runs', run_id);
       await setDoc(runRef, { startedAt: new Date(), status: 'pending' });
 
-      // Call the cloud function with workflow_id and run_id
       const result = await createRunFunction({ workflow_id: workflowId, run_id });
+      console.log('Run started with ID:', result.data.run_id);
       navigate(`/workflows/${workflowId}/runs/${result.data.run_id}`);
     } catch (error) {
       console.error('Error calling cloud function:', error);
       alert('Error starting run.');
     }
   };
+
+  if (loading) {
+    return <div className="container">Loading workflow...</div>;
+  }
+
+  if (error) {
+    return <div className="container">{error}</div>;
+  }
 
   return (
     <div className="container">
@@ -151,11 +194,10 @@ const WorkflowBuilder = ({user}) => {
             node={modalNode}
             onHide={() => setModalNode(null)}
             onSave={handleSaveNode}
-
           />
         )}
       </div>
-      <RunsList workflowId={workflowId} user={user}/>
+      <RunsList workflowId={workflowId} user={user} />
     </div>
   );
 };

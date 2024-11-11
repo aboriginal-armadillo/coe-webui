@@ -43,10 +43,7 @@ function Sidebar({ user, isOpen, toggleSidebar }) {
         const workflowRef = await addDoc(collection(db, `users/${user.uid}/workflows`), {
             createdAt: new Date(),
             name: "New Workflow",
-            nodes: [],
-            edges: [],
-            bots: [],
-            runsList: [],
+            graph: [],
         });
         navigate(`/workflows/${workflowRef.id}`);
     };

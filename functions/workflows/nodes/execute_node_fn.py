@@ -30,6 +30,10 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
         preload_vars = {
             'output': {},
             'node_input': input_data,
+            'user_id': user_id,
+            'workflow_id': workflow_id,
+            'run_id': run_id,
+            'node_id': node_id
         }
 
         # Convert preload variables to code
