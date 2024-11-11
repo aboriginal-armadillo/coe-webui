@@ -1,12 +1,13 @@
 const bluesky = `#
-# The 'Blue Sky' template is basically nothing. Just a reminder that data coming
-# into the node is stored in the 'node_input' variable and data going out of the
-# node is stored in the 'output' variable. Both are dictionaries.
-#
+# The following variables are predefined:
+# 
+# node_input: (dict) The input data for the node
+# user_id: (str) The user ID
+# workflow_id: (str) The workflow ID
+# run_id: (str) The run ID
+# node_id: (str) The node ID
+  
 
-counter = node_input.get('counter', 0)
-counter += 1
-output = {'counter': counter}
 `;
 
 export default bluesky;
