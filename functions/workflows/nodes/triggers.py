@@ -16,9 +16,15 @@ def trigger_next_nodes(uid, workflow_id, run_id, node_id):
     run_doc = run_ref.get()
     if run_doc.exists:
         run_data = run_doc.to_dict()
-        edges = run_data.get('edges', {})
+        edges = {}
+        for e in run_data['graph']['edges']:
+            source = e['source']
+            target = e['target']
+            if source not in edges:
+                edges[source] = []  # Initialize a list if the source is not already in the dictionary
+            edges[source].append(target)
         next_nodes = edges.get(node_id, [])
-
+        log_to_run(uid, workflow_id, run_id, f"Next nodes for node {node_id}: {next_nodes}")
         if len(next_nodes) == 0:
             log_to_run(uid, workflow_id, run_id, f"No next nodes for node {node_id}")
             # todo this isn't right, it could just be a terminal node, but other paths are still active.

@@ -5,6 +5,7 @@ import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/theme-monokai';
 import bluesky from '../../../templates/bluesky';
 import llmDeepinfra from '../../../templates/llmDeepinfra';
+import mapNodes from "../../../templates/mapNodes";
 import template2 from '../../../templates/template2';
 
 
@@ -17,6 +18,7 @@ const WorkflowBuilderModal = ({ node, onHide, onSave }) => {
   const templates = {
     'Blue Sky': bluesky,
     'LLM from Deep Infra': llmDeepinfra,
+    'Map/Reduce' : mapNodes,
     'Greet User': template2
   };
 
