@@ -57,24 +57,28 @@ const RunViewer = ({ user }) => {
 
   useEffect(() => {
     const db = getFirestore(app);
-    const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
-    const runRef = doc(workflowRef, 'runs', runId);
+    const runRef = doc(db, 'users', user.uid, 'workflows', workflowId, 'runs', runId);
 
-    // Initial data fetch for structure
-    getDoc(workflowRef).then((docSnap) => {
-      const data = docSnap.data();
-      const graph = data.graph;
-      if (graph) {
-        setNodes(graph.nodes);
-        setEdges(graph.edges);
-      }
-    });
-
-     // Subscribe to run document for logs
+    // Subscribe to real-time updates in run document for graph and logs
     const unsubscribeRun = onSnapshot(runRef, (docSnap) => {
       const runData = docSnap.data();
-      if (runData && runData.logs) {
-        setRunLogs(runData.logs);
+      if (runData) {
+        // Get and set graph data from run document
+        const graph = runData.graph;
+        if (graph) {
+          setNodes(graph.nodes || []);
+          setEdges(graph.edges || []);
+        }
+
+        // Get and set logs from run document
+        if (runData.logs) {
+          setRunLogs(runData.logs);
+        }
+
+        // Get and set run name
+        if(runData.runName) {
+          setRunName(runData.runName || `Run ${runId}`);
+        }
       }
     });
 
@@ -106,12 +110,13 @@ const RunViewer = ({ user }) => {
         }))
       );
     });
+
     return () => {
       unsubscribeRun();
-        unsubscribeNodes();
-    }
-     // eslint-disable-next-line
-  }, [runId, workflowId]);
+      unsubscribeNodes();
+    };
+    // eslint-disable-next-line
+  }, [runId, workflowId, user.uid]);
 
   const styledNodes = nodes.map((node) => {
     const status = nodeStatuses[node.id] || 'unknown';
