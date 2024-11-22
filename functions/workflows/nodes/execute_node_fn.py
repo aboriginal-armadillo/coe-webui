@@ -26,22 +26,7 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
 
         # Prepare input data
         input_data = node_data.get('input', {})
-
-        # Preload variables
-        preload_vars = {
-            'output': {},
-            'node_input': input_data,
-            'user_id': user_id,
-            'workflow_id': workflow_id,
-            'run_id': run_id,
-            'node_id': node_id
-        }
-
-        # Convert preload variables to code
-        preload_code = '\n'.join(f"{key} = {json.dumps(value)}" for key, value in preload_vars.items())
-
-        # Compile the code using RestrictedPython
-        compiled_code = compile_restricted(preload_code + "\n" + code, '<string>', 'exec')
+        output_data = {}
 
         # Create a restricted environment
         env = {
@@ -53,8 +38,16 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
             '_write_': full_write_guard,
             '_getiter_': default_guarded_getiter,
             "_iter_unpack_sequence_": guarded_iter_unpack_sequence,
-
+            'output': output_data,
+            'node_input': input_data,
+            'user_id': user_id,
+            'workflow_id': workflow_id,
+            'run_id': run_id,
+            'node_id': node_id
         }
+
+        # Compile the code using RestrictedPython
+        compiled_code = compile_restricted(code, '<string>', 'exec')
 
         # Execute the compiled code
         exec(compiled_code, env, env)
