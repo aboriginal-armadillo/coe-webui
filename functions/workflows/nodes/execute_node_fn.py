@@ -14,10 +14,6 @@ from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getit
 
 from RestrictedPython.Guards import full_write_guard
 
-# def unguarded_getitem(ob, index):
-#     # No restrictions.
-#     return ob[index]
-
 def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
     log_to_run(user_id, workflow_id, run_id, f"Executing node function for node {node_id}")
     # Update node status to 'Running'
