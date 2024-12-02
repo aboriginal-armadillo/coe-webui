@@ -1,4 +1,4 @@
-from firebase_functions import logger, firestore_fn
+from firebase_functions import logger, firestore_fn, options
 from firebase_admin import firestore
 
 from .execute_node_fn import execute_node_fn
@@ -44,7 +44,9 @@ def trigger_next_nodes(uid, workflow_id, run_id, node_id):
                 })
 
 
-@firestore_fn.on_document_updated(document='users/{uid}/workflows/{workflow_id}/runs/{run_id}/nodes/{node_id}')
+@firestore_fn.on_document_updated(document='users/{uid}/workflows/{workflow_id}/runs/{run_id}/nodes/{node_id}',
+                                  memory=options.MemoryOption.GB_1,
+                                    timeout_sec=360)
 def node_status_changed(event):
     uid = event.params['uid']
     workflow_id = event.params['workflow_id']

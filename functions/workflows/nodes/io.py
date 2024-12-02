@@ -42,7 +42,8 @@ def update_next_node_input(uid, workflow_id, run_id, next_node_id, prev_node_id)
     existing_input = next_node_doc.to_dict().get('input', []) if next_node_doc.exists else []
 
     # Merge outputs into a list
-    merged_input = existing_input + [prev_output]
+    merged_input = {'existing_input': existing_input,
+                    'prev_output' : prev_output}
 
     # Update the next node's input in Firestore
     next_node_ref.update({'input': merged_input})
