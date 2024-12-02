@@ -58,24 +58,41 @@ new_edges = []
 next_node_id = 'node-1'
 
 node_code = """
-# from time import sleep
-# i = int(node_id.split('-')[-1])
-# print('mapper node ', i)
+from time import sleep
+i = int(node_id.split('-')[-1].replace('_output', ''))
+print('mapper node ', i)
 print(node_input)
-# sleep(node_input[i][0])
-# output['value']= i
+# output = node_input
+# d = { "foo" : "foo" }
+d = { str(i) : i }  # key _must_ be a string
+output = d
+sleep(i)
+
 """
 
 reducer_node_code = """
+from workflows.utils import log_to_run
+input_list = ["" for i in range(len(node_input.items()))]
+o = 0
+for k, v in node_input.items():
+    i= int(k.split('-')[-1].replace('_output', ''))
+    input_list[i] = v
+    o = o + sum(v.values())
 
+output = {"total" : o}
 """
+
 for node_id in new_worker_nodes_ids + [reducer_node_id]:
 
     node_ref = run_ref.collection('nodes').document(node_id)
+    if node_id == reducer_node_id:
+        code_to_set = reducer_node_code
+    else:
+        code_to_set = node_code
     node_ref.set({
         'status': 'pending',
         'output': {},
-        'code': node_code  # Store the code in the node document
+        'code': code_to_set
         })
     # Calculate new positions based on offset
     new_position = {'x': parent_position['x'] + c * offset,
