@@ -18,13 +18,13 @@ from google.cloud import firestore
 log_to_run(user_id, workflow_id, run_id, "Starting Mapper Node")
 db = firestore.Client()
 # Get the parent node to inherit properties
-parent_node_ref = db.collection('users')\
-    .document(user_id)\
-    .collection('workflows')\
-    .document(workflow_id)\
-    .collection('runs')\
-    .document(run_id)\
-    .collection('nodes')\
+parent_node_ref = db.collection('users') \
+    .document(user_id) \
+    .collection('workflows') \
+    .document(workflow_id) \
+    .collection('runs') \
+    .document(run_id) \
+    .collection('nodes') \
     .document(node_id)
 
 parent_node_doc = parent_node_ref.get()
@@ -35,8 +35,8 @@ parent_width = parent_node_data.get('width', 150)
 parent_position = parent_node_data.get('position', {'x': 243, 'y': 107})
 parent_position_absolute = parent_node_data.get('positionAbsolute', {'x': 243, 'y': 107})
 
-run_ref = db.collection('users').document(user_id)\
-    .collection('workflows').document(workflow_id)\
+run_ref = db.collection('users').document(user_id) \
+    .collection('workflows').document(workflow_id) \
     .collection('runs').document(run_id)
 
 run_doc = run_ref.get()
@@ -93,7 +93,7 @@ for node_id in new_worker_nodes_ids + [reducer_node_id]:
         'status': 'pending',
         'output': {},
         'code': code_to_set
-        })
+    })
     # Calculate new positions based on offset
     new_position = {'x': parent_position['x'] + c * offset,
                     'y': parent_position['y'] + 0 * offset}
