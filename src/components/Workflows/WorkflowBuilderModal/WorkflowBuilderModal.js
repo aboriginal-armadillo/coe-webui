@@ -7,7 +7,7 @@ import bluesky from '../../../templates/bluesky';
 import llmDeepinfra from '../../../templates/llmDeepinfra';
 import mapNodes from "../../../templates/mapNodes";
 import template2 from '../../../templates/template2';
-
+import openai from '../../../templates/openai';
 
 const WorkflowBuilderModal = ({ node, onHide, onSave }) => {
   const [nodeName, setNodeName] = useState(node.data.label);
@@ -19,7 +19,8 @@ const WorkflowBuilderModal = ({ node, onHide, onSave }) => {
     'Blue Sky': bluesky,
     'LLM from Deep Infra': llmDeepinfra,
     'Map/Reduce' : mapNodes,
-    'Greet User': template2
+    'Greet User': template2,
+    'OpenAI-esque API Call' : openai
   };
 
   const handleNodeNameChange = (e) => {
