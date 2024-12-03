@@ -8,7 +8,9 @@ const RunViewerModal = ({ node, onHide }) => {
   const stdOut = node.data.stdOut;
 
   return (
-    <Modal show={true} onHide={onHide}>
+    <Modal show={true}
+           className={'modal-xl'}
+           onHide={onHide}>
       <Modal.Header closeButton>
         <Modal.Title>{node.id}</Modal.Title>
       </Modal.Header>

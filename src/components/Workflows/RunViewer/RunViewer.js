@@ -164,7 +164,9 @@ const RunViewer = ({ user }) => {
       </div>
       <div style={{ height: '80vh', border: '1px solid #ddd' }}>
         {modalNode && (
-        <RunViewerModal node={modalNode} onHide={() => setModalNode(null)} />
+        <RunViewerModal node={modalNode}
+                        className={'modal-lg'}
+                        onHide={() => setModalNode(null)} />
       )}
         <ReactFlow
           nodes={styledNodes}
