@@ -24,7 +24,7 @@ function TagChat({ show, handleClose, chatId, user, existingTags }) {
     }, [chatId, user]);
 
     const handleAddTag = () => {
-        if (newTag && !chatTags.includes(newTag)) {
+        if (newTag &&!chatTags.includes(newTag)) {
             setChatTags([...chatTags, newTag]);
             setNewTag('');
         }
@@ -39,7 +39,7 @@ function TagChat({ show, handleClose, chatId, user, existingTags }) {
 
     const handleTagClick = (tag) => {
         if (chatTags.includes(tag)) {
-            setChatTags(chatTags.filter(t => t !== tag));
+            setChatTags(chatTags.filter(t => t!== tag));
         } else {
             setChatTags([...chatTags, tag]);
         }
@@ -61,12 +61,24 @@ function TagChat({ show, handleClose, chatId, user, existingTags }) {
                     <Button onClick={handleAddTag}>Add Tag</Button>
                 </InputGroup>
                 <div className="mb-3">
-                    {existingTags.map(tag => (
+                    {chatTags.map(tag => (
                         <Badge
                             pill
                             key={tag}
                             className="m-1"
-                            bg={chatTags.includes(tag) ? 'primary' : 'secondary'}
+                            bg={existingTags.includes(tag) || chatTags.includes(tag)? 'primary' : 'secondary'}
+                            onClick={() => handleTagClick(tag)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                    {existingTags.filter(tag =>!chatTags.includes(tag)).map(tag => (
+                        <Badge
+                            pill
+                            key={tag}
+                            className="m-1"
+                            bg="secondary"
                             onClick={() => handleTagClick(tag)}
                             style={{ cursor: 'pointer' }}
                         >
