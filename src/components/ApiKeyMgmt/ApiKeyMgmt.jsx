@@ -97,6 +97,7 @@ function ApiKeyMgmt({ user }) {
                         <Dropdown.Item eventKey="Github">Github</Dropdown.Item>
                         <Dropdown.Item eventKey="Google">Google</Dropdown.Item>
                         <Dropdown.Item eventKey="deepinfra">deepinfra</Dropdown.Item>
+                        <Dropdown.Item eventKey="deepseek">deepseek</Dropdown.Item>
                     </DropdownButton>
                 </Col>
                 <Col xs={4}>

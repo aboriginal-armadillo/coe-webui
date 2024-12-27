@@ -12,6 +12,7 @@ from councilofelders.deepinfra import DeepInfraAgent
 from councilofelders.anthropic import AnthropicAgent
 from councilofelders.replicate import ReplicateLlamaAgent, ReplicateGraniteAgent
 from councilofelders.vertex import GemeniAgent
+from councilofelders.deepseek import DeepseekAgent
 
 import ebooklib
 from ebooklib import epub
@@ -183,6 +184,13 @@ def call_next_msg(req: https_fn.CallableRequest) -> Any:
                                 temperature=req.data['temperature'],
                                 name=req.data['name'],
                                 api_key=api_key)
+        elif service == "deepseek":
+            logger.log("deepseek service selected")
+            agent = DeepInfraAgent(model=req.data['model'],
+                                   system_prompt=req.data['system_prompt'],
+                                   temperature=req.data['temperature'],
+                                   name=req.data['name'],
+                                   api_key=api_key)
         elif service == "Anthropic":
             logger.log("Anthropic service selected")
             agent = AnthropicAgent(model=req.data['model'],
