@@ -8,7 +8,14 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  addDoc,
+  collection, Timestamp
+} from 'firebase/firestore';
 import app from '../../../firebase';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -28,6 +35,32 @@ const WorkflowBuilder = ({ user }) => {
   const db = getFirestore(app);
 
   const updateRef = useRef(false); // Ref to control when saving should occur
+
+  const [workflowName, setWorkflowName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+
+  useEffect(() => {
+    const fetchWorkflowName = async () => {
+      try {
+        const db = getFirestore(app);
+        const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+        const docSnap = await getDoc(workflowRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setWorkflowName(data.name || 'Untitled Workflow');
+        } else {
+          console.log('Workflow not found');
+          setError('Workflow not found.');
+        }
+      } catch (e) {
+        console.log('Error fetching the workflow:', e);
+        setError('An error occurred while fetching the workflow.');
+      }
+    };
+
+    fetchWorkflowName();
+  }, [workflowId, user.uid, db]);
 
   useEffect(() => {
     const fetchWorkflowData = async () => {
@@ -163,42 +196,86 @@ const WorkflowBuilder = ({ user }) => {
     return <div className="container">{error}</div>;
   }
 
+  const copyWorkflow = async () => {
+    try {
+      const db = getFirestore(app);
+      const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+      const docSnap = await getDoc(workflowRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const newWorkflowName = `Copy of ${data.name || 'Untitled Workflow'}`;
+        const newWorkflowRef = await addDoc(collection(db, 'users', user.uid, 'workflows'), {
+          name: newWorkflowName,
+          graph: data.graph,
+          createdAt: Timestamp.now()
+        });
+
+        navigate(`/workflows/${newWorkflowRef.id}`);
+      } else {
+        console.log('Workflow not found');
+      }
+    } catch (e) {
+      console.log('Error copying the workflow:', e);
+    }
+  };
+
   return (
-    <div className="container">
-      <h1>Workflow Builder</h1>
-      <div className="mb-2">
-        <Button variant="primary" onClick={onAddNode}>
-          Add Node
-        </Button>{' '}
-        <Button variant="success" onClick={onRun}>
-          Run
-        </Button>
+      <div className="container">
+        <h1 onClick={() => setIsEditingName(true)}>
+          {isEditingName ? (
+              <input
+                  type="text"
+                  value={workflowName}
+                  onChange={(e) => setWorkflowName(e.target.value)}
+                  onBlur={async () => {
+                    const db = getFirestore(app);
+                    const workflowRef = doc(db, 'users', user.uid, 'workflows', workflowId);
+                    await setDoc(workflowRef, {name: workflowName}, {merge: true});
+                    setIsEditingName(false);
+                  }}
+                  autoFocus
+              />
+          ) : (
+              workflowName
+          )}
+        </h1>
+        <div className="mb-2">
+          <Button variant="primary" onClick={onAddNode}>
+            Add Node
+          </Button>{' '}
+          <Button variant="success" onClick={onRun}>
+            Run
+          </Button>{' '}
+          <Button variant="info" onClick={copyWorkflow}>
+            Copy To New Workflow
+          </Button>
+        </div>
+        <div style={{height: '80vh', border: '1px solid #ddd'}}>
+          <ReactFlowProvider>
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onNodeClick={handleNodeClick}
+                fitView
+            >
+              <Background/>
+              <Controls/>
+            </ReactFlow>
+          </ReactFlowProvider>
+          {modalNode && (
+              <WorkflowBuilderModal
+                  node={modalNode}
+                  onHide={() => setModalNode(null)}
+                  onSave={handleSaveNode}
+              />
+          )}
+        </div>
+        <RunsList workflowId={workflowId} user={user}/>
       </div>
-      <div style={{ height: '80vh', border: '1px solid #ddd' }}>
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={handleNodeClick}
-            fitView
-          >
-            <Background />
-            <Controls />
-          </ReactFlow>
-        </ReactFlowProvider>
-        {modalNode && (
-          <WorkflowBuilderModal
-            node={modalNode}
-            onHide={() => setModalNode(null)}
-            onSave={handleSaveNode}
-          />
-        )}
-      </div>
-      <RunsList workflowId={workflowId} user={user} />
-    </div>
   );
 };
 

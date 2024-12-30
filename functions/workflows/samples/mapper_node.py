@@ -64,10 +64,22 @@ def map_node(
     existing_nodes = run_data.get('graph', {}).get('nodes', [])
     existing_edges = run_data.get('graph', {}).get('edges', [])
 
+    if next_node_id is None:
+        log_to_run(user_id, workflow_id, run_id, 'Attempting to infer next_node id')
+        next_node_ids = [edge['target'] for edge in existing_edges
+                         if edge['source'] == node_id]
+        if len(next_node_ids) > 1:
+            next_node_options = ", ".join(next_node_ids)
+            log_to_run(user_id, workflow_id, run_id, f"WARNING: Inferred next-node-id but there were multiple options: {next_node_options}")
+        elif len(next_node_ids) < 1:
+            log_to_run(user_id, workflow_id, run_id, "FAILURE IMMINENT: Tried to infer next-node-id but no options, did you forget an edge?")
+        else:
+            next_node_id = next_node_ids[0]
+            log_to_run(user_id, workflow_id, run_id, f'Inferred next-node-id: {next_node_id}')
+
     existing_edges = [
         edge for edge in existing_edges
         if edge['source'] != node_id  ]
-
 
     for node_id in new_worker_nodes_ids + [reducer_node_id]:
 
