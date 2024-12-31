@@ -31,7 +31,7 @@ from workflows.samples.hierarchy.mapper import mapper
 from workflows.utils import log_to_run
 node_input_keys = ",".join(list(node_input.keys()))
 log_to_run('{user_id}', '{workflow_id}', '{run_id}', "Mapper Node Code node_input: " + node_input_keys, "DEBUG")
-output = mapper('{node_id}', '{user_id}','{workflow_id}', '{run_id}', {json.dumps(node_input_dict)}, {json.dumps(node_input_dict)}, '{node_id}', '{daddy_node_id}', {str(terminal)})
+output = mapper('{node_id}', '{user_id}','{workflow_id}', '{run_id}', {json.dumps(node_input_dict)}, node_input, '{node_id}', '{daddy_node_id}', {str(terminal)})
 """
 
     reducer_node_code = f"""
