@@ -23,11 +23,13 @@ def map_node(
         reducer_node_code:str,
         map_node_base:str = "map-node",
         reducer_node_id:str = 'reducer-node-id',
+        x_adj: int = 5,
+        y_adj: int = 0,
+        offset: int = 50
 
 ):
 
-    c = 5
-    offset = 50
+
     mapper_node_id = node_id
 
     new_worker_nodes_ids  = [f"{map_node_base}-{i}" for i in range(nodes_to_create)]
@@ -70,9 +72,10 @@ def map_node(
                          if edge['source'] == node_id]
         if len(next_node_ids) > 1:
             next_node_options = ", ".join(next_node_ids)
-            log_to_run(user_id, workflow_id, run_id, f"WARNING: Inferred next-node-id but there were multiple options: {next_node_options}")
+            log_to_run(user_id, workflow_id, run_id, f"Inferred next-node-id but there were multiple options: {next_node_options}", "WARNING")
+            log_to_run(user_id, workflow_id, run_id, f"Inferred next-node-id but there were multiple options: {node_id}", "WARNING")
         elif len(next_node_ids) < 1:
-            log_to_run(user_id, workflow_id, run_id, "FAILURE IMMINENT: Tried to infer next-node-id but no options, did you forget an edge?")
+            log_to_run(user_id, workflow_id, run_id, "Tried to infer next-node-id but no options, did you forget an edge?", "FAILURE IMMINENT:")
         else:
             next_node_id = next_node_ids[0]
             log_to_run(user_id, workflow_id, run_id, f'Inferred next-node-id: {next_node_id}')
@@ -94,11 +97,11 @@ def map_node(
             'code': code_to_set
         })
         # Calculate new positions based on offset
-        new_position = {'x': parent_position['x'] + c * offset,
-                        'y': parent_position['y'] + 0 * offset}
-        new_position_absolute = {'x': parent_position_absolute['x'] + c * offset,
-                                 'y': parent_position_absolute['y'] + 0 * offset}
-        c = c + 1
+        new_position = {'x': parent_position['x'] + x_adj * offset,
+                        'y': parent_position['y'] + y_adj * offset}
+        new_position_absolute = {'x': parent_position_absolute['x'] + x_adj * offset,
+                                 'y': parent_position_absolute['y'] + y_adj * offset}
+        x_adj = x_adj + 1
         if node_id != reducer_node_id:
             new_graph_nodes.append({
                 'data': {
@@ -148,8 +151,9 @@ def map_node(
                 'target': next_node_id,
                 'targetHandle' : None
             })
+            log_to_run(user_id, workflow_id, run_id, f"adding {nodes_to_create} nodes." )
             run_ref.update({
-                'logs': firestore.ArrayUnion([f"adding {nodes_to_create} nodes."]),
+
                 'graph': {
                     'nodes': firestore.ArrayUnion(existing_nodes + new_graph_nodes),
                     'edges': firestore.ArrayUnion(existing_edges + new_edges)
