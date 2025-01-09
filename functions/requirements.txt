@@ -15,4 +15,5 @@ pymupdf==1.24.5
 tiktoken==0.6.0
 html2text==2024.2.26
 RestrictedPython==7.2
+GitPython==3.1.44
 

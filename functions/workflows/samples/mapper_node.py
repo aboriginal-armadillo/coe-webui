@@ -25,7 +25,7 @@ def map_node(
         reducer_node_id:str = 'reducer-node-id',
         x_adj: int = 5,
         y_adj: int = 0,
-        offset: int = 50
+        offset: int = -10
 
 ):
 
@@ -49,13 +49,27 @@ def map_node(
         .collection('nodes') \
         .document(node_id)
 
+    grantparent_node_ref =  db.collection('users') \
+        .document(user_id) \
+        .collection('workflows') \
+        .document(workflow_id)
+
     parent_node_doc = parent_node_ref.get()
     parent_node_data = parent_node_doc.to_dict() if parent_node_doc.exists else {}
+
+    grandparent_node_doc = grantparent_node_ref.get()
+    grandparent_node_data = grandparent_node_doc.to_dict() if grandparent_node_doc.exists else {}
     # Inherit properties from the parent node
-    parent_height = parent_node_data.get('height', 40)  # Default values if not available
-    parent_width = parent_node_data.get('width', 150)
-    parent_position = parent_node_data.get('position', {'x': 243, 'y': 107})
-    parent_position_absolute = parent_node_data.get('positionAbsolute', {'x': 243, 'y': 107})
+    grandparent_height = grandparent_node_data.get('height', 40)
+    grandparent_width = grandparent_node_data.get('width', 150)
+    grantparent_position = grandparent_node_data.get('position', {'x': 243, 'y': 107})
+    grandparent_position_absolute = grandparent_node_data.get('positionAbsolute', {'x': 243, 'y': 107})
+
+    parent_height = parent_node_data.get('height', grandparent_height)  # Default values if not available
+    parent_width = parent_node_data.get('width', grandparent_width)
+    parent_position = parent_node_data.get('position', grantparent_position)
+    parent_position_absolute = parent_node_data.get('positionAbsolute', grandparent_position_absolute)
+    log_to_run(user_id, workflow_id, run_id, "Parent posititon - " + str (parent_position), "DEBUG")
 
     run_ref = db.collection('users').document(user_id) \
         .collection('workflows').document(workflow_id) \
@@ -98,9 +112,9 @@ def map_node(
         })
         # Calculate new positions based on offset
         new_position = {'x': parent_position['x'] + x_adj * offset,
-                        'y': parent_position['y'] + y_adj * offset}
+                        'y': parent_position['y'] + y_adj}
         new_position_absolute = {'x': parent_position_absolute['x'] + x_adj * offset,
-                                 'y': parent_position_absolute['y'] + y_adj * offset}
+                                 'y': parent_position_absolute['y'] + y_adj}
         x_adj = x_adj + 1
         if node_id != reducer_node_id:
             new_graph_nodes.append({

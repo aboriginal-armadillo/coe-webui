@@ -69,7 +69,10 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
         stack_trace = traceback.format_exc()
         update_node_status(user_id, workflow_id, run_id, node_id, 'failed')
         error_message = f"Node {node_id} failed with error: {e}"
-        print(error_message)
+        stack_list = traceback.format_stack()
+        # Join the list of strings into a single string to print
+        stack_str = "".join(stack_list)
         # Log the error message and stack trace
-        log_to_run(user_id, workflow_id, run_id, error_message)
-        log_to_run(user_id, workflow_id, run_id, stack_trace)
+        log_to_run(user_id, workflow_id, run_id, error_message, 'ERROR')
+        log_to_run(user_id, workflow_id, run_id, stack_trace, 'ERROR')
+        log_to_run(user_id, workflow_id, run_id, stack_list, 'DEBUG - ERROR')

@@ -14,9 +14,6 @@ def mapper(node_id,
            outline_node_id: str,
            terminal: bool
            ):
-    # log_to_run(user_id, workflow_id, run_id, f"Mapper Node input keys: {list(node_input.keys())}")
-    # log_to_run(user_id, workflow_id, run_id, f"DEBUG: Mapper Node input keys: {list(node_input[f'{outline_node_id}_output'].keys())}")
-    #
 
     if len(node_input.keys()) == 0:
         log_to_run(user_id, workflow_id, run_id, f"Mapper Node- empty node input, using parent node input", "DEBUG")
