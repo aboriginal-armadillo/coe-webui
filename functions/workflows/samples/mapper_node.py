@@ -59,6 +59,7 @@ def map_node(
 
     grandparent_node_doc = grantparent_node_ref.get()
     grandparent_node_data = grandparent_node_doc.to_dict() if grandparent_node_doc.exists else {}
+    grandparent_node_data = next((d for d in grandparent_node_data['graph']['nodes'] if d['id'] == node_id), None)
     # Inherit properties from the parent node
     grandparent_height = grandparent_node_data.get('height', 40)
     grandparent_width = grandparent_node_data.get('width', 150)
