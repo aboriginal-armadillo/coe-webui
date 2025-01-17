@@ -23,6 +23,7 @@ const RunViewer = ({ user }) => {
   const [runLogs, setRunLogs] = useState([]);
   const [runName, setRunName] = useState('');
   const [isEditingRunName, setIsEditingRunName] = useState(false);
+
   const handleNodeClick = (event, node) => {
     setModalNode(node);
   };
@@ -33,14 +34,14 @@ const RunViewer = ({ user }) => {
 
     // Fetch run data including name
     getDoc(runRef).then((docSnap) => {
-      if (docSnap.exists) {
+      if (docSnap.exists()) {
         const data = docSnap.data();
         setRunName(data.runName || `Run ${runId}`);
       }
     });
   }, [runId, workflowId, user.uid]);
 
-    const handleRunNameChange = (event) => {
+  const handleRunNameChange = (event) => {
     setRunName(event.target.value);
   };
 
@@ -76,7 +77,7 @@ const RunViewer = ({ user }) => {
         }
 
         // Get and set run name
-        if(runData.runName) {
+        if (runData.runName) {
           setRunName(runData.runName || `Run ${runId}`);
         }
       }
@@ -101,13 +102,13 @@ const RunViewer = ({ user }) => {
 
       // Merge node data with existing nodes
       setNodes((prevNodes) =>
-        prevNodes.map((node) => ({
-          ...node,
-          data: {
-            ...node.data,
-            ...nodeData[node.id], // Merge input/output data
-          },
-        }))
+          prevNodes.map((node) => ({
+            ...node,
+            data: {
+              ...node.data,
+              ...nodeData[node.id], // Merge input/output data
+            },
+          }))
       );
     });
 
@@ -147,50 +148,56 @@ const RunViewer = ({ user }) => {
     };
   });
 
+  // Ensure unique keys for edges
+  const uniqueEdges = edges.map((edge) => ({
+    ...edge,
+    id: `edge-${edge.source}-${edge.target}`,
+  }));
+
   return (
-    <div className="container">
-      <div>
-       {isEditingRunName ? (
-         <input
-            type="text"
-            value={runName}
-            onChange={handleRunNameChange}
-            onBlur={handleRunNameBlur}
-            autoFocus
-          />
-       ) : (
-         <h1 onClick={handleRunNameClick}>{runName}</h1>
-       )}
-      </div>
-      <div style={{ height: '80vh', border: '1px solid #ddd' }}>
-        {modalNode && (
-        <RunViewerModal node={modalNode}
-                        className={'modal-lg'}
-                        onHide={() => setModalNode(null)} />
-      )}
-        <ReactFlow
-          nodes={styledNodes}
-          onNodeClick={handleNodeClick}
-          edges={edges}
-          nodesDraggable={false}
-          elementsSelectable={false}
-          fitView={true}
-        >
-          <Background />
-          <Controls />
-        </ReactFlow>
-      </div>
-      {runLogs && runLogs.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <h3>Run Logs:</h3>
-          <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
+      <div className="container">
+        <div>
+          {isEditingRunName ? (
+              <input
+                  type="text"
+                  value={runName}
+                  onChange={handleRunNameChange}
+                  onBlur={handleRunNameBlur}
+                  autoFocus
+              />
+          ) : (
+              <h1 onClick={handleRunNameClick}>{runName}</h1>
+          )}
+        </div>
+        <div style={{ height: '80vh', border: '1px solid #ddd' }}>
+          {modalNode && (
+              <RunViewerModal node={modalNode}
+                              className={'modal-lg'}
+                              onHide={() => setModalNode(null)} />
+          )}
+          <ReactFlow
+              nodes={styledNodes}
+              onNodeClick={handleNodeClick}
+              edges={uniqueEdges}
+              nodesDraggable={false}
+              elementsSelectable={false}
+              fitView={true}
+          >
+            <Background />
+            <Controls />
+          </ReactFlow>
+        </div>
+        {runLogs && runLogs.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+              <h3>Run Logs:</h3>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
             <pre style={{ fontFamily: 'Courier, monospace' }}>
               {runLogs.join('\n')}
             </pre>
-          </div>
-        </div>
-      )}
-    </div>
+              </div>
+            </div>
+        )}
+      </div>
   );
 };
 
