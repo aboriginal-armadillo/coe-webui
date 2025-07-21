@@ -10,8 +10,8 @@ from ..utils import log_to_run, db
 def trigger_next_nodes(uid, workflow_id, run_id, node_id):
     log_to_run(uid, workflow_id, run_id, f"Triggering next nodes for node {node_id}")
     # Fetch run edges from Firestore
-    run_ref = db.collection('users').document(uid)\
-        .collection('workflows').document(workflow_id)\
+    run_ref = db.collection('users').document(uid) \
+        .collection('workflows').document(workflow_id) \
         .collection('runs').document(run_id)
     run_doc = run_ref.get()
     if run_doc.exists:
@@ -35,13 +35,14 @@ def trigger_next_nodes(uid, workflow_id, run_id, node_id):
                 # Update input for next node
                 update_next_node_input(uid, workflow_id, run_id, next_node_id, node_id)
                 # Trigger the next node's Cloud Function
-                next_node_ref = db.collection('users').document(uid)\
-                    .collection('workflows').document(workflow_id)\
-                    .collection('runs').document(run_id)\
+                next_node_ref = db.collection('users').document(uid) \
+                    .collection('workflows').document(workflow_id) \
+                    .collection('runs').document(run_id) \
                     .collection('nodes').document(next_node_id)
                 next_node_ref.update({
                     'status': 'Preparing to Run'
                 })
+                log_to_run(uid, workflow_id, run_id, f"{next_node_id} trigger complete", "DEBUG")
 
 
 @firestore_fn.on_document_updated(document='users/{uid}/workflows/{workflow_id}/runs/{run_id}/nodes/{node_id}',

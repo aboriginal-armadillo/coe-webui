@@ -59,7 +59,7 @@ function Message({ msg, updateSelectedChild, forkMessage, isShare }) {
         );
     };
 
-    const formatText = (text) => text.replace(/\n/g, '  \n');
+    const formatText = text => (text || '').replace(/\n/g, '  \n');
 
     const formatErrorMessage = error => {
         const lines = error.split('\n');

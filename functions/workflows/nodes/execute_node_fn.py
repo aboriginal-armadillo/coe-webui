@@ -1,34 +1,39 @@
-# functions/runs/nodes/triggers.py
 from firebase_functions import logger, firestore_fn
 from firebase_admin import firestore
-
-
 from .io import store_node_output, update_node_status
-from ..utils import log_to_run, db
+from ..utils import log_to_run, db, get_data_from_storage
 import traceback
 import json
 from RestrictedPython import compile_restricted
 from RestrictedPython.PrintCollector import PrintCollector
 from RestrictedPython.Guards import safe_builtins, guarded_iter_unpack_sequence
 from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
-
 from RestrictedPython.Guards import full_write_guard
 
 def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
     log_to_run(user_id, workflow_id, run_id, f"Executing node function for node {node_id}")
-    # Update node status to 'Running'
     update_node_status(user_id, workflow_id, run_id, node_id, 'running')
 
     try:
-        # Fetch the code from node_data
+        # Fetch the code from node_data  
         code = node_data.get('code', '')
         _print_ = PrintCollector
 
-        # Prepare input data
-        input_data = node_data.get('input', {})
+        # Prepare input data  
+        if 'input_path' in node_data:
+            data = get_data_from_storage(node_data['input_path'])
+            log_to_run(user_id, workflow_id, run_id, f"{node_id} downloading {len(data)} chars", "DEBUG")
+            input_data = json.loads(data)
+            log_to_run(user_id, workflow_id, run_id, f"{node_id}: loaded data from s3 {list(input_data.keys())}", "DEBUG")
+            input_sample = json.dumps(input_data)[:100]
+            log_to_run(user_id, workflow_id, run_id, f"{node_id}: loaded data from s3 {input_sample}", "DEBUG")
+        else:
+            log_to_run(user_id, workflow_id, run_id, f"{node_id}: no data found in s3...", "DEBUG")
+            input_data = node_data.get('input', {})
+
         output_data = {}
 
-        # Create a restricted environment
+        # Create a restricted environment  
         env = {
             '__builtins__': __builtins__,
             '_getattr_': getattr,
@@ -46,22 +51,18 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
             'node_id': node_id
         }
 
-        # Compile the code using RestrictedPython
+        # Compile and execute the code  
         compiled_code = compile_restricted(code, '<string>', 'exec')
-
-        # Execute the compiled code
         exec(compiled_code, env, env)
 
-        # Retrieve the output variable if it exists
+        # Retrieve the output variable  
         output_data = env.get('output', {'error': 'No output variable defined'})
 
-        # Retrieve stdout if any
-        if '_print' in env:
-            std_out = env['_print']()
-        else:
-            std_out = ""
+        # Retrieve stdout if any  
+        std_out = env['_print']() if '_print' in env else ""
 
-        # Store the output and update status to 'Completed'
+        log_to_run(user_id,workflow_id, run_id, f"{node_id} (execute_node_fn.py ln ~64) execute {json.dumps(output_data)[:50]}", "DEBUG")
+        # Store the output and update status  
         store_node_output(user_id, workflow_id, run_id, node_id, output_data, std_out)
         update_node_status(user_id, workflow_id, run_id, node_id, 'completed')
 
@@ -69,10 +70,5 @@ def execute_node_fn(user_id, workflow_id, run_id, node_id, node_data):
         stack_trace = traceback.format_exc()
         update_node_status(user_id, workflow_id, run_id, node_id, 'failed')
         error_message = f"Node {node_id} failed with error: {e}"
-        stack_list = traceback.format_stack()
-        # Join the list of strings into a single string to print
-        stack_str = "".join(stack_list)
-        # Log the error message and stack trace
         log_to_run(user_id, workflow_id, run_id, error_message, 'ERROR')
-        log_to_run(user_id, workflow_id, run_id, stack_trace, 'ERROR')
-        log_to_run(user_id, workflow_id, run_id, stack_list, 'DEBUG - ERROR')
+        log_to_run(user_id, workflow_id, run_id, stack_trace, 'ERROR')  
