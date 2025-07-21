@@ -173,7 +173,11 @@ const RunViewer = ({ user }) => {
           {modalNode && (
               <RunViewerModal node={modalNode}
                               className={'modal-lg'}
-                              onHide={() => setModalNode(null)} />
+                              onHide={() => setModalNode(null)}
+                              user={user}
+                              workflowId={workflowId}
+                              runId={runId}
+              />
           )}
           <ReactFlow
               nodes={styledNodes}

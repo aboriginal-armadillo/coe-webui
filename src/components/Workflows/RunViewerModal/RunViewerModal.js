@@ -1,10 +1,9 @@
-// src/components/Workflows/RunViewerModal/RunViewerModal.js
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Spinner } from 'react-bootstrap';
 import FullStringModal from './FullStringModal';
 import { getStorageData } from './storageUtils';
 
-const RunViewerModal = ({ node, onHide }) => {
+const RunViewerModal = ({ node, onHide, user, workflowId, runId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showFullStringModal, setShowFullStringModal] = useState(false);
@@ -17,15 +16,17 @@ const RunViewerModal = ({ node, onHide }) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch input data if inputPath exists
+        // Fetch input data if inputPath exists  
         if (node.data.inputPath) {
-          const inputData = await getStorageData(node.data.inputPath);
+          const inputPath = `/users/${user.uid}/workflows/${workflowId}/runs/${runId}/nodes/${node.id}/input.json`;
+          const inputData = await getStorageData(inputPath);
           setInput(inputData);
         }
 
-        // Fetch output data if outputPath exists
+        // Fetch output data if outputPath exists  
         if (node.data.outputPath) {
-          const outputData = await getStorageData(node.data.outputPath);
+          const outputPath = `/users/${user.uid}/workflows/${workflowId}/runs/${runId}/nodes/${node.id}/output.json`;
+          const outputData = await getStorageData(outputPath);
           setOutput(outputData);
         }
       } catch (err) {
@@ -37,7 +38,7 @@ const RunViewerModal = ({ node, onHide }) => {
     };
 
     fetchData();
-  }, [node.data.inputPath, node.data.outputPath]);
+  }, [node.id, node.data.inputPath, node.data.outputPath, runId, user.uid, workflowId]);
 
   const renderContent = (data) => {
     if (typeof data === 'object' && data !== null) {
@@ -63,8 +64,8 @@ const RunViewerModal = ({ node, onHide }) => {
               setShowFullStringModal(true);
             }}
             style={{ cursor: 'pointer', color: 'blue' }}
-        >
-        {truncatedString}
+        >  
+        {truncatedString}  
       </span>
     );
   };
@@ -101,9 +102,9 @@ const RunViewerModal = ({ node, onHide }) => {
                   {stdOut && (
                       <div>
                         <h5>Standard Output:</h5>
-                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    <pre style={{ fontFamily: 'Courier, monospace' }}>
-                      {renderContent(stdOut)}
+                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>  
+                    <pre style={{ fontFamily: 'Courier, monospace' }}>  
+                      {renderContent(stdOut)}  
                     </pre>
                         </div>
                       </div>
@@ -126,4 +127,4 @@ const RunViewerModal = ({ node, onHide }) => {
   );
 };
 
-export default RunViewerModal;
+export default RunViewerModal;  
